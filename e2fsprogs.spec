@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 8
+Release: 9
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -15,6 +15,7 @@ Patch7: e2fsprogs-1.35-next_check.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
+BuildRequires: gettext, texinfo
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -186,6 +187,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Sun Aug  8 2004 Alan Cox <alan@redhat.com>
+- Close #125316 (buildreq texinfo, gettext)
+
 * Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
 - rebuilt
 

@@ -4,15 +4,13 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 4
+Release: 7
 License: GPL
 Group: System Environment/Base
-Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}-WIP-1207.tar.gz
+Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
+#Source: ftp://ftp.debian.org/debian/pool/main/e/e2fsprogs/e2fsprogs_1.34+1.35-WIP-2004.01.31.orig.tar.gz
 Patch2: e2fsprogs-1.27-nostrip.patch
-Patch4: e2fsprogs-1.32-mainframe.patch
-Patch5: e2fsprogs-1.32-s390.patch
 Patch6: e2fsprogs-1.32-nosync.patch
-Patch7: e2fsprogs-1.35-fix.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -47,12 +45,9 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q -n e2fsprogs-1.35
+#%setup -q -n e2fsprogs-1.34+1.35-WIP-2004.01.31
 %patch2 -p1 -b .nostrip
-#%patch4 -p1 -b .mainframe
-%patch5 -p1 -b .s390
 %patch6 -p1 -b .nosync
-%patch7 -p1
-#chmod 644 po/*.po
 
 %build
 %configure --enable-elf-shlibs --enable-nls
@@ -107,6 +102,7 @@ exit 0
 %{_root_sbindir}/mkfs.ext3
 %{_root_sbindir}/resize2fs
 %{_root_sbindir}/tune2fs
+%{_sbindir}/filefrag
 %{_sbindir}/mklost+found
 
 %{_root_libdir}/libblkid.so.*
@@ -131,6 +127,7 @@ exit 0
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
 %{_mandir}/man8/findfs.8*
+%{_mandir}/man8/filefrag.8*
 %{_mandir}/man8/fsck.ext2.8*
 %{_mandir}/man8/fsck.ext3.8*
 %{_mandir}/man8/e2image.8*
@@ -187,6 +184,21 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Mar 15 2004 Thomas Woerner <twoerner@redhat.com> 1.35-7
+- final 1.35
+
+* Tue Mar 02 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Fri Feb 13 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Thu Feb  5 2004 Thomas Woerner <twoerner@redhat.com> 1.35-5.1
+- C++ header fix for ext2fs.h
+
+* Thu Feb  5 2004 Thomas Woerner <twoerner@redhat.com> 1.35-5
+- newest WIP version (2004.01.31)
+
 * Thu Jan 08 2004 Florian La Roche <Florian.LaRoche@redhat.de>
 - add patch from Dave Jones
 

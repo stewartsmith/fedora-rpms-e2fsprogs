@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.22
-Release: 2
+Release: 3
 Copyright: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -117,6 +117,16 @@ exit 0
 %{_mandir}/man1/lsattr.1*
 %{_mandir}/man1/uuidgen.1*
 
+%{_mandir}/man3/libuuid.3*
+%{_mandir}/man3/uuid_clear.3*
+%{_mandir}/man3/uuid_compare.3*
+%{_mandir}/man3/uuid_copy.3*
+%{_mandir}/man3/uuid_generate.3*
+%{_mandir}/man3/uuid_is_null.3*
+%{_mandir}/man3/uuid_parse.3*
+%{_mandir}/man3/uuid_time.3*
+%{_mandir}/man3/uuid_unparse.3*
+
 %{_mandir}/man8/badblocks.8*
 %{_mandir}/man8/debugfs.8*
 %{_mandir}/man8/dumpe2fs.8*
@@ -155,6 +165,9 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Tue Jul 24 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- add some more man-pages, patch by <Martin.Wilck@fujitsu-siemens.com>
+
 * Tue Jun 26 2001 Florian La Roche <Florian.LaRoche@redhat.de>
 - make sure "configure" is writable
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 11.1
+Release: 11.2
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -254,6 +254,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Oct 19 2004 Thomas Woerner <twoerner@redhat.com> 1.35-11.2
+- fixed macroname in changelog (#135413)
+- small enhancement of progress patch
+
 * Mon Oct  4 2004 Thomas Woerner <twoerner@redhat.com> 1.35-11.1
 - rebuilt
 
@@ -549,7 +553,7 @@ exit 0
 
 * Tue Feb  2 1999 Jeff Johnson <jbj@redhat.com>
 - update to 1.14
-- use %configure to generate config.sub on arm
+- use %%configure to generate config.sub on arm
 
 * Thu Jan 14 1999 Jeff Johnson <jbj@redhat.com>
 - fix /usr/bin/compile_et and doco for com_err.h (#673)

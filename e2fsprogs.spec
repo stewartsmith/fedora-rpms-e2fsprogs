@@ -4,11 +4,12 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.36
-Release: 1
+Release: 1.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
 Source1: http://sourceforge.net/projects/ext2resize/ext2resize-1.1.17.tar.bz2
+Patch1: e2fsprogs-1.36-getsize-wrap.patch
 Patch9: e2fsprogs-enable-resize.patch
 Patch10: ext2resize-cvs-20040419.patch
 Patch11: ext2resize-gcc34-fixes.patch
@@ -56,6 +57,8 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q -n e2fsprogs-%{version}
+# Fix size-estimations of >=4TB partitions
+%patch1 -p1 -b .getsize
 # Enable the resize inode by default
 %patch9 -p1 -b .resize-on
 
@@ -256,6 +259,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Feb 11 2005 Stephen C. Tweedie <sct@redhat.com> 1.36-1.1
+- Fix for >=4TB devices
+
 * Fri Feb 11 2005 Stephen C. Tweedie <sct@redhat.com> 1.36-1
 - Update to e2fsprogs-1.36
 

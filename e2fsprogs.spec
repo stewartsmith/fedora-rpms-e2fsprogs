@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 11
+Release: 11.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -254,6 +254,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Oct  4 2004 Thomas Woerner <twoerner@redhat.com> 1.35-11.1
+- rebuilt
+
 * Fri Sep 17 2004 Thomas Woerner <twoerner@redhat.com> 1.35-11
 - extended "-C" option of fsck to pass the file descriptor to the checker
   (#132543)

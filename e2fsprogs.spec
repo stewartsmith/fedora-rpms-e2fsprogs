@@ -3,14 +3,15 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.32
-Release: 6
+Version: 1.34
+Release: 1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
-Patch1: e2fsprogs-1.23-autoconf.patch
 Patch2: e2fsprogs-1.27-nostrip.patch
-Patch3: e2fsprogs-1.32-nohtree.patch
+Patch4: e2fsprogs-1.32-mainframe.patch
+Patch5: e2fsprogs-1.32-s390.patch
+Patch6: e2fsprogs-1.32-nosync.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -45,16 +46,16 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q
-%patch1 -p1
 %patch2 -p1
-%patch3 -p1
-
-chmod 755 configure
-autoconf
+#%patch4 -p1 -b .lr
+%patch5 -p1
+%patch6 -p1
+chmod 644 po/*.po
 
 %build
-%configure --enable-elf-shlibs
-make libs progs docs
+%configure --enable-elf-shlibs --enable-nls
+make
+make -C po
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -62,6 +63,9 @@ export PATH=/sbin:$PATH
 
 make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
+make install -C po DESTDIR="$RPM_BUILD_ROOT"
+
+%find_lang %{name}
 
 cd ${RPM_BUILD_ROOT}%{_libdir}
 ln -sf %{_root_libdir}/libcom_err.so.2 libcom_err.so
@@ -89,11 +93,12 @@ if [ $1 = 0 ]; then
 fi
 exit 0
 
-%files
+%files -f %{name}.lang
 %defattr(-,root,root)
 %doc README RELEASE-NOTES
 
 %{_root_sbindir}/badblocks
+%{_root_sbindir}/blkid
 %{_root_sbindir}/debugfs
 %{_root_sbindir}/dumpe2fs
 %{_root_sbindir}/e2fsck
@@ -103,6 +108,7 @@ exit 0
 %{_root_sbindir}/fsck
 %{_root_sbindir}/fsck.ext2
 %{_root_sbindir}/fsck.ext3
+%{_root_sbindir}/logsave
 %{_root_sbindir}/mke2fs
 %{_root_sbindir}/mkfs.ext2
 %{_root_sbindir}/mkfs.ext3
@@ -110,6 +116,7 @@ exit 0
 %{_root_sbindir}/tune2fs
 %{_sbindir}/mklost+found
 
+%{_root_libdir}/libblkid.so.*
 %{_root_libdir}/libcom_err.so.*
 %{_root_libdir}/libe2p.so.*
 %{_root_libdir}/libext2fs.so.*
@@ -137,6 +144,7 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %{_mandir}/man8/badblocks.8*
+%{_mandir}/man8/blkid.8*
 %{_mandir}/man8/debugfs.8*
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
@@ -146,6 +154,7 @@ exit 0
 %{_mandir}/man8/e2image.8*
 %{_mandir}/man8/e2label.8*
 %{_mandir}/man8/fsck.8*
+%{_mandir}/man8/logsave.8*
 %{_mandir}/man8/mke2fs.8*
 %{_mandir}/man8/mkfs.ext2.8*
 %{_mandir}/man8/mkfs.ext3.8*
@@ -159,6 +168,7 @@ exit 0
 %{_bindir}/compile_et
 %{_bindir}/mk_cmds
 
+%{_libdir}/libblkid.a
 %{_libdir}/libcom_err.a
 %{_libdir}/libcom_err.so
 %{_libdir}/libe2p.a
@@ -172,15 +182,48 @@ exit 0
 
 %{_datadir}/et
 %{_datadir}/ss
+%{_includedir}/blkid
 %{_includedir}/e2p
 %{_includedir}/et
 %{_includedir}/ext2fs
 %{_includedir}/ss
 %{_includedir}/uuid
 %{_mandir}/man1/compile_et.1*
+%{_mandir}/man1/mk_cmds.1*
 %{_mandir}/man3/com_err.3*
+%{_mandir}/man3/libblkid.3*
 
 %changelog
+* Fri Aug 01 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.34
+- do not strip some more apps, should probably just change $(STRIP)...
+
+* Wed Jun 04 2003 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Thu May 08 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.33
+- enable translations
+
+* Fri Apr 18 2003 Jeremy Katz <katzj@redhat.com> 1.32-11
+- fix error message, do block size checking on s390 only
+
+* Thu Apr 17 2003 Jeremy Katz <katzj@redhat.com> 1.32-10
+- check the return code of BLKSSZGET ioctl() to avoid breaking with files
+
+* Tue Apr 15 2003 Phil Knirsch <pknirsch@redhat.com> 1.32-9
+- Improved dasd blocksize patch to make it more generic and work correctly.
+
+* Thu Mar 27 2003 Phil Knirsch <pknirsch@redhat.com> 1.32-8
+- Removed sync call from e2fsck target. Not needed anymore.
+
+* Wed Mar 26 2003 Phil Knirsch <pknirsch@redhat.com> 1.32-7
+- Fixed problem with mke2fs and default blocksize small partitions on dasd
+- Disabled Florians patch for now as it's a little incomplete. :-)
+
+* Sun Feb 23 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- add an ugly patch to read full lines of input during e2fsck for /dev/console
+
 * Wed Jan 22 2003 Tim Powers <timp@redhat.com>
 - rebuilt
 

@@ -3,15 +3,16 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.34
-Release: 1
+Version: 1.35
+Release: 4
 License: GPL
 Group: System Environment/Base
-Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
+Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}-WIP-1207.tar.gz
 Patch2: e2fsprogs-1.27-nostrip.patch
 Patch4: e2fsprogs-1.32-mainframe.patch
 Patch5: e2fsprogs-1.32-s390.patch
 Patch6: e2fsprogs-1.32-nosync.patch
+Patch7: e2fsprogs-1.35-fix.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -45,34 +46,26 @@ filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
 %prep
-%setup -q
-%patch2 -p1
-#%patch4 -p1 -b .lr
-%patch5 -p1
-%patch6 -p1
-chmod 644 po/*.po
+%setup -q -n e2fsprogs-1.35
+%patch2 -p1 -b .nostrip
+#%patch4 -p1 -b .mainframe
+%patch5 -p1 -b .s390
+%patch6 -p1 -b .nosync
+%patch7 -p1
+#chmod 644 po/*.po
 
 %build
 %configure --enable-elf-shlibs --enable-nls
+# --enable-dynamic-e2fsck
 make
-make -C po
 
 %install
 rm -rf $RPM_BUILD_ROOT
 export PATH=/sbin:$PATH
-
 make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
-make install -C po DESTDIR="$RPM_BUILD_ROOT"
-
+/sbin/ldconfig -n ${RPM_BUILD_ROOT}%{_libdir}
 %find_lang %{name}
-
-cd ${RPM_BUILD_ROOT}%{_libdir}
-ln -sf %{_root_libdir}/libcom_err.so.2 libcom_err.so
-ln -sf %{_root_libdir}/libe2p.so.2 libe2p.so
-ln -sf %{_root_libdir}/libext2fs.so.2 libext2fs.so
-ln -sf %{_root_libdir}/libss.so.2 libss.so
-ln -sf %{_root_libdir}/libuuid.so.1 libuuid.so
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -122,6 +115,7 @@ exit 0
 %{_root_libdir}/libext2fs.so.*
 %{_root_libdir}/libss.so.*
 %{_root_libdir}/libuuid.so.*
+%dir %{_root_libdir}/evms
 %{_root_libdir}/evms/libe2fsim.1.2.1.so
 
 %{_bindir}/chattr
@@ -130,18 +124,6 @@ exit 0
 %{_mandir}/man1/chattr.1*
 %{_mandir}/man1/lsattr.1*
 %{_mandir}/man1/uuidgen.1*
-
-%{_mandir}/man3/libuuid.3*
-%{_mandir}/man3/uuid_clear.3*
-%{_mandir}/man3/uuid_compare.3*
-%{_mandir}/man3/uuid_copy.3*
-%{_mandir}/man3/uuid_generate.3*
-%{_mandir}/man3/uuid_generate_random.3*
-%{_mandir}/man3/uuid_generate_time.3*
-%{_mandir}/man3/uuid_is_null.3*
-%{_mandir}/man3/uuid_parse.3*
-%{_mandir}/man3/uuid_time.3*
-%{_mandir}/man3/uuid_unparse.3*
 
 %{_mandir}/man8/badblocks.8*
 %{_mandir}/man8/blkid.8*
@@ -192,8 +174,44 @@ exit 0
 %{_mandir}/man1/mk_cmds.1*
 %{_mandir}/man3/com_err.3*
 %{_mandir}/man3/libblkid.3*
+%{_mandir}/man3/libuuid.3*
+%{_mandir}/man3/uuid_clear.3*
+%{_mandir}/man3/uuid_compare.3*
+%{_mandir}/man3/uuid_copy.3*
+%{_mandir}/man3/uuid_generate.3*
+%{_mandir}/man3/uuid_generate_random.3*
+%{_mandir}/man3/uuid_generate_time.3*
+%{_mandir}/man3/uuid_is_null.3*
+%{_mandir}/man3/uuid_parse.3*
+%{_mandir}/man3/uuid_time.3*
+%{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Thu Jan 08 2004 Florian La Roche <Florian.LaRoche@redhat.de>
+- add patch from Dave Jones
+
+* Sun Dec 14 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.35-WIP-1207
+
+* Fri Nov 14 2003 Phil Knirsch <pknirsch@redhat.com> 1.35-2
+- Updated s390 patch. It's not not arch dependant anymore but only changes the
+  default blocksizes when necessary.
+
+* Mon Nov 10 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- own /lib/evwms directory  #109583
+- build new rpm to get feedback on that snapshot
+
+* Thu Nov 06 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- update the mainframe patch to its current version, but disable it
+  until the change also properly supports SCSI and is usable also
+  for non-mainframe archs
+
+* Mon Sep 15 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.35-pre
+- use ldconfig to create symlinks to shared libs
+- remove some cruft from the spec file
+- man3 is now part of the devel rpm
+
 * Fri Aug 01 2003 Florian La Roche <Florian.LaRoche@redhat.de>
 - update to 1.34
 - do not strip some more apps, should probably just change $(STRIP)...

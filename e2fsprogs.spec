@@ -4,13 +4,14 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 7
+Release: 7.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
 #Source: ftp://ftp.debian.org/debian/pool/main/e/e2fsprogs/e2fsprogs_1.34+1.35-WIP-2004.01.31.orig.tar.gz
 Patch2: e2fsprogs-1.27-nostrip.patch
 Patch6: e2fsprogs-1.32-nosync.patch
+Patch7: e2fsprogs-1.35-next_check.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -48,6 +49,7 @@ also want to install e2fsprogs.
 #%setup -q -n e2fsprogs-1.34+1.35-WIP-2004.01.31
 %patch2 -p1 -b .nostrip
 %patch6 -p1 -b .nosync
+%patch7 -p1 -b .next_check
 
 %build
 %configure --enable-elf-shlibs --enable-nls
@@ -184,6 +186,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Thu Apr  8 2004 Thomas Woerner <twoerner@redhat.com> 1.35-7.1
+- fixed 'check after next mount' for filesystems with maximum mount count -1
+  (#117109)
+
 * Mon Mar 15 2004 Thomas Woerner <twoerner@redhat.com> 1.35-7
 - final 1.35
 

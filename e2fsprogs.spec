@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.36
-Release: 1.1
+Release: 1.2
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -107,9 +107,6 @@ export PATH=/sbin:$PATH
 make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 /sbin/ldconfig -n ${RPM_BUILD_ROOT}%{_libdir}
-# Offline resize is disabled for now
-rm -f $RPM_BUILD_ROOT/%{_root_sbindir}/resize2fs
-rm -f $RPM_BUILD_ROOT/%{_mandir}/man8/resize2fs.8*
 %find_lang %{name}
 
 pushd %{ext2resize_name}
@@ -172,7 +169,7 @@ exit 0
 %{_root_sbindir}/mke2fs
 %{_root_sbindir}/mkfs.ext2
 %{_root_sbindir}/mkfs.ext3
-# %{_root_sbindir}/resize2fs
+%{_root_sbindir}/resize2fs
 %{_root_sbindir}/tune2fs
 %{_sbindir}/filefrag
 %{_sbindir}/mklost+found
@@ -208,7 +205,7 @@ exit 0
 %{_mandir}/man8/mkfs.ext2.8*
 %{_mandir}/man8/mkfs.ext3.8*
 %{_mandir}/man8/mklost+found.8*
-# %{_mandir}/man8/resize2fs.8*
+%{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
 
 # ext2resize files
@@ -259,6 +256,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Feb 21 2005 Stephen C. Tweedie <sct@redhat.com> 1.36-1.2
+- Re-enable resize2fs
+- Add bigendian byte-swapping fix when growing the gdt table
+
 * Fri Feb 11 2005 Stephen C. Tweedie <sct@redhat.com> 1.36-1.1
 - Fix for >=4TB devices
 

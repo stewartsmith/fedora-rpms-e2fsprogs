@@ -5,7 +5,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.23
-Release: 2
+Release: 3
 Copyright: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -97,6 +97,7 @@ exit 0
 %{_root_sbindir}/debugfs
 %{_root_sbindir}/dumpe2fs
 %{_root_sbindir}/e2fsck
+%{_root_sbindir}/e2image
 %{_root_sbindir}/e2label
 %{_root_sbindir}/fsck
 %{_root_sbindir}/fsck.ext2
@@ -134,6 +135,7 @@ exit 0
 %{_mandir}/man8/debugfs.8*
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
+%{_mandir}/man8/e2image.8*
 %{_mandir}/man8/e2label.8*
 %{_mandir}/man8/fsck.8*
 %{_mandir}/man8/mke2fs.8*
@@ -168,6 +170,9 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Mon Sep 17 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- add e2image to filelist
+
 * Wed Aug 29 2001 Bill Nottingham <notting@redhat.com>
 - disable BLKGETSIZE64 ioctl support for now
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 10
+Release: 11
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -21,6 +21,7 @@ Patch12: ext2resize-printf-format-fixes.patch
 Patch13: ext2resize-compiler-warning-fixes.patch
 Patch14: ext2resize-canonicalise.patch
 Patch15: e2fsprogs-1.35-double_free.patch
+Patch16: e2fsprogs-1.35-progress.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -85,6 +86,7 @@ pushd %{ext2resize_name}
 popd
 
 %patch15 -p1 -b .double_free
+%patch16 -p1 -b .progress
 
 %build
 %configure --enable-elf-shlibs --enable-nls
@@ -252,6 +254,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Sep 17 2004 Thomas Woerner <twoerner@redhat.com> 1.35-11
+- extended "-C" option of fsck to pass the file descriptor to the checker
+  (#132543)
+
 * Thu Sep 16 2004 Thomas Woerner <twoerner@redhat.com> 1.35-10
 - fixed double free in resize2fs (#132707)
 

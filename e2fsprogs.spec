@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.36
-Release: 1.3
+Release: 1.4
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -256,6 +256,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Mar 16 2005 Stephen C. Tweedie <sct@redhat.com> 1.36-1.4
+- Fix the getsize-wrap patch for >4TB filesystems
+
 * Mon Feb 21 2005 Stephen C. Tweedie <sct@redhat.com> 1.36-1.2
 - Re-enable resize2fs
 - Add bigendian byte-swapping fix when growing the gdt table

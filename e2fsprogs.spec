@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 7.1
+Release: 8
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -186,6 +186,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
 * Thu Apr  8 2004 Thomas Woerner <twoerner@redhat.com> 1.35-7.1
 - fixed 'check after next mount' for filesystems with maximum mount count -1
   (#117109)

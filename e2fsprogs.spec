@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.18
-Release: 15
+Release: 16
 Copyright: GPL
 Group: System Environment/Base
 Source: ftp://tsx-11.mit.edu/pub/linux/packages/ext2fs/e2fsprogs-%{version}.tar.gz
@@ -164,6 +164,9 @@ fi
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Wed Oct 04 2000 Erik Troan <ewt@redhat.com>
+- fix for 16 character labels
+
 * Wed Aug 30 2000 Matt Wilson <msw@redhat.com>
 - rebuild to cope with glibc locale binary incompatibility, again
 

@@ -3,15 +3,13 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.19
-Release: 5
+Version: 1.22
+Release: 2
 Copyright: GPL
 Group: System Environment/Base
-Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-1.19.tar.gz
-Patch1: e2fsprogs-1.19-mountlabel.patch
-Patch2: e2fsprogs-1.19-mountlabel2.patch
-Patch3: e2fsprogs-1.19-fsck_parallel.patch
-Patch4: e2fsprogs-1.19-partitions.patch
+Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
+Patch1: e2fsprogs-1.19-mountlabel3.patch
+Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
 
@@ -45,11 +43,9 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q
-%patch1 -p1 -b .mountlabel
-%patch2 -p1 -b .mountlabel2
-%patch3 -p1 -b .fsck_parallel
-%patch4 -p1
+%patch1 -p1 -b .mountlabel3
 
+chmod 755 configure
 autoconf
 
 %build
@@ -159,9 +155,34 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
-* Tue May 15 2001 Florian La Roche <Florian.LaRoche@redhat.de>
-- fix %post and %postun scripts to not have any input for ldconfig
+* Tue Jun 26 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- make sure "configure" is writable
 
+* Mon Jun 25 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.22
+
+* Tue Jun 19 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.21
+
+* Mon Jun 11 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- add endian patch from sct@redhat.com  #44104
+
+* Tue May 29 2001 Than Ngo <than@redhat.com>
+- update to 1.20
+- add Url
+
+* Tue May 15 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- make sure ldconfig doesn't have any input and scripts end
+  with "exit 0"
+
+* Tue May 15 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to e2fsprogs-1.20-WIP-0514.tar.gz
+
+* Sun Apr 15 2001 Alan Eldridge <alane@geeksrus.net>
+- Added 16K buffer for reading /proc/partitions in 
+  get_label_by_device.c to correct problems with LABEL= in fsck 
+  caused by not reading /proc/partitions in a single read() call;
+  if somebody has a "partitions" > 16K, it may still fail ...
 * Fri Apr 06 2001 Florian La Roche <Florian.LaRoche@redhat.de>
 - add further IDE and SCSI disks to a hardcoded list in fsck #34190
 

@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.22
-Release: 3
+Version: 1.23
+Release: 1
 Copyright: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -15,14 +15,14 @@ BuildRoot: %{_tmppath}/%{name}-root
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
-checking, modifying and correcting any inconsistencies in second
-extended (ext2) filesystems.  E2fsprogs contains e2fsck (used to repair
-filesystem inconsistencies after an unclean shutdown), mke2fs (used to
-initialize a partition to contain an empty ext2 filesystem), debugfs
-(used to examine the internal structure of a filesystem, to manually
-repair a corrupted filesystem or to create test cases for e2fsck), tune2fs
-(used to modify filesystem parameters) and most of the other core ext2fs
-filesystem utilities.
+checking, modifying, and correcting any inconsistencies in second
+extended (ext2) filesystems. E2fsprogs contains e2fsck (used to
+repair filesystem inconsistencies after an unclean shutdown), mke2fs
+(used to initialize a partition to contain an empty ext2 filesystem),
+debugfs (used to examine the internal structure of a filesystem, to
+manually repair a corrupted filesystem, or to create test cases for
+e2fsck), tune2fs (used to modify filesystem parameters), and most of
+the other core ext2fs filesystem utilities.
 
 You should install the e2fsprogs package if you need to manage the
 performance of an ext2 filesystem.
@@ -38,7 +38,7 @@ E2fsprogs-devel contains the libraries and header files needed to
 develop second extended (ext2) filesystem-specific programs.
 
 You should install e2fsprogs-devel if you want to develop ext2
-filesystem-specific programs.  If you install e2fsprogs-devel, you'll
+filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
 %prep
@@ -165,6 +165,10 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Sun Aug 26 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.23. This was requested to support the "auto" fstype
+  to ease ext2 <-> ext3 conversions.
+
 * Tue Jul 24 2001 Florian La Roche <Florian.LaRoche@redhat.de>
 - add some more man-pages, patch by <Martin.Wilck@fujitsu-siemens.com>
 

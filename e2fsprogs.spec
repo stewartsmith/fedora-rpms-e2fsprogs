@@ -4,13 +4,14 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.23
-Release: 3
-Copyright: GPL
+Version: 1.27
+Release: 2
+License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
 Patch1: e2fsprogs-1.19-mountlabel3.patch
-Patch2: e2fsprogs-1.23-blkgetsize64.patch
+Patch2: e2fsprogs-1.23-c++.patch
+Patch3: e2fsprogs-1.23-autoconf.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -45,8 +46,9 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q
-%patch1 -p1 -b .mountlabel3
-%patch2 -p1 -b .blkgetsize64
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 chmod 755 configure
 autoconf
@@ -104,6 +106,7 @@ exit 0
 %{_root_sbindir}/fsck.ext3
 %{_root_sbindir}/mke2fs
 %{_root_sbindir}/mkfs.ext2
+%{_root_sbindir}/mkfs.ext3
 %{_root_sbindir}/resize2fs
 %{_root_sbindir}/tune2fs
 %{_sbindir}/mklost+found
@@ -135,10 +138,14 @@ exit 0
 %{_mandir}/man8/debugfs.8*
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
+%{_mandir}/man8/fsck.ext2.8*
+%{_mandir}/man8/fsck.ext3.8*
 %{_mandir}/man8/e2image.8*
 %{_mandir}/man8/e2label.8*
 %{_mandir}/man8/fsck.8*
 %{_mandir}/man8/mke2fs.8*
+%{_mandir}/man8/mkfs.ext2.8*
+%{_mandir}/man8/mkfs.ext3.8*
 %{_mandir}/man8/mklost+found.8*
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
@@ -170,6 +177,36 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Thu Apr 04 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- fix man-pages
+
+* Thu Mar 21 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.27
+- patch5 should not be needed anymore
+
+* Fri Mar 08 2002 Elliot Lee <sopwith@redhat.com>
+- Make link for mkfs.ext3 (patch5)
+- Add man pages for {mkfs,fsck}.{ext2,ext3}
+
+* Tue Feb 19 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.26
+
+* Wed Jan 09 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
+* Sun Nov 04 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.25
+- patch for BLKGETSIZE64 is not needed anymore
+- adapt autoconf-2.50 patch
+
+* Thu Nov  1 2001 Bernhard Rosenkraenzer <bero@redhat.com> 1.23-5
+- Make the C++ patch work even with g++ 3.1
+
+* Mon Oct 22 2001 Bernhard Rosenkraenzer <bero@redhat.com> 1.23-4
+- Fix headers of libext2fs - it wasn't possible to include them from
+  C++ code (using private as a variable name isn't a good idea)
+- Fix build with autoconf 2.5x
+
 * Mon Sep 17 2001 Florian La Roche <Florian.LaRoche@redhat.de>
 - add e2image to filelist
 

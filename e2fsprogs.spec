@@ -1,18 +1,16 @@
-%define optflags -g
 %define	_root_sbindir	/sbin
 %define	_root_libdir	/%{_lib}
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.27
-Release: 3
+Version: 1.32
+Release: 6
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
-Patch1: e2fsprogs-1.19-mountlabel3.patch
-Patch2: e2fsprogs-1.23-c++.patch
-Patch3: e2fsprogs-1.23-autoconf.patch
-Patch4: e2fsprogs-1.27-manpage.patch
+Patch1: e2fsprogs-1.23-autoconf.patch
+Patch2: e2fsprogs-1.27-nostrip.patch
+Patch3: e2fsprogs-1.32-nohtree.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -50,7 +48,6 @@ also want to install e2fsprogs.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
 
 chmod 755 configure
 autoconf
@@ -66,13 +63,12 @@ export PATH=/sbin:$PATH
 make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 
-{ cd ${RPM_BUILD_ROOT}%{_libdir}
-  ln -sf %{_root_libdir}/libcom_err.so.2 libcom_err.so
-  ln -sf %{_root_libdir}/libe2p.so.2 libe2p.so
-  ln -sf %{_root_libdir}/libext2fs.so.2 libext2fs.so
-  ln -sf %{_root_libdir}/libss.so.2 libss.so
-  ln -sf %{_root_libdir}/libuuid.so.1 libuuid.so
-}
+cd ${RPM_BUILD_ROOT}%{_libdir}
+ln -sf %{_root_libdir}/libcom_err.so.2 libcom_err.so
+ln -sf %{_root_libdir}/libe2p.so.2 libe2p.so
+ln -sf %{_root_libdir}/libext2fs.so.2 libext2fs.so
+ln -sf %{_root_libdir}/libss.so.2 libss.so
+ln -sf %{_root_libdir}/libuuid.so.1 libuuid.so
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -103,6 +99,7 @@ exit 0
 %{_root_sbindir}/e2fsck
 %{_root_sbindir}/e2image
 %{_root_sbindir}/e2label
+%{_root_sbindir}/findfs
 %{_root_sbindir}/fsck
 %{_root_sbindir}/fsck.ext2
 %{_root_sbindir}/fsck.ext3
@@ -118,6 +115,7 @@ exit 0
 %{_root_libdir}/libext2fs.so.*
 %{_root_libdir}/libss.so.*
 %{_root_libdir}/libuuid.so.*
+%{_root_libdir}/evms/libe2fsim.1.2.1.so
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -131,6 +129,8 @@ exit 0
 %{_mandir}/man3/uuid_compare.3*
 %{_mandir}/man3/uuid_copy.3*
 %{_mandir}/man3/uuid_generate.3*
+%{_mandir}/man3/uuid_generate_random.3*
+%{_mandir}/man3/uuid_generate_time.3*
 %{_mandir}/man3/uuid_is_null.3*
 %{_mandir}/man3/uuid_parse.3*
 %{_mandir}/man3/uuid_time.3*
@@ -140,6 +140,7 @@ exit 0
 %{_mandir}/man8/debugfs.8*
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
+%{_mandir}/man8/findfs.8*
 %{_mandir}/man8/fsck.ext2.8*
 %{_mandir}/man8/fsck.ext3.8*
 %{_mandir}/man8/e2image.8*
@@ -171,6 +172,7 @@ exit 0
 
 %{_datadir}/et
 %{_datadir}/ss
+%{_includedir}/e2p
 %{_includedir}/et
 %{_includedir}/ext2fs
 %{_includedir}/ss
@@ -179,6 +181,39 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Wed Jan 22 2003 Tim Powers <timp@redhat.com>
+- rebuilt
+
+* Tue Jan 14 2003 Bill Nottingham <notting@redhat.com> 1.32-2
+- do *not* create htree filesystems by default
+
+* Mon Nov 11 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.32
+
+* Fri Nov 01 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.30, leave out already integrated patches
+- clean up spec file
+- also package some missing files
+
+* Tue Sep 24 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 1.29, adapt patches to current source
+
+* Sat Aug 10 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- add missing man-pages to filelist
+
+* Fri Jun 21 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
+* Fri Jun 21 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- add HTree version of e2fsprogs, disable s390 patch
+- add e2fsprogs-dir_index.patch
+
+* Mon Jun 17 2002 Karsten Hopp <karsten@redhat.de>
+- set default blocksize for mke2fs on S/390 and zSeries to 4096
+
+* Thu May 23 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
 * Tue Apr 09 2002 Florian La Roche <Florian.LaRoche@redhat.de>
 - fix further bug in man-page #62995
 

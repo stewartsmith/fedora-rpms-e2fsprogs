@@ -3,19 +3,15 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.18
-Release: 16
+Version: 1.19
+Release: 4
 Copyright: GPL
 Group: System Environment/Base
-Source: ftp://tsx-11.mit.edu/pub/linux/packages/ext2fs/e2fsprogs-%{version}.tar.gz
-# The next source was extracted from:
-# http://download.sourceforge.net/e2fsprogs/e2fsprogs-1.19-WIP.tar.gz
-Source1: e2fsprogs-resize.tar.gz
-Patch0: e2fsprogs-et.patch
-Patch1: e2fsprogs-debugfsy2k.patch
-Patch2: e2fsprogs-1.18-linux24.patch
-Patch3: e2fsprogs-1.18-resize.patch
-Patch4: e2fsprogs-1.18-mountlabel.patch
+Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-1.19.tar.gz
+Patch1: e2fsprogs-1.19-mountlabel.patch
+Patch2: e2fsprogs-1.19-mountlabel2.patch
+Patch3: e2fsprogs-1.19-fsck_parallel.patch
+Patch4: e2fsprogs-1.19-partitions.patch
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
 
@@ -36,7 +32,7 @@ performance of an ext2 filesystem.
 %package devel
 Summary: Ext2 filesystem-specific static libraries and headers.
 Group: Development/Libraries
-Requires: e2fsprogs
+Requires: e2fsprogs = %{version}
 Prereq: /sbin/install-info
 
 %description devel
@@ -48,12 +44,11 @@ filesystem-specific programs.  If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
 %prep
-%setup -q -a 1
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1 -b .linux24
-%patch3 -p1 -b .resize
-%patch4 -p1 -b .mountlabel
+%setup -q
+%patch1 -p1 -b .mountlabel
+%patch2 -p1 -b .mountlabel2
+%patch3 -p1 -b .fsck_parallel
+%patch4 -p1
 
 autoconf
 
@@ -65,31 +60,31 @@ make libs progs docs
 rm -rf $RPM_BUILD_ROOT
 export PATH=/sbin:$PATH
 
-#make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
-#	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
+make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
+	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 
-%makeinstall \
-    root_sbindir=${RPM_BUILD_ROOT}%{_root_sbindir} \
-    root_libdir=${RPM_BUILD_ROOT}%{_root_libdir} \
-	install-libs
-
-{ cd ${RPM_BUILD_ROOT}
-  ln -sf ../..%{_root_libdir}/libcom_err.so.2 .%{_libdir}/libcom_err.so
-  ln -sf ../..%{_root_libdir}/libe2p.so.2 .%{_libdir}/libe2p.so
-  ln -sf ../..%{_root_libdir}/libext2fs.so.2 .%{_libdir}/libext2fs.so
-  ln -sf ../..%{_root_libdir}/libss.so.2 .%{_libdir}/libss.so
-  ln -sf ../..%{_root_libdir}/libuuid.so.1 .%{_libdir}/libuuid.so
+{ cd ${RPM_BUILD_ROOT}%{_libdir}
+  ln -sf %{_root_libdir}/libcom_err.so.2 libcom_err.so
+  ln -sf %{_root_libdir}/libe2p.so.2 libe2p.so
+  ln -sf %{_root_libdir}/libext2fs.so.2 libext2fs.so
+  ln -sf %{_root_libdir}/libss.so.2 libss.so
+  ln -sf %{_root_libdir}/libuuid.so.1 libuuid.so
 }
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post -p /sbin/ldconfig
+#### Remove possibly old version
+### /bin/rm -f /usr/sbin/resize2fs
+
 
 %postun -p /sbin/ldconfig
 
 %post devel
-/sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir
+if [ -x /sbin/install-info ]; then
+    /sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir
+fi
 
 %postun devel
 if [ $1 = 0 ]; then
@@ -107,6 +102,7 @@ fi
 %{_root_sbindir}/e2label
 %{_root_sbindir}/fsck
 %{_root_sbindir}/fsck.ext2
+%{_root_sbindir}/fsck.ext3
 %{_root_sbindir}/mke2fs
 %{_root_sbindir}/mkfs.ext2
 %{_root_sbindir}/resize2fs
@@ -164,17 +160,24 @@ fi
 %{_mandir}/man3/com_err.3*
 
 %changelog
-* Wed Oct 04 2000 Erik Troan <ewt@redhat.com>
-- fix for 16 character labels
+* Fri Apr 06 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- add further IDE and SCSI disks to a hardcoded list in fsck #34190
 
-* Wed Aug 30 2000 Matt Wilson <msw@redhat.com>
-- rebuild to cope with glibc locale binary incompatibility, again
+* Tue Feb 27 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- require the main rpm from the devel rpm
 
-* Wed Aug 16 2000 Jeff Johnson <jbj@redhat.com>
-- correct relative symlinks (#16130).
+* Thu Feb 22 2001 Helge Deller <hdeller@redhat.de>
+- fix fsck -A bug (#21242)
 
-* Mon Aug 14 2000 Preston Brown <pbrown@redhat.com>
-- absolute --> relative symlinks (#16130)
+* Mon Feb 12 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- fix bug with 16 byte long labels #27071
+
+* Mon Sep 11 2000 Jeff Johnson <jbj@redhat.com>
+- build for Red Hat 7.1.
+
+* Tue Aug  8 2000 Jeff Johnson <jbj@redhat.com>
+- merge LABEL patch.
+- update to 1.19.
 
 * Tue Jul 25 2000 Erik Troan <ewt@redhat.com>
 - fixed LABEL handling

@@ -1,3 +1,5 @@
+# Upstream maintainer tytso@thunk.org
+
 %define	_root_sbindir	/sbin
 %define	_root_libdir	/%{_lib}
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 9.5
+Release: 10
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -20,6 +20,7 @@ Patch11: ext2resize-gcc34-fixes.patch
 Patch12: ext2resize-printf-format-fixes.patch
 Patch13: ext2resize-compiler-warning-fixes.patch
 Patch14: ext2resize-canonicalise.patch
+Patch15: e2fsprogs-1.35-double_free.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -82,6 +83,8 @@ pushd %{ext2resize_name}
 # Canonicalise device names to cope with (eg) LVM symlinks
 %patch14 -p1 -b .canon
 popd
+
+%patch15 -p1 -b .double_free
 
 %build
 %configure --enable-elf-shlibs --enable-nls
@@ -249,6 +252,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Thu Sep 16 2004 Thomas Woerner <twoerner@redhat.com> 1.35-10
+- fixed double free in resize2fs (#132707)
+
 * Wed Sep  1 2004 Stephen C. Tweedie <sct@redhat.com> 1.35-9.5
 - Add ext2online device name canonicalisation for (eg) LVM symlinks
 

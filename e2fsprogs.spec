@@ -3,26 +3,18 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.35
-Release: 12
+Version: 1.36
+Release: 1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
-#Source: ftp://ftp.debian.org/debian/pool/main/e/e2fsprogs/e2fsprogs_1.34+1.35-WIP-2004.01.31.orig.tar.gz
 Source1: http://sourceforge.net/projects/ext2resize/ext2resize-1.1.17.tar.bz2
-Patch2: e2fsprogs-1.27-nostrip.patch
-Patch6: e2fsprogs-1.32-nosync.patch
-Patch7: e2fsprogs-1.35-next_check.patch
-Patch8: e2fsprogs-resize.patch
 Patch9: e2fsprogs-enable-resize.patch
 Patch10: ext2resize-cvs-20040419.patch
 Patch11: ext2resize-gcc34-fixes.patch
 Patch12: ext2resize-printf-format-fixes.patch
 Patch13: ext2resize-compiler-warning-fixes.patch
 Patch14: ext2resize-canonicalise.patch
-Patch15: e2fsprogs-1.35-double_free.patch
-Patch16: e2fsprogs-1.35-progress.patch
-Patch17: e2fsprogs-resize-byteorder.patch
 Patch19: ext2resize-byteorder.patch
 Patch20: ext2resize-nofallback.patch
 Patch21: ext2resize-nowrite.patch
@@ -63,16 +55,9 @@ filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
 %prep
-%setup -q -n e2fsprogs-1.35
-#%setup -q -n e2fsprogs-1.34+1.35-WIP-2004.01.31
-%patch2 -p1 -b .nostrip
-%patch6 -p1 -b .nosync
-%patch7 -p1 -b .next_check
-# Add resize-awareness to mke2fs and e2fsck
-%patch8 -p1 -b .resize
+%setup -q -n e2fsprogs-%{version}
 # Enable the resize inode by default
 %patch9 -p1 -b .resize-on
-%patch17 -p1 -b .resize-byteorder
 
 # Now unpack the ext2resize online resize tarball...
 %setup -T -D -q -a 1
@@ -96,12 +81,10 @@ pushd %{ext2resize_name}
 %patch21 -p2 -b .nowrite
 popd
 
-%patch15 -p1 -b .double_free
-%patch16 -p1 -b .progress
-
 %build
-%configure --enable-elf-shlibs --enable-nls
+%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper
 # --enable-dynamic-e2fsck
+make -C po update-po
 make
 
 pushd %{ext2resize_name}
@@ -197,8 +180,6 @@ exit 0
 %{_root_libdir}/libext2fs.so.*
 %{_root_libdir}/libss.so.*
 %{_root_libdir}/libuuid.so.*
-%dir %{_root_libdir}/evms
-%{_root_libdir}/evms/libe2fsim.1.2.1.so
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -248,6 +229,7 @@ exit 0
 %{_libdir}/libss.so
 %{_libdir}/libuuid.a
 %{_libdir}/libuuid.so
+%{_libdir}/pkgconfig/*.pc
 
 %{_datadir}/et
 %{_datadir}/ss
@@ -261,7 +243,7 @@ exit 0
 %{_mandir}/man1/mk_cmds.1*
 %{_mandir}/man3/com_err.3*
 %{_mandir}/man3/libblkid.3*
-%{_mandir}/man3/libuuid.3*
+%{_mandir}/man3/uuid.3*
 %{_mandir}/man3/uuid_clear.3*
 %{_mandir}/man3/uuid_compare.3*
 %{_mandir}/man3/uuid_copy.3*
@@ -274,6 +256,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Feb 11 2005 Stephen C. Tweedie <sct@redhat.com> 1.36-1
+- Update to e2fsprogs-1.36
+
 * Wed Feb  9 2005 Thomas Woerner <twoerner@redhat.com> 1.35-12
 - rebuild
 

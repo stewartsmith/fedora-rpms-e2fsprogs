@@ -1,14 +1,16 @@
+%define optflags -g
 %define	_root_sbindir	/sbin
 %define	_root_libdir	/%{_lib}
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.23
-Release: 1
+Release: 2
 Copyright: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
 Patch1: e2fsprogs-1.19-mountlabel3.patch
+Patch2: e2fsprogs-1.23-blkgetsize64.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -44,6 +46,7 @@ also want to install e2fsprogs.
 %prep
 %setup -q
 %patch1 -p1 -b .mountlabel3
+%patch2 -p1 -b .blkgetsize64
 
 chmod 755 configure
 autoconf
@@ -165,6 +168,9 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Wed Aug 29 2001 Bill Nottingham <notting@redhat.com>
+- disable BLKGETSIZE64 ioctl support for now
+
 * Sun Aug 26 2001 Florian La Roche <Florian.LaRoche@redhat.de>
 - update to 1.23. This was requested to support the "auto" fstype
   to ease ext2 <-> ext3 conversions.

@@ -1,12 +1,10 @@
-# Upstream maintainer tytso@thunk.org
-
 %define	_root_sbindir	/sbin
 %define	_root_libdir	/%{_lib}
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 11.2
+Release: 12
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -24,10 +22,14 @@ Patch13: ext2resize-compiler-warning-fixes.patch
 Patch14: ext2resize-canonicalise.patch
 Patch15: e2fsprogs-1.35-double_free.patch
 Patch16: e2fsprogs-1.35-progress.patch
+Patch17: e2fsprogs-resize-byteorder.patch
+Patch19: ext2resize-byteorder.patch
+Patch20: ext2resize-nofallback.patch
+Patch21: ext2resize-nowrite.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
-BuildRequires: gettext, texinfo
+BuildRequires: gettext, texinfo, autoconf, automake
 
 %define ext2resize_basever 1.1.17
 %define ext2resize_name ext2resize-%{ext2resize_basever}
@@ -70,6 +72,7 @@ also want to install e2fsprogs.
 %patch8 -p1 -b .resize
 # Enable the resize inode by default
 %patch9 -p1 -b .resize-on
+%patch17 -p1 -b .resize-byteorder
 
 # Now unpack the ext2resize online resize tarball...
 %setup -T -D -q -a 1
@@ -85,6 +88,12 @@ pushd %{ext2resize_name}
 %patch13 -p1 -b .warnings
 # Canonicalise device names to cope with (eg) LVM symlinks
 %patch14 -p1 -b .canon
+# Fix byte ordering problems on bigendian hosts
+%patch19 -p2 -b .byteorder
+# Disable fallback to old-style online resize
+%patch20 -p2 -b .nofallback
+# Disable the write path used by old-style online
+%patch21 -p2 -b .nowrite
 popd
 
 %patch15 -p1 -b .double_free
@@ -96,6 +105,12 @@ popd
 make
 
 pushd %{ext2resize_name}
+# The byteorder patch adds a new file to the ext2online source tree, so
+# we need to rebuild the Makefiles from automake.
+aclocal
+automake -a -f
+# There's a new configure test for byte-order, too.
+autoconf
 %configure 
 make
 popd
@@ -106,6 +121,9 @@ export PATH=/sbin:$PATH
 make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 /sbin/ldconfig -n ${RPM_BUILD_ROOT}%{_libdir}
+# Offline resize is disabled for now
+rm -f $RPM_BUILD_ROOT/%{_root_sbindir}/resize2fs
+rm -f $RPM_BUILD_ROOT/%{_mandir}/man8/resize2fs.8*
 %find_lang %{name}
 
 pushd %{ext2resize_name}
@@ -168,7 +186,7 @@ exit 0
 %{_root_sbindir}/mke2fs
 %{_root_sbindir}/mkfs.ext2
 %{_root_sbindir}/mkfs.ext3
-%{_root_sbindir}/resize2fs
+# %{_root_sbindir}/resize2fs
 %{_root_sbindir}/tune2fs
 %{_sbindir}/filefrag
 %{_sbindir}/mklost+found
@@ -206,7 +224,7 @@ exit 0
 %{_mandir}/man8/mkfs.ext2.8*
 %{_mandir}/man8/mkfs.ext3.8*
 %{_mandir}/man8/mklost+found.8*
-%{_mandir}/man8/resize2fs.8*
+# %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
 
 # ext2resize files
@@ -256,6 +274,21 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Feb  9 2005 Thomas Woerner <twoerner@redhat.com> 1.35-12
+- rebuild
+
+* Wed Dec 22 2004 Stephen C. Tweedie <sct@redhat.com> 
+- Disable offline resize for now: resize2fs is incompatible with
+  online resize, and can result in corrupt filesystems.
+
+* Thu Dec  9 2004 Stephen C. Tweedie <sct@redhat.com> 
+- More byte-order fixes for mke2fs and ext2online
+- Disable fallback to old-style resize if new kernel resize code is not
+  available
+
+* Mon Nov 15 2004 Stephen C. Tweedie <sct@redhat.com> 
+- Fix mke2fs's creation of the resize inode on bigendian hosts
+
 * Tue Oct 19 2004 Thomas Woerner <twoerner@redhat.com> 1.35-11.2
 - fixed macroname in changelog (#135413)
 - small enhancement of progress patch

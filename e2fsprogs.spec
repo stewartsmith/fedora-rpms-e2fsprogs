@@ -5,13 +5,14 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.27
-Release: 2
+Release: 3
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
 Patch1: e2fsprogs-1.19-mountlabel3.patch
 Patch2: e2fsprogs-1.23-c++.patch
 Patch3: e2fsprogs-1.23-autoconf.patch
+Patch4: e2fsprogs-1.27-manpage.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -49,6 +50,7 @@ also want to install e2fsprogs.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 chmod 755 configure
 autoconf
@@ -177,6 +179,9 @@ exit 0
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Tue Apr 09 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- fix further bug in man-page #62995
+
 * Thu Apr 04 2002 Florian La Roche <Florian.LaRoche@redhat.de>
 - fix man-pages
 

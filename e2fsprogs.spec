@@ -4,19 +4,29 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 9.1.resize.1
+Release: 9.5
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
 #Source: ftp://ftp.debian.org/debian/pool/main/e/e2fsprogs/e2fsprogs_1.34+1.35-WIP-2004.01.31.orig.tar.gz
+Source1: http://sourceforge.net/projects/ext2resize/ext2resize-1.1.17.tar.bz2
 Patch2: e2fsprogs-1.27-nostrip.patch
 Patch6: e2fsprogs-1.32-nosync.patch
 Patch7: e2fsprogs-1.35-next_check.patch
 Patch8: e2fsprogs-resize.patch
+Patch9: e2fsprogs-enable-resize.patch
+Patch10: ext2resize-cvs-20040419.patch
+Patch11: ext2resize-gcc34-fixes.patch
+Patch12: ext2resize-printf-format-fixes.patch
+Patch13: ext2resize-compiler-warning-fixes.patch
+Patch14: ext2resize-canonicalise.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
 BuildRequires: gettext, texinfo
+
+%define ext2resize_basever 1.1.17
+%define ext2resize_name ext2resize-%{ext2resize_basever}
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -52,12 +62,36 @@ also want to install e2fsprogs.
 %patch2 -p1 -b .nostrip
 %patch6 -p1 -b .nosync
 %patch7 -p1 -b .next_check
+# Add resize-awareness to mke2fs and e2fsck
 %patch8 -p1 -b .resize
+# Enable the resize inode by default
+%patch9 -p1 -b .resize-on
+
+# Now unpack the ext2resize online resize tarball...
+%setup -T -D -q -a 1
+# And apply the patches we need for that:
+pushd %{ext2resize_name}
+# Update to 20040419 ext2resize CVS
+%patch10 -p1 -b .cvs
+# Fix for gcc34 incompatibilities
+%patch11 -p1 -b .gcc34
+# Fix printk warnings on 64-bit archs
+%patch12 -p1 -b .printf
+# Fix misc compiler warnings
+%patch13 -p1 -b .warnings
+# Canonicalise device names to cope with (eg) LVM symlinks
+%patch14 -p1 -b .canon
+popd
 
 %build
 %configure --enable-elf-shlibs --enable-nls
 # --enable-dynamic-e2fsck
 make
+
+pushd %{ext2resize_name}
+%configure 
+make
+popd
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -66,6 +100,23 @@ make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 /sbin/ldconfig -n ${RPM_BUILD_ROOT}%{_libdir}
 %find_lang %{name}
+
+pushd %{ext2resize_name}
+make DESTDIR=$RPM_BUILD_ROOT install
+# For now, we only want to package up the ext2online binary.  Delete the
+# others.
+rm -f $RPM_BUILD_ROOT%{_sbindir}/ext2resize
+rm -f $RPM_BUILD_ROOT%{_sbindir}/ext2prepare
+rm -f $RPM_BUILD_ROOT/%{_mandir}/man8/ext2resize*
+rm -f $RPM_BUILD_ROOT/%{_mandir}/man8/ext2prepare*
+# We want some of the ext2resize doc files to be clearly identified as
+# not being part of e2fsprogs!
+mv AUTHORS AUTHORS.ext2resize
+mv COPYING COPYING.ext2resize
+mv NEWS NEWS.ext2resize
+mv README README.ext2resize
+mv doc/HOWTO doc/HOWTO.ext2resize
+popd
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -89,6 +140,11 @@ exit 0
 %files -f %{name}.lang
 %defattr(-,root,root)
 %doc README RELEASE-NOTES
+%doc %{ext2resize_name}/AUTHORS.ext2resize
+%doc %{ext2resize_name}/COPYING.ext2resize
+%doc %{ext2resize_name}/NEWS.ext2resize
+%doc %{ext2resize_name}/README.ext2resize
+%doc %{ext2resize_name}/doc/HOWTO.ext2resize
 
 %{_root_sbindir}/badblocks
 %{_root_sbindir}/blkid
@@ -146,6 +202,10 @@ exit 0
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
 
+# ext2resize files
+%{_sbindir}/ext2online
+%{_mandir}/man8/ext2online.8*
+
 %files devel
 %defattr(-,root,root)
 %{_infodir}/libext2fs.info*
@@ -189,6 +249,18 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Sep  1 2004 Stephen C. Tweedie <sct@redhat.com> 1.35-9.5
+- Add ext2online device name canonicalisation for (eg) LVM symlinks
+
+* Wed Sep  1 2004 Stephen C. Tweedie <sct@redhat.com> 1.35-9.4
+- Build and package ext2online during the e2fsprogs build
+
+* Wed Sep  1 2004 Stephen C. Tweedie <sct@redhat.com> 1.35-9.3
+- Add ext2resize online resize tools to rpm
+
+* Wed Sep  1 2004 Stephen C. Tweedie <sct@redhat.com> 1.35-9.1.resize.2
+- Enable the resize inode by default in mke2fs
+
 * Tue Aug 31 2004 Stephen C. Tweedie <sct@redhat.com> 1.35-9.1.resize.1
 - Add initial ext2/3 online resize support
 

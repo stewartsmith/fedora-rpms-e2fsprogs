@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.19
-Release: 4
+Release: 5
 Copyright: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-1.19.tar.gz
@@ -75,9 +75,6 @@ make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
 rm -rf $RPM_BUILD_ROOT
 
 %post -p /sbin/ldconfig
-#### Remove possibly old version
-### /bin/rm -f /usr/sbin/resize2fs
-
 
 %postun -p /sbin/ldconfig
 
@@ -85,11 +82,13 @@ rm -rf $RPM_BUILD_ROOT
 if [ -x /sbin/install-info ]; then
     /sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir
 fi
+exit 0
 
 %postun devel
 if [ $1 = 0 ]; then
    /sbin/install-info --delete %{_infodir}/libext2fs.info.gz %{_infodir}/dir
 fi
+exit 0
 
 %files
 %defattr(-,root,root)
@@ -160,6 +159,9 @@ fi
 %{_mandir}/man3/com_err.3*
 
 %changelog
+* Tue May 15 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- fix %post and %postun scripts to not have any input for ldconfig
+
 * Fri Apr 06 2001 Florian La Roche <Florian.LaRoche@redhat.de>
 - add further IDE and SCSI disks to a hardcoded list in fsck #34190
 

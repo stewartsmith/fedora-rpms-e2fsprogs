@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.35
-Release: 9
+Release: 9.1.resize.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -12,6 +12,7 @@ Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{ve
 Patch2: e2fsprogs-1.27-nostrip.patch
 Patch6: e2fsprogs-1.32-nosync.patch
 Patch7: e2fsprogs-1.35-next_check.patch
+Patch8: e2fsprogs-resize.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -51,6 +52,7 @@ also want to install e2fsprogs.
 %patch2 -p1 -b .nostrip
 %patch6 -p1 -b .nosync
 %patch7 -p1 -b .next_check
+%patch8 -p1 -b .resize
 
 %build
 %configure --enable-elf-shlibs --enable-nls
@@ -187,6 +189,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Aug 31 2004 Stephen C. Tweedie <sct@redhat.com> 1.35-9.1.resize.1
+- Add initial ext2/3 online resize support
+
 * Sun Aug  8 2004 Alan Cox <alan@redhat.com>
 - Close #125316 (buildreq texinfo, gettext)
 

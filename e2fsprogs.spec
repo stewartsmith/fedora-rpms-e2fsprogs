@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.37
-Release: 1
+Release: 2
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -18,6 +18,9 @@ Patch14: ext2resize-canonicalise.patch
 Patch19: ext2resize-byteorder.patch
 Patch20: ext2resize-nofallback.patch
 Patch21: ext2resize-nowrite.patch
+Patch22: e2fsprogs-1.1589.patch
+Patch23: e2fsprogs-1.1590.patch
+Patch24: e2fsprogs-1.1591.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -58,6 +61,13 @@ also want to install e2fsprogs.
 %setup -q -n e2fsprogs-%{version}
 # Enable the resize inode by default
 %patch9 -p1 -b .resize-on
+# Add include of stdlib.h to fix a core dump bug on IA64
+%patch22 -p1 -b .1.1589
+# ignore environment variables in blkid and ext2fs for setuid and setguid
+# programs
+%patch23 -p1 -b .1.1590
+# no LOW_DTIME checks if the superblock last mount time looks insane
+%patch24 -p1 -b .1.1591
 
 # Now unpack the ext2resize online resize tarball...
 %setup -T -D -q -a 1
@@ -253,6 +263,13 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Apr  8 2005 Thomas Woerner <twoerner@redhat.com> 1.37-2
+- upstream fixes 1.1589, 1.1590 and 1.1591:
+- add include of stdlib.h to fix a core dump bug on IA64
+- ignore environment variables in blkid and ext2fs for setuid and setguid
+  programs
+- no LOW_DTIME checks if the superblock last mount time looks insane
+
 * Fri Apr  8 2005 Thomas Woerner <twoerner@redhat.com> 1.37-1
 - new version 1.37
 - dropped upstream merged getsize-wrap patch

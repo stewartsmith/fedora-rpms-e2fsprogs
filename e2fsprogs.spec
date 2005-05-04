@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.37
-Release: 2
+Release: 3
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -21,6 +21,7 @@ Patch21: ext2resize-nowrite.patch
 Patch22: e2fsprogs-1.1589.patch
 Patch23: e2fsprogs-1.1590.patch
 Patch24: e2fsprogs-1.1591.patch
+Patch25: e2fsprogs-1.36-cramfs-detect.patch
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -68,6 +69,8 @@ also want to install e2fsprogs.
 %patch23 -p1 -b .1.1590
 # no LOW_DTIME checks if the superblock last mount time looks insane
 %patch24 -p1 -b .1.1591
+# fix cramfs detection bug
+%patch25 -p1 -b .cramfs
 
 # Now unpack the ext2resize online resize tarball...
 %setup -T -D -q -a 1
@@ -263,6 +266,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed May  4 2005 Jeremy Katz <katzj@redhat.com> - 1.37-3
+- fix cramfs detection bug in libblkid
+
 * Fri Apr  8 2005 Thomas Woerner <twoerner@redhat.com> 1.37-2
 - upstream fixes 1.1589, 1.1590 and 1.1591:
 - add include of stdlib.h to fix a core dump bug on IA64

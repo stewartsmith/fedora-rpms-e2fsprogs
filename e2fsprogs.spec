@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.37
-Release: 3
+Release: 4
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -229,6 +229,7 @@ exit 0
 %{_bindir}/mk_cmds
 
 %{_libdir}/libblkid.a
+%{_libdir}/libblkid.so
 %{_libdir}/libcom_err.a
 %{_libdir}/libcom_err.so
 %{_libdir}/libe2p.a
@@ -266,6 +267,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue May 10 2005 Jeremy Katz <katzj@redhat.com> - 1.37-4
+- added libblkid.so to devel package
+
 * Wed May  4 2005 Jeremy Katz <katzj@redhat.com> - 1.37-3
 - fix cramfs detection bug in libblkid
 

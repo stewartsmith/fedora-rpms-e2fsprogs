@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.37
-Release: 4
+Release: 5
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -22,6 +22,10 @@ Patch22: e2fsprogs-1.1589.patch
 Patch23: e2fsprogs-1.1590.patch
 Patch24: e2fsprogs-1.1591.patch
 Patch25: e2fsprogs-1.36-cramfs-detect.patch
+Patch26: e2fsprogs-1.37-blkid-swsuspend.patch
+Patch27: e2fsprogs-1.37-blkid-ext23.patch
+Patch28: e2fsprogs-1.37-blkid-nomagicvfat.patch
+
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
@@ -71,6 +75,12 @@ also want to install e2fsprogs.
 %patch24 -p1 -b .1.1591
 # fix cramfs detection bug
 %patch25 -p1 -b .cramfs
+# fix swsuspend partition detection (#165863)
+%patch26 -p1 -b .swsuspend
+# fix revalidate from ext2 to ext3 (#162927)
+%patch27 -p1 -b .ext23
+# fix vfat without magic detection (#161873)
+%patch28 -p1 -b .vfatnomagic
 
 # Now unpack the ext2resize online resize tarball...
 %setup -T -D -q -a 1
@@ -267,6 +277,11 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Sep  5 2005 Karel Zak <kzak@redhat.com> - 1.37-5
+- fix swsuspend partition detection (#165863)
+- fix revalidate from ext2 to ext3 (#162927)
+- fix vfat without magic detection (#161873)
+
 * Tue May 10 2005 Jeremy Katz <katzj@redhat.com> - 1.37-4
 - added libblkid.so to devel package
 

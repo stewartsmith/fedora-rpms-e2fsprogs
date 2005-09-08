@@ -1,0 +1,10 @@
+--- e2fsprogs-1.38/misc/tune2fs.c.resize_inode	2005-06-20 14:35:27.000000000 +0200
++++ e2fsprogs-1.38/misc/tune2fs.c	2005-09-08 15:51:38.000000000 +0200
+@@ -95,6 +95,7 @@
+ 
+ static __u32 ok_features[3] = {
+ 	EXT3_FEATURE_COMPAT_HAS_JOURNAL |
++                EXT2_FEATURE_COMPAT_RESIZE_INODE |
+ 		EXT2_FEATURE_COMPAT_DIR_INDEX,	/* Compat */
+ 	EXT2_FEATURE_INCOMPAT_FILETYPE,		/* Incompat */
+ 	EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER	/* R/O compat */

@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.37
-Release: 5
+Version: 1.38
+Release: 1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -18,13 +18,12 @@ Patch14: ext2resize-canonicalise.patch
 Patch19: ext2resize-byteorder.patch
 Patch20: ext2resize-nofallback.patch
 Patch21: ext2resize-nowrite.patch
-Patch22: e2fsprogs-1.1589.patch
-Patch23: e2fsprogs-1.1590.patch
-Patch24: e2fsprogs-1.1591.patch
-Patch25: e2fsprogs-1.36-cramfs-detect.patch
 Patch26: e2fsprogs-1.37-blkid-swsuspend.patch
 Patch27: e2fsprogs-1.37-blkid-ext23.patch
 Patch28: e2fsprogs-1.37-blkid-nomagicvfat.patch
+Patch29: e2fsprogs-1.38-close-on-error.patch
+Patch30: e2fsprogs-1.38-resize-inode.patch
+Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 Prereq: /sbin/ldconfig
@@ -66,21 +65,16 @@ also want to install e2fsprogs.
 %setup -q -n e2fsprogs-%{version}
 # Enable the resize inode by default
 %patch9 -p1 -b .resize-on
-# Add include of stdlib.h to fix a core dump bug on IA64
-%patch22 -p1 -b .1.1589
-# ignore environment variables in blkid and ext2fs for setuid and setguid
-# programs
-%patch23 -p1 -b .1.1590
-# no LOW_DTIME checks if the superblock last mount time looks insane
-%patch24 -p1 -b .1.1591
-# fix cramfs detection bug
-%patch25 -p1 -b .cramfs
 # fix swsuspend partition detection (#165863)
 %patch26 -p1 -b .swsuspend
 # fix revalidate from ext2 to ext3 (#162927)
 %patch27 -p1 -b .ext23
 # fix vfat without magic detection (#161873)
 %patch28 -p1 -b .vfatnomagic
+# clode fd's on error
+%patch29 -p1 -b .close-on-error
+# enable tune2fs to set and clear the resize inode
+%patch30 -p1 -b .resize-inode
 
 # Now unpack the ext2resize online resize tarball...
 %setup -T -D -q -a 1
@@ -103,6 +97,9 @@ pushd %{ext2resize_name}
 # Disable the write path used by old-style online
 %patch21 -p2 -b .nowrite
 popd
+
+# drop ext2resize, ext2prepare and e2fsadm from man page of ext2online
+%patch31 -p1 -b .man_no_ext2resize
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper
@@ -277,6 +274,14 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Thu Sep  8 2005 Thomas Woerner <twoerner@redhat.com> 1.38-1
+- new version 1.38
+- Close File descriptor for unregognized devices (#159878)
+  Thanks to David Milburn for the patch.
+  Merged from RHEL-4
+- enable tune2fs to set and clear feature resize_inode (#167816)
+- removed outdated information from ext2online man page (#164383)
+
 * Mon Sep  5 2005 Karel Zak <kzak@redhat.com> - 1.37-5
 - fix swsuspend partition detection (#165863)
 - fix revalidate from ext2 to ext3 (#162927)

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 1
+Release: 2
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -24,10 +24,9 @@ Patch28: e2fsprogs-1.37-blkid-nomagicvfat.patch
 Patch29: e2fsprogs-1.38-close-on-error.patch
 Patch30: e2fsprogs-1.38-resize-inode.patch
 Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
-
 Url: http://e2fsprogs.sourceforge.net/
-Prereq: /sbin/ldconfig
 BuildRoot: %{_tmppath}/%{name}-root
+Requires: e2fsprogs-libs = %{version}-%{release}
 BuildRequires: gettext, texinfo, autoconf, automake
 
 %define ext2resize_basever 1.1.17
@@ -47,10 +46,18 @@ the other core ext2fs filesystem utilities.
 You should install the e2fsprogs package if you need to manage the
 performance of an ext2 filesystem.
 
+%package libs
+Summary: Ext2 filesystem-specific static libraries and headers.
+Group: Development/Libraries
+Prereq: /sbin/ldconfig
+
+%description libs
+E2fsprogs-lib contains the libraries of the e2fsprogs package.
+
 %package devel
 Summary: Ext2 filesystem-specific static libraries and headers.
 Group: Development/Libraries
-Requires: e2fsprogs = %{version}
+Requires: e2fsprogs-libs = %{version}-%{release}
 Prereq: /sbin/install-info
 
 %description devel
@@ -146,9 +153,9 @@ popd
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post -p /sbin/ldconfig
+%post libs -p /sbin/ldconfig
 
-%postun -p /sbin/ldconfig
+%postun libs -p /sbin/ldconfig
 
 %post devel
 if [ -x /sbin/install-info ]; then
@@ -191,13 +198,6 @@ exit 0
 %{_sbindir}/filefrag
 %{_sbindir}/mklost+found
 
-%{_root_libdir}/libblkid.so.*
-%{_root_libdir}/libcom_err.so.*
-%{_root_libdir}/libe2p.so.*
-%{_root_libdir}/libext2fs.so.*
-%{_root_libdir}/libss.so.*
-%{_root_libdir}/libuuid.so.*
-
 %{_bindir}/chattr
 %{_bindir}/lsattr
 %{_bindir}/uuidgen
@@ -228,6 +228,15 @@ exit 0
 # ext2resize files
 %{_sbindir}/ext2online
 %{_mandir}/man8/ext2online.8*
+
+%files libs
+%defattr(-,root,root)
+%{_root_libdir}/libblkid.so.*
+%{_root_libdir}/libcom_err.so.*
+%{_root_libdir}/libe2p.so.*
+%{_root_libdir}/libext2fs.so.*
+%{_root_libdir}/libss.so.*
+%{_root_libdir}/libuuid.so.*
 
 %files devel
 %defattr(-,root,root)
@@ -274,6 +283,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Nov  9 2005 Thomas Woerner <twoerner@redhat.com> 1.38-2
+- splitted up libs from main package, into a new e2fsprogs-libs package
+- fixed requires and prereqs
+
 * Thu Sep  8 2005 Thomas Woerner <twoerner@redhat.com> 1.38-1
 - new version 1.38
 - Close File descriptor for unregognized devices (#159878)

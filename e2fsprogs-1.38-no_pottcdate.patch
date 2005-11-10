@@ -1,0 +1,12 @@
+--- e2fsprogs-1.38/po/Makefile.in.in.pottcdate	2005-06-29 19:42:20.000000000 +0200
++++ e2fsprogs-1.38/po/Makefile.in.in	2005-11-10 17:35:39.000000000 +0100
+@@ -120,7 +120,8 @@
+ 	      mv $(DOMAIN).po $(srcdir)/$(DOMAIN).pot; \
+ 	    fi; \
+ 	  else \
+-	    mv $(DOMAIN).po $(srcdir)/$(DOMAIN).pot; \
++	    sed -f remove-potcdate.sed < $(DOMAIN).po > $(srcdir)/$(DOMAIN).pot && \
++	    rm -f $(DOMAIN).po; \
+ 	  fi; \
+ 	}
+ 

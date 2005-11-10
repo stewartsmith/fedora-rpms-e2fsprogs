@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 2
+Release: 2.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -24,6 +24,8 @@ Patch28: e2fsprogs-1.37-blkid-nomagicvfat.patch
 Patch29: e2fsprogs-1.38-close-on-error.patch
 Patch30: e2fsprogs-1.38-resize-inode.patch
 Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
+Patch32: e2fsprogs-1.38-no_pottcdate.patch
+Patch33: e2fsprogs-1.38-lost+found.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}
@@ -107,6 +109,10 @@ popd
 
 # drop ext2resize, ext2prepare and e2fsadm from man page of ext2online
 %patch31 -p1 -b .man_no_ext2resize
+# drop timestamp from mo files
+%patch32 -p1 -b .pottcdate
+# fixed buffer overflow in mklost+found
+%patch33 -p1 -b .lost+found
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper
@@ -283,6 +289,11 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Thu Nov 10 2005 Thomas Woerner <twoerner@redhat.com> 1.38-2.1
+- fixed file conflicts between 32bit and 64bit packages (#168815)
+- fixed mklost+found crashes with buffer overflow (#157773)
+  Thanks to Arjan van de Ven for the patch
+
 * Wed Nov  9 2005 Thomas Woerner <twoerner@redhat.com> 1.38-2
 - splitted up libs from main package, into a new e2fsprogs-libs package
 - fixed requires and prereqs

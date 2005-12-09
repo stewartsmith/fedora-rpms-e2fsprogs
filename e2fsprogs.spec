@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 2.1
+Release: 2.1.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -289,6 +289,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Dec 09 2005 Jesse Keating <jkeating@redhat.com>
+- rebuilt
+
 * Thu Nov 10 2005 Thomas Woerner <twoerner@redhat.com> 1.38-2.1
 - fixed file conflicts between 32bit and 64bit packages (#168815)
 - fixed mklost+found crashes with buffer overflow (#157773)

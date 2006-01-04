@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 2.1.1
+Release: 3
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -26,10 +26,11 @@ Patch30: e2fsprogs-1.38-resize-inode.patch
 Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch33: e2fsprogs-1.38-lost+found.patch
+Patch34: e2fsprogs-1.38-dm.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
-Requires: e2fsprogs-libs = %{version}-%{release}
-BuildRequires: gettext, texinfo, autoconf, automake
+Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
+BuildRequires: gettext, texinfo, autoconf, automake, device-mapper, libselinux-devel, libsepol-devel
 
 %define ext2resize_basever 1.1.17
 %define ext2resize_name ext2resize-%{ext2resize_basever}
@@ -113,6 +114,9 @@ popd
 %patch32 -p1 -b .pottcdate
 # fixed buffer overflow in mklost+found
 %patch33 -p1 -b .lost+found
+
+# look at device mapper devices
+%patch34 -p1 -b .dm
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper
@@ -289,6 +293,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Jan 03 2006 Peter Jones <pjones@redhat.com> 1.38-3
+- added support for device-mapper devices
+
 * Fri Dec 09 2005 Jesse Keating <jkeating@redhat.com>
 - rebuilt
 

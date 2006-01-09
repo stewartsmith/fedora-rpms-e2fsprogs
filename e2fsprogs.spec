@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 4
+Release: 5
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -293,6 +293,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Jan  9 2006 Peter Jones <pjones@redhat.com> 1.38-5
+- fix some more minor logic errors in dm probing
+
 * Wed Jan  4 2006 Peter Jones <pjones@redhat.com> 1.38-4
 - fix a logic error in dm probing
 - add priority group for dm devices, so they'll be preferred

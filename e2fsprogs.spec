@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 5
+Release: 6
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -26,11 +26,12 @@ Patch30: e2fsprogs-1.38-resize-inode.patch
 Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch33: e2fsprogs-1.38-lost+found.patch
-Patch34: e2fsprogs-1.38-dm.patch
+Patch34: e2fsprogs-1.38-blkid-devmapper.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
-BuildRequires: gettext, texinfo, autoconf, automake, device-mapper, libselinux-devel, libsepol-devel
+BuildRequires: gettext, texinfo, autoconf, automake, libselinux-devel, libsepol-devel
+BuildRequires: device-mapper >= 1.02.02-3
 
 %define ext2resize_basever 1.1.17
 %define ext2resize_name ext2resize-%{ext2resize_basever}
@@ -119,7 +120,9 @@ popd
 %patch34 -p1 -b .dm
 
 %build
-%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper
+aclocal
+autoconf
+%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper
 # --enable-dynamic-e2fsck
 make -C po update-po
 make
@@ -293,6 +296,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Jan 11 2006 Karel Zak <kzak@redhat.com> 1.38-6
+- cleanup device-mapper patch
+- use pkg-config for device-mapper
+
 * Mon Jan  9 2006 Peter Jones <pjones@redhat.com> 1.38-5
 - fix some more minor logic errors in dm probing
 

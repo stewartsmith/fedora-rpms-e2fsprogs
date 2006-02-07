@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 6
+Release: 6.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -296,6 +296,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Feb 07 2006 Jesse Keating <jkeating@redhat.com> - 1.38-6.1
+- rebuilt for new gcc4.1 snapshot and glibc changes
+
 * Wed Jan 11 2006 Karel Zak <kzak@redhat.com> 1.38-6
 - cleanup device-mapper patch
 - use pkg-config for device-mapper

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 6.2
+Release: 7
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -30,7 +30,8 @@ Patch34: e2fsprogs-1.38-blkid-devmapper.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
-BuildRequires: gettext, texinfo, autoconf, automake, libselinux-devel, libsepol-devel
+BuildRequires: gettext, texinfo, autoconf, automake, libselinux-devel
+BuildRequires: libsepol-devel, gettext-devel
 BuildRequires: device-mapper >= 1.02.02-3
 
 %define ext2resize_basever 1.1.17
@@ -296,6 +297,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Feb 20 2006 Karsten Hopp <karsten@redhat.de> 1.38-7
+- BuildRequires: gettext-devel
+
 * Fri Feb 10 2006 Jesse Keating <jkeating@redhat.com> - 1.38-6.2
 - bump again for double-long bug on ppc(64)
 

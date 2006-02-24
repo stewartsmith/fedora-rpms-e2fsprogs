@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 8
+Release: 9
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -27,7 +27,6 @@ Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch33: e2fsprogs-1.38-lost+found.patch
 Patch34: e2fsprogs-1.38-blkid-devmapper.patch
-Patch35: e2fsprogs-1.38-blkid-selinux.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -120,8 +119,6 @@ popd
 
 # look at device mapper devices
 %patch34 -p1 -b .dm
-# preserve selinux context on blkid.tab
-%patch35 -p1 -b .selinux
 
 %build
 aclocal
@@ -300,7 +297,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
-* Wed Feb 22 2006 Peter Jones <pjones@redhat.com> - 1.36-8
+* Fri Feb 24 2006 Peter Jones <pjones@redhat.com> - 1.38-9
+- _don't_ handle selinux context on blkid.tab, dwalsh says this is a no-no.
+
+* Wed Feb 22 2006 Peter Jones <pjones@redhat.com> - 1.38-8
 - handle selinux context on blkid.tab
 
 * Mon Feb 20 2006 Karsten Hopp <karsten@redhat.de> 1.38-7

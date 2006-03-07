@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 9
+Release: 10
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -27,6 +27,7 @@ Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch33: e2fsprogs-1.38-lost+found.patch
 Patch34: e2fsprogs-1.38-blkid-devmapper.patch
+Patch35: e2fsprogs-1.38-blkid-epoch.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -119,6 +120,9 @@ popd
 
 # look at device mapper devices
 %patch34 -p1 -b .dm
+
+# disable blkid.tab caching if time is set before epoch
+%patch35 -p1 -b .epoch
 
 %build
 aclocal
@@ -297,6 +301,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Mar 07 2006 David Cantrell <dcantrell@redhat.com> - 1.38-10
+- Disable /etc/blkid.tab caching if time is set before epoch (#182188)
+
 * Fri Feb 24 2006 Peter Jones <pjones@redhat.com> - 1.38-9
 - _don't_ handle selinux context on blkid.tab, dwalsh says this is a no-no.
 

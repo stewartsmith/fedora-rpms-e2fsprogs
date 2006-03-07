@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 10
+Release: 11
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -32,7 +32,7 @@ Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
 BuildRequires: gettext, texinfo, autoconf, automake, libselinux-devel
-BuildRequires: libsepol-devel, gettext-devel
+BuildRequires: libsepol-devel, gettext-devel, pkgconfig
 BuildRequires: device-mapper >= 1.02.02-3
 
 %define ext2resize_basever 1.1.17
@@ -301,6 +301,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Mar 07 2006 David Cantrell <dcantrell@redhat.com> - 1.38-11
+- BuildRequires pkgconfig
+
 * Tue Mar 07 2006 David Cantrell <dcantrell@redhat.com> - 1.38-10
 - Disable /etc/blkid.tab caching if time is set before epoch (#182188)
 

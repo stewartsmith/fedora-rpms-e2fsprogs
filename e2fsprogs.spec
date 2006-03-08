@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 11
+Release: 12
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -28,6 +28,7 @@ Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch33: e2fsprogs-1.38-lost+found.patch
 Patch34: e2fsprogs-1.38-blkid-devmapper.patch
 Patch35: e2fsprogs-1.38-blkid-epoch.patch
+Patch36: e2fsprogs-1.38-etcblkid.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -124,6 +125,9 @@ popd
 # disable blkid.tab caching if time is set before epoch
 %patch35 -p1 -b .epoch
 
+# put blkid.tab in /etc/blkid/
+%patch36 -p1 -b .etcblkid
+
 %build
 aclocal
 autoconf
@@ -171,6 +175,10 @@ popd
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+[ -e /etc/blkid.tab ] && mv /etc/blkid.tab /etc/blkid/blkid.tab || :
+[ -e /etc/blkid.tab.old ] && mv /etc/blkid.tab.old /etc/blkid/blkid.tab.old || :
+
 %post libs -p /sbin/ldconfig
 
 %postun libs -p /sbin/ldconfig
@@ -196,6 +204,7 @@ exit 0
 %doc %{ext2resize_name}/README.ext2resize
 %doc %{ext2resize_name}/doc/HOWTO.ext2resize
 
+%dir /etc/blkid
 %{_root_sbindir}/badblocks
 %{_root_sbindir}/blkid
 %{_root_sbindir}/debugfs
@@ -301,10 +310,13 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
-* Tue Mar 07 2006 David Cantrell <dcantrell@redhat.com> - 1.38-11
+* Wed Mar  8 2006 Peter Jones <pjones@redhat.com> - 1.38-12
+- Move /etc/blkid.tab to /etc/blkid/blkid.tab
+
+* Tue Mar  7 2006 David Cantrell <dcantrell@redhat.com> - 1.38-11
 - BuildRequires pkgconfig
 
-* Tue Mar 07 2006 David Cantrell <dcantrell@redhat.com> - 1.38-10
+* Tue Mar  7 2006 David Cantrell <dcantrell@redhat.com> - 1.38-10
 - Disable /etc/blkid.tab caching if time is set before epoch (#182188)
 
 * Fri Feb 24 2006 Peter Jones <pjones@redhat.com> - 1.38-9
@@ -319,7 +331,7 @@ exit 0
 * Fri Feb 10 2006 Jesse Keating <jkeating@redhat.com> - 1.38-6.2
 - bump again for double-long bug on ppc(64)
 
-* Tue Feb 07 2006 Jesse Keating <jkeating@redhat.com> - 1.38-6.1
+* Tue Feb  7 2006 Jesse Keating <jkeating@redhat.com> - 1.38-6.1
 - rebuilt for new gcc4.1 snapshot and glibc changes
 
 * Wed Jan 11 2006 Karel Zak <kzak@redhat.com> 1.38-6

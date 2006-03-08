@@ -1,0 +1,116 @@
+--- e2fsprogs-1.38/doc/libblkid.txt.etcblkid	2006-03-08 15:02:33.000000000 -0500
++++ e2fsprogs-1.38/doc/libblkid.txt	2006-03-08 15:04:08.000000000 -0500
+@@ -58,7 +58,7 @@
+ 	}
+ 
+ If a program needs to call multiple blkid functions, then passing in a
+-cache value of NULL is not recommended, since the /etc/blkid.tab file
++cache value of NULL is not recommended, since the /etc/blkid/blkid.tab file
+ will be repeatedly parsed over and over again, with memory allocated
+ and deallocated.  To initialize the blkid cache, blkid_get_cache()
+ function is used:
+@@ -68,7 +68,7 @@
+ 
+ The second parameter of blkid_get_cache (if non-zero) is the alternate
+ filename of the blkid cache file (where the default is
+-/etc/blkid.tab).  Normally, programs should just pass in NULL.
++/etc/blkid/blkid.tab).  Normally, programs should just pass in NULL.
+ 
+ If you have called blkid_get_cache(), you should call blkid_put_cache()
+ when you are done using the blkid library functions.  This will save the
+--- e2fsprogs-1.38/misc/blkid.8.in.etcblkid	2006-03-08 15:02:46.000000000 -0500
++++ e2fsprogs-1.38/misc/blkid.8.in	2006-03-08 15:04:17.000000000 -0500
+@@ -55,7 +55,7 @@
+ Read from
+ .I cachefile
+ instead of reading from the default cache file
+-.IR /etc/blkid.tab .
++.IR /etc/blkid/blkid.tab .
+ If you want to start with a clean cache (i.e. don't report devices previously
+ scanned but not necessarily available at this time), specify
+ .IR /dev/null.
+@@ -139,7 +139,7 @@
+ Write the device cache to
+ .I writecachefile
+ instead of writing it to the default cache file
+-.IR /etc/blkid.tab .
++.IR /etc/blkid/blkid.tab .
+ If you don't want to save the cache to the default file, specify
+ .IR /dev/null.
+ If not specified it will be the same file as that given by the
+--- e2fsprogs-1.38/misc/blkid.c.etcblkid	2006-03-08 15:02:39.000000000 -0500
++++ e2fsprogs-1.38/misc/blkid.c	2006-03-08 15:04:19.000000000 -0500
+@@ -39,7 +39,7 @@
+ 	fprintf(out,
+ 		"usage:\t%s [-c <file>] [-hl] [-o format] "
+ 		"[-s <tag>] [-t <token>]\n    [-v] [-w <file>] [dev ...]\n"
+-		"\t-c\tcache file (default: /etc/blkid.tab, /dev/null = none)\n"
++		"\t-c\tcache file (default: /etc/blkid/blkid.tab, /dev/null = none)\n"
+ 		"\t-h\tprint this usage message and exit\n"
+ 		"\t-s\tshow specified tag(s) (default show all tags)\n"
+ 		"\t-t\tfind device with a specific token (NAME=value pair)\n"
+--- e2fsprogs-1.38/lib/blkid/Makefile.in.etcblkid	2006-03-08 15:04:56.000000000 -0500
++++ e2fsprogs-1.38/lib/blkid/Makefile.in	2006-03-08 15:05:59.000000000 -0500
+@@ -129,9 +129,10 @@
+ 	@cd $(top_builddir); CONFIG_FILES=lib/blkid/blkid.pc ./config.status
+ 
+ installdirs::
+-	@echo "	MKINSTALLDIRS $(libdir) $(includedir)/blkid"
++	@echo "	MKINSTALLDIRS $(libdir) $(includedir)/blkid /etc/blkid"
+ 	@$(MKINSTALLDIRS) $(DESTDIR)$(libdir) \
+-		$(DESTDIR)$(includedir)/blkid $(DESTDIR)$(libdir)/pkgconfig
++		$(DESTDIR)$(includedir)/blkid $(DESTDIR)$(libdir)/pkgconfig \
++		$(DESTDIR)/etc/blkid
+ 
+ install:: all installdirs 
+ 	@echo "	INSTALL_DATA $(libdir)/libblkid.a"
+@@ -157,6 +158,7 @@
+ 	$(RM) -f $(DESTDIR)$(libdir)/libblkid.a \
+ 		$(DESTDIR)$(libdir)/pkgconfig/blkid.pc
+ 	$(RM) -rf $(DESTDIR)$(includedir)/blkid
++	$(RM) -rf $(DESTDIR)/etc/blkid
+ 	for i in $(SMANPAGES); do \
+ 		$(RM) -f $(DESTDIR)$(man3dir)/$$i; \
+ 	done
+--- e2fsprogs-1.38/lib/blkid/libblkid.3.in.etcblkid	2006-03-08 15:02:58.000000000 -0500
++++ e2fsprogs-1.38/lib/blkid/libblkid.3.in	2006-03-08 15:04:22.000000000 -0500
+@@ -24,7 +24,7 @@
+ specific block device names into configuration files.
+ .P
+ Block device information is normally kept in a cache file
+-.I /etc/blkid.tab
++.I /etc/blkid/blkid.tab
+ and is verified to still be valid before being returned to the user
+ (if the user has read permission on the raw block device, otherwise not).
+ The cache file also allows unprivileged users (normally anyone other
+@@ -49,7 +49,7 @@
+ from Ted Ts'o.  The library was subsequently heavily modified by Ted Ts'o.
+ .SH FILES
+ .TP
+-.I /etc/blkid.tab 
++.I /etc/blkid/blkid.tab 
+ Caches data extracted from each recognized block device.
+ .SH AVAILABILITY
+ .B libblkid
+--- e2fsprogs-1.38/lib/blkid/blkidP.h.etcblkid	2006-03-08 15:03:04.000000000 -0500
++++ e2fsprogs-1.38/lib/blkid/blkidP.h	2006-03-08 15:04:25.000000000 -0500
+@@ -104,7 +104,7 @@
+ extern char *blkid_strdup(const char *s);
+ extern char *blkid_strndup(const char *s, const int length);
+ 
+-#define BLKID_CACHE_FILE "/etc/blkid.tab"
++#define BLKID_CACHE_FILE "/etc/blkid/blkid.tab"
+ extern const char *blkid_devdirs[];
+ 
+ #define BLKID_ERR_IO	 5
+--- e2fsprogs-1.38/RELEASE-NOTES.etcblkid	2006-03-08 15:02:53.000000000 -0500
++++ e2fsprogs-1.38/RELEASE-NOTES	2006-03-08 15:04:30.000000000 -0500
+@@ -718,7 +718,7 @@
+ 
+ Fixed a bug in the blkid library wihch could avoid an infinite loop
+ in blkid_find_dev_with_tag() if /proc is not mounted and there the
+-/etc/blkid.tab file has not yet been created.
++/etc/blkid/blkid.tab file has not yet been created.
+ 
+ Fixed the badblocks program so that the destructive read/write test
+ honors the -c option, and to use O_DIRECT when possible to avoid

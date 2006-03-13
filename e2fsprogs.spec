@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 12
+Release: 13
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -310,6 +310,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Mar 13 2006 Karel Zak <kzak@redhat.com>  - 1.38-13
+- used upstream version of the blkid-epoch patch (by Theodore Tso, #182188)
+
 * Wed Mar  8 2006 Peter Jones <pjones@redhat.com> - 1.38-12
 - Move /etc/blkid.tab to /etc/blkid/blkid.tab
 

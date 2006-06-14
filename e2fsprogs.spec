@@ -18,6 +18,7 @@ Patch14: ext2resize-canonicalise.patch
 Patch19: ext2resize-byteorder.patch
 Patch20: ext2resize-nofallback.patch
 Patch21: ext2resize-nowrite.patch
+Patch22: ext2resize-fixbuild.patch
 Patch26: e2fsprogs-1.37-blkid-swsuspend.patch
 Patch27: e2fsprogs-1.37-blkid-ext23.patch
 Patch28: e2fsprogs-1.37-blkid-nomagicvfat.patch
@@ -110,6 +111,8 @@ pushd %{ext2resize_name}
 %patch20 -p2 -b .nofallback
 # Disable the write path used by old-style online
 %patch21 -p2 -b .nowrite
+# Use the kernel prototypes, as they don't cause errors
+%patch22 -p1 -b .fixbuild
 popd
 
 # drop ext2resize, ext2prepare and e2fsadm from man page of ext2online
@@ -312,6 +315,7 @@ exit 0
 %changelog
 * Tue Jun 13 2006 Bill Nottingham <notting@redhat.com> - 1.38-15
 - prevent libblkid returning /dev/dm-X
+- fix build
 
 * Tue Mar 21 2006 Karel Zak <kzak@redhat.com> - 1.38-14
 - prevent error messages to stderr caused by libblkid calling libdevmapper

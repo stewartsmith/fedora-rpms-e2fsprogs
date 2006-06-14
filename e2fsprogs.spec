@@ -30,6 +30,7 @@ Patch33: e2fsprogs-1.38-lost+found.patch
 Patch34: e2fsprogs-1.38-blkid-devmapper.patch
 Patch35: e2fsprogs-1.38-blkid-epoch.patch
 Patch36: e2fsprogs-1.38-etcblkid.patch
+Patch37: e2fsprogs-1.38-blkid-types.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -130,6 +131,9 @@ popd
 
 # put blkid.tab in /etc/blkid/
 %patch36 -p1 -b .etcblkid
+
+# only define types if they haven't already been defined
+%patch37 -p1 -b .blkidtypes
 
 %build
 aclocal

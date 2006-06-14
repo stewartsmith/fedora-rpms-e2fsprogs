@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.38
-Release: 14
+Release: 15
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -310,6 +310,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Jun 13 2006 Bill Nottingham <notting@redhat.com> - 1.38-15
+- prevent libblkid returning /dev/dm-X
+
 * Tue Mar 21 2006 Karel Zak <kzak@redhat.com> - 1.38-14
 - prevent error messages to stderr caused by libblkid calling libdevmapper
 

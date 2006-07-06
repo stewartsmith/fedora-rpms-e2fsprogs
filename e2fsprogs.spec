@@ -3,42 +3,22 @@
 
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
-Version: 1.38
-Release: 15
+Version: 1.39
+Release: 1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
-Source1: http://sourceforge.net/projects/ext2resize/ext2resize-1.1.17.tar.bz2
-Patch9: e2fsprogs-enable-resize.patch
-Patch10: ext2resize-cvs-20040419.patch
-Patch11: ext2resize-gcc34-fixes.patch
-Patch12: ext2resize-printf-format-fixes.patch
-Patch13: ext2resize-compiler-warning-fixes.patch
-Patch14: ext2resize-canonicalise.patch
-Patch19: ext2resize-byteorder.patch
-Patch20: ext2resize-nofallback.patch
-Patch21: ext2resize-nowrite.patch
-Patch22: ext2resize-fixbuild.patch
-Patch26: e2fsprogs-1.37-blkid-swsuspend.patch
-Patch27: e2fsprogs-1.37-blkid-ext23.patch
-Patch28: e2fsprogs-1.37-blkid-nomagicvfat.patch
-Patch29: e2fsprogs-1.38-close-on-error.patch
+Patch29: e2fsprogs-1.39-close-on-error.patch
 Patch30: e2fsprogs-1.38-resize-inode.patch
-Patch31: e2fsprogs-1.38-man_no_ext2resize.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
-Patch33: e2fsprogs-1.38-lost+found.patch
-Patch34: e2fsprogs-1.38-blkid-devmapper.patch
-Patch35: e2fsprogs-1.38-blkid-epoch.patch
+Patch34: e2fsprogs-1.39-blkid-devmapper.patch
 Patch36: e2fsprogs-1.38-etcblkid.patch
 Url: http://e2fsprogs.sourceforge.net/
-BuildRoot: %{_tmppath}/%{name}-root
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
 BuildRequires: gettext, texinfo, autoconf, automake, libselinux-devel
 BuildRequires: libsepol-devel, gettext-devel, pkgconfig
 BuildRequires: device-mapper >= 1.02.02-3
-
-%define ext2resize_basever 1.1.17
-%define ext2resize_name ext2resize-%{ext2resize_basever}
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -78,56 +58,14 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q -n e2fsprogs-%{version}
-# Enable the resize inode by default
-%patch9 -p1 -b .resize-on
-# fix swsuspend partition detection (#165863)
-%patch26 -p1 -b .swsuspend
-# fix revalidate from ext2 to ext3 (#162927)
-%patch27 -p1 -b .ext23
-# fix vfat without magic detection (#161873)
-%patch28 -p1 -b .vfatnomagic
-# clode fd's on error
+# close fd's on error
 %patch29 -p1 -b .close-on-error
 # enable tune2fs to set and clear the resize inode
 %patch30 -p1 -b .resize-inode
-
-# Now unpack the ext2resize online resize tarball...
-%setup -T -D -q -a 1
-# And apply the patches we need for that:
-pushd %{ext2resize_name}
-# Update to 20040419 ext2resize CVS
-%patch10 -p1 -b .cvs
-# Fix for gcc34 incompatibilities
-%patch11 -p1 -b .gcc34
-# Fix printk warnings on 64-bit archs
-%patch12 -p1 -b .printf
-# Fix misc compiler warnings
-%patch13 -p1 -b .warnings
-# Canonicalise device names to cope with (eg) LVM symlinks
-%patch14 -p1 -b .canon
-# Fix byte ordering problems on bigendian hosts
-%patch19 -p2 -b .byteorder
-# Disable fallback to old-style online resize
-%patch20 -p2 -b .nofallback
-# Disable the write path used by old-style online
-%patch21 -p2 -b .nowrite
-# Use the kernel prototypes, as they don't cause errors
-%patch22 -p1 -b .fixbuild
-popd
-
-# drop ext2resize, ext2prepare and e2fsadm from man page of ext2online
-%patch31 -p1 -b .man_no_ext2resize
 # drop timestamp from mo files
 %patch32 -p1 -b .pottcdate
-# fixed buffer overflow in mklost+found
-%patch33 -p1 -b .lost+found
-
 # look at device mapper devices
 %patch34 -p1 -b .dm
-
-# disable blkid.tab caching if time is set before epoch
-%patch35 -p1 -b .epoch
-
 # put blkid.tab in /etc/blkid/
 %patch36 -p1 -b .etcblkid
 
@@ -135,48 +73,21 @@ popd
 aclocal
 autoconf
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
-# --enable-dynamic-e2fsck
 make -C po update-po
 make
 
-pushd %{ext2resize_name}
-# The byteorder patch adds a new file to the ext2online source tree, so
-# we need to rebuild the Makefiles from automake.
-aclocal
-automake -a -f
-# There's a new configure test for byte-order, too.
-autoconf
-%configure 
-make
-popd
-
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 export PATH=/sbin:$PATH
-make install install-libs DESTDIR="$RPM_BUILD_ROOT" \
+make install install-libs DESTDIR="%{buildroot}" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
-/sbin/ldconfig -n ${RPM_BUILD_ROOT}%{_libdir}
 %find_lang %{name}
 
-pushd %{ext2resize_name}
-make DESTDIR=$RPM_BUILD_ROOT install
-# For now, we only want to package up the ext2online binary.  Delete the
-# others.
-rm -f $RPM_BUILD_ROOT%{_sbindir}/ext2resize
-rm -f $RPM_BUILD_ROOT%{_sbindir}/ext2prepare
-rm -f $RPM_BUILD_ROOT/%{_mandir}/man8/ext2resize*
-rm -f $RPM_BUILD_ROOT/%{_mandir}/man8/ext2prepare*
-# We want some of the ext2resize doc files to be clearly identified as
-# not being part of e2fsprogs!
-mv AUTHORS AUTHORS.ext2resize
-mv COPYING COPYING.ext2resize
-mv NEWS NEWS.ext2resize
-mv README README.ext2resize
-mv doc/HOWTO doc/HOWTO.ext2resize
-popd
+%check
+make check
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post
 [ -e /etc/blkid.tab ] && mv /etc/blkid.tab /etc/blkid/blkid.tab || :
@@ -201,13 +112,9 @@ exit 0
 %files -f %{name}.lang
 %defattr(-,root,root)
 %doc README RELEASE-NOTES
-%doc %{ext2resize_name}/AUTHORS.ext2resize
-%doc %{ext2resize_name}/COPYING.ext2resize
-%doc %{ext2resize_name}/NEWS.ext2resize
-%doc %{ext2resize_name}/README.ext2resize
-%doc %{ext2resize_name}/doc/HOWTO.ext2resize
 
 %dir /etc/blkid
+%config(noreplace) /etc/mke2fs.conf
 %{_root_sbindir}/badblocks
 %{_root_sbindir}/blkid
 %{_root_sbindir}/debugfs
@@ -235,6 +142,9 @@ exit 0
 %{_mandir}/man1/lsattr.1*
 %{_mandir}/man1/uuidgen.1*
 
+%{_mandir}/man5/e2fsck.conf.5*
+%{_mandir}/man5/mke2fs.conf.5*
+
 %{_mandir}/man8/badblocks.8*
 %{_mandir}/man8/blkid.8*
 %{_mandir}/man8/debugfs.8*
@@ -254,10 +164,6 @@ exit 0
 %{_mandir}/man8/mklost+found.8*
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
-
-# ext2resize files
-%{_sbindir}/ext2online
-%{_mandir}/man8/ext2online.8*
 
 %files libs
 %defattr(-,root,root)
@@ -313,6 +219,12 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Thu Jul  6 2006 Thomas Woerner <twoerner@redhat.com> - 1.39-1
+- new version 1.39
+- dropped ext2online, because resize2fs is now able to do online resize
+- spec file cleanup
+- enabled checks for build
+
 * Tue Jun 13 2006 Bill Nottingham <notting@redhat.com> - 1.38-15
 - prevent libblkid returning /dev/dm-X
 - fix build

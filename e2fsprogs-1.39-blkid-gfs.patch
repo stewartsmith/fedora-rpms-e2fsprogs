@@ -1,0 +1,126 @@
+--- e2fsprogs-1.39/lib/blkid/probe.c.gfs	2006-05-14 23:24:09.000000000 +0200
++++ e2fsprogs-1.39/lib/blkid/probe.c	2006-07-10 08:15:11.000000000 +0200
+@@ -646,6 +646,50 @@
+ 	return 0;
+ }
+ 
++static int probe_gfs(struct blkid_probe *probe,
++		     struct blkid_magic *id __BLKID_ATTR((unused)),
++		     unsigned char *buf)
++{
++	struct gfs2_sb *sbd;
++	const char *label = 0;
++
++	sbd = (struct gfs2_sb *)buf;
++
++	if (blkid_be32(sbd->sb_fs_format) == GFS_FORMAT_FS &&
++	    blkid_be32(sbd->sb_multihost_format) == GFS_FORMAT_MULTI)
++	{	
++		blkid_set_tag(probe->dev, "UUID", 0, 0);
++	
++		if (strlen(sbd->sb_locktable))
++			label = sbd->sb_locktable;
++		blkid_set_tag(probe->dev, "LABEL", label, sizeof(sbd->sb_locktable));
++		return 0;
++	}
++	return 1;
++}
++
++static int probe_gfs2(struct blkid_probe *probe,
++		     struct blkid_magic *id __BLKID_ATTR((unused)),
++		     unsigned char *buf)
++{
++	struct gfs2_sb *sbd;
++	const char *label = 0;
++
++	sbd = (struct gfs2_sb *)buf;
++
++	if (blkid_be32(sbd->sb_fs_format) == GFS2_FORMAT_FS &&
++	    blkid_be32(sbd->sb_multihost_format) == GFS2_FORMAT_MULTI)
++	{	
++		blkid_set_tag(probe->dev, "UUID", 0, 0);
++	
++		if (strlen(sbd->sb_locktable))
++			label = sbd->sb_locktable;
++		blkid_set_tag(probe->dev, "LABEL", label, sizeof(sbd->sb_locktable));
++		return 0;
++	}
++	return 1;
++}
++
+ /*
+  * BLKID_BLK_OFFS is at least as large as the highest bim_kboff defined
+  * in the type_array table below + bim_kbalign.
+@@ -673,6 +717,8 @@
+   { "reiserfs", 64,   0x34,  8, "ReIsErFs",		probe_reiserfs },
+   { "reiserfs",	 8,	20,  8, "ReIsErFs",		probe_reiserfs },
+   { "reiser4",  64,	 0,  7, "ReIsEr4",		probe_reiserfs4 },
++  { "gfs2",     64,      0,  4, "\x01\x16\x19\x70",     probe_gfs2 },
++  { "gfs",      64,      0,  4, "\x01\x16\x19\x70",     probe_gfs },
+   { "vfat",      0,   0x52,  5, "MSWIN",                probe_fat },
+   { "vfat",      0,   0x52,  8, "FAT32   ",             probe_fat },
+   { "vfat",      0,   0x36,  5, "MSDOS",                probe_fat },
+--- e2fsprogs-1.39/lib/blkid/probe.h.gfs	2006-03-10 21:43:35.000000000 +0100
++++ e2fsprogs-1.39/lib/blkid/probe.h	2006-07-07 13:45:43.000000000 +0200
+@@ -345,6 +345,54 @@
+ 	unsigned char	escape_sequences[8];
+ };
+ 
++/* Common gfs/gfs2 constants: */
++#define GFS_MAGIC               0x01161970
++#define GFS_DEFAULT_BSIZE       4096
++#define GFS_SUPERBLOCK_OFFSET	(0x10 * GFS_DEFAULT_BSIZE)
++#define GFS_METATYPE_SB         1
++#define GFS_FORMAT_SB           100
++#define GFS_LOCKNAME_LEN        64
++
++/* gfs1 constants: */
++#define GFS_FORMAT_FS           1309
++#define GFS_FORMAT_MULTI        1401
++/* gfs2 constants: */
++#define GFS2_FORMAT_FS          1801
++#define GFS2_FORMAT_MULTI       1900
++
++struct gfs2_meta_header {
++	__u32 mh_magic;
++	__u32 mh_type;
++	__u64 __pad0;          /* Was generation number in gfs1 */
++	__u32 mh_format;
++	__u32 __pad1;          /* Was incarnation number in gfs1 */
++};
++
++struct gfs2_inum {
++	__u64 no_formal_ino;
++	__u64 no_addr;
++};
++
++struct gfs2_sb {
++	struct gfs2_meta_header sb_header;
++
++	__u32 sb_fs_format;
++	__u32 sb_multihost_format;
++	__u32  __pad0;  /* Was superblock flags in gfs1 */
++	
++	__u32 sb_bsize;
++	__u32 sb_bsize_shift;
++	__u32 __pad1;   /* Was journal segment size in gfs1 */
++	
++	struct gfs2_inum sb_master_dir; /* Was jindex dinode in gfs1 */
++	struct gfs2_inum __pad2; /* Was rindex dinode in gfs1 */
++	struct gfs2_inum sb_root_dir;
++	
++	char sb_lockproto[GFS_LOCKNAME_LEN];
++	char sb_locktable[GFS_LOCKNAME_LEN];
++	/* In gfs1, quota and license dinodes followed */
++} PACKED;
++
+ /*
+  * Byte swap functions
+  */
+--- e2fsprogs-1.39/lib/blkid/ChangeLog.gfs	2006-05-14 23:25:12.000000000 +0200
++++ e2fsprogs-1.39/lib/blkid/ChangeLog	2006-07-10 08:16:22.000000000 +0200
+@@ -0,0 +1,4 @@
++2006-07-10  Karel Zak  <kzak@redhat.com>
++
++	* probe.c (probe_gfs, _gfs2), probe.h: Add support for GFS/GFS2 
++

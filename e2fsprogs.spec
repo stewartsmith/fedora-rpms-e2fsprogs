@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.39
-Release: 2
+Release: 2.1
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -222,6 +222,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Jul 12 2006 Jesse Keating <jkeating@redhat.com> - sh: line 0: fg: no job control
+- rebuild
+
 * Mon Jul 10 2006 Karel Zak <kzak@redhat.com> - 1.39-2
 - add GFS abd GFS2 support to libblkid
 

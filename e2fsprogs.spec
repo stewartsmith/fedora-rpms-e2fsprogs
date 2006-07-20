@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.39
-Release: 2.1
+Release: 3
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -14,6 +14,7 @@ Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch34: e2fsprogs-1.39-blkid-devmapper.patch
 Patch36: e2fsprogs-1.38-etcblkid.patch
 Patch37: e2fsprogs-1.39-blkid-gfs.patch
+Patch38: e2fsprogs-1.39-blkid-devname.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -71,6 +72,8 @@ also want to install e2fsprogs.
 %patch36 -p1 -b .etcblkid
 # GFS/GFS2 detection
 %patch37 -p1 -b .gfs
+# Fix device mapper names in blkid
+%patch38 -p1 -b .devname
 
 %build
 aclocal
@@ -222,7 +225,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
-* Wed Jul 12 2006 Jesse Keating <jkeating@redhat.com> - sh: line 0: fg: no job control
+* Thu Jul 20 2006 Bill Nottingham <notting@redhat.com> - 1.39-3
+- prevent libblkid returning /dev/dm-X
+
+* Wed Jul 12 2006 Jesse Keating <jkeating@redhat.com> - 1.39-2.1
 - rebuild
 
 * Mon Jul 10 2006 Karel Zak <kzak@redhat.com> - 1.39-2

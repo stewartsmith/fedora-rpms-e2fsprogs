@@ -1,0 +1,85 @@
+--- e2fsprogs-1.39/lib/ext2fs/ext2_types.h.in.multilib	2006-04-09 03:39:39.000000000 +0200
++++ e2fsprogs-1.39/lib/ext2fs/ext2_types.h.in	2006-07-24 16:14:11.000000000 +0200
+@@ -9,6 +9,17 @@
+ 
+ @ASM_TYPES_HEADER@
+ 
++# define SIZEOF_SHORT     2
++# define SIZEOF_INT       4
++#if __WORDSIZE == 64
++# define SIZEOF_LONG      8
++#elif __WORDSIZE == 32
++# define SIZEOF_LONG      4
++#else
++# error unknown __WORDSIZE
++#endif
++# define SIZEOF_LONG_LONG 8
++
+ #ifdef __U8_TYPEDEF
+ typedef __U8_TYPEDEF __u8;
+ #else
+--- e2fsprogs-1.39/lib/blkid/blkid_types.h.in.multilib	2006-04-09 03:43:44.000000000 +0200
++++ e2fsprogs-1.39/lib/blkid/blkid_types.h.in	2006-07-24 16:14:56.000000000 +0200
+@@ -9,6 +9,17 @@
+ 
+ @ASM_TYPES_HEADER@
+ 
++# define SIZEOF_SHORT     2
++# define SIZEOF_INT       4
++#if __WORDSIZE == 64
++# define SIZEOF_LONG      8
++#elif __WORDSIZE == 32
++# define SIZEOF_LONG      4
++#else
++# error unknown __WORDSIZE
++#endif
++# define SIZEOF_LONG_LONG 8
++
+ #ifdef __U8_TYPEDEF
+ typedef __U8_TYPEDEF __u8;
+ #else
+--- e2fsprogs-1.39/lib/uuid/uuid_types.h.in.multilib	2006-07-24 16:08:53.000000000 +0200
++++ e2fsprogs-1.39/lib/uuid/uuid_types.h.in	2006-07-24 16:10:46.000000000 +0200
+@@ -9,6 +9,17 @@
+ typedef unsigned char uint8_t;
+ typedef signed char int8_t;
+ 
++# define SIZEOF_SHORT     2
++# define SIZEOF_INT       4
++#if __WORDSIZE == 64
++# define SIZEOF_LONG      8
++#elif __WORDSIZE == 32
++# define SIZEOF_LONG      4
++#else
++# error unknown __WORDSIZE
++#endif
++# define SIZEOF_LONG_LONG 8
++
+ #if (@SIZEOF_INT@ == 8)
+ typedef int		int64_t;
+ typedef unsigned int	uint64_t;
+--- e2fsprogs-1.39/configure.in.multilib	2006-07-24 16:06:33.000000000 +0200
++++ e2fsprogs-1.39/configure.in	2006-07-24 16:07:46.000000000 +0200
+@@ -611,14 +611,14 @@
+   ac_cv_sizeof_long_long=8
+   AC_MSG_WARN([Cross-compiling, so cannot check type sizes; assuming short=2, int=4, long=4, long long=8])
+ fi
+-AC_CHECK_SIZEOF(short)
+-AC_CHECK_SIZEOF(int)
+-AC_CHECK_SIZEOF(long)
+-AC_CHECK_SIZEOF(long long)
+-SIZEOF_SHORT=$ac_cv_sizeof_short
+-SIZEOF_INT=$ac_cv_sizeof_int
+-SIZEOF_LONG=$ac_cv_sizeof_long
+-SIZEOF_LONG_LONG=$ac_cv_sizeof_long_long
++dnl AC_CHECK_SIZEOF(short)
++dnl AC_CHECK_SIZEOF(int)
++dnl AC_CHECK_SIZEOF(long)
++dnl AC_CHECK_SIZEOF(long long)
++SIZEOF_SHORT="SIZEOF_SHORT"
++SIZEOF_INT="SIZEOF_INT"
++SIZEOF_LONG="SIZEOF_LONG"
++SIZEOF_LONG_LONG="SIZEOF_LONG_LONG"
+ AC_SUBST(SIZEOF_SHORT)
+ AC_SUBST(SIZEOF_INT)
+ AC_SUBST(SIZEOF_LONG)

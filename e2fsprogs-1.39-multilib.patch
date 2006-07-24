@@ -25,7 +25,7 @@
  
  @ASM_TYPES_HEADER@
 
-+#include <bite/wordsize.h>
++#include <bits/wordsize.h>
 +# define SIZEOF_SHORT     2
 +# define SIZEOF_INT       4
 +#if __WORDSIZE == 64

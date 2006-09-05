@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second extended (ext2) filesystem.
 Name: e2fsprogs
 Version: 1.39
-Release: 4
+Release: 5
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -16,6 +16,7 @@ Patch36: e2fsprogs-1.38-etcblkid.patch
 Patch37: e2fsprogs-1.39-blkid-gfs.patch
 Patch38: e2fsprogs-1.39-blkid-devname.patch
 Patch39: e2fsprogs-1.39-multilib.patch
+Patch40: e2fsprogs-1.39-leak.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -77,6 +78,8 @@ also want to install e2fsprogs.
 %patch38 -p1 -b .devname
 # Fix multilib conflicts
 %patch39 -p1 -b .multilib
+# Fix probing from leaking memory in error cases.
+%patch40 -p1 -b .leak
 
 %build
 aclocal
@@ -228,6 +231,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Sep  5 2006 Peter Jones <pjones@redhat.com> - 1.39-5
+- Fix memory leak in device probing.
+
 * Mon Jul 24 2006 Thomas Woerner <twoerner@redhat.com> - 1.39-4
 - fixed multilib devel conflicts (#192665)
 

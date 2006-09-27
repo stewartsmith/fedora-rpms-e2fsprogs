@@ -1,0 +1,106 @@
+# HG changeset patch
+# User tytso@mit.edu
+# Date Tue Sep 12 14:56:18 2006 -0400
+# Node ID 8be686f713b52a3fa0b5dab70980ea3ddbad27b5
+# parent: 7e1e8751d2be27716166e88453b52273b7096039
+Fix more rounding overflows for filesystems that have 2**32-1 blocks
+
+Signed-off-by: Eric Sandeen <esandeen@redhat.com>
+
+Index: e2fsprogs-1.39-my-patches-from-ted/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/e2fsck/ChangeLog
+@@ -1,5 +1,9 @@
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* pass1.c (handle_bad_fs_blocks): use blk_t, not int for first_block.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* pass1.c (new_table_block, handle_fs_bad_blocks):
+ 	* super.c (check_super_block):
+ 		Use new inlines to calculate group first & last blocks.
+Index: e2fsprogs-1.39-my-patches-from-ted/e2fsck/pass1.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/e2fsck/pass1.c
++++ e2fsprogs-1.39-my-patches-from-ted/e2fsck/pass1.c
+@@ -1953,7 +1953,7 @@ static void handle_fs_bad_blocks(e2fsck_
+ {
+ 	ext2_filsys fs = ctx->fs;
+ 	dgrp_t		i;
+-	int		first_block;
++	blk_t		first_block;
+ 
+ 	for (i = 0; i < fs->group_desc_count; i++) {
+ 		first_block = ext2fs_group_first_block(fs, i);
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+@@ -1,5 +1,9 @@
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* mke2fs.c (PRS): Avoid overflow in megs calculation.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* dumpe2fs.c (list_desc): Use new inlines to calculate group 
+ 		first & last blocks.
+ 
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/mke2fs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/mke2fs.c
++++ e2fsprogs-1.39-my-patches-from-ted/misc/mke2fs.c
+@@ -1261,7 +1261,7 @@ static void PRS(int argc, char *argv[])
+ 	}
+ 
+ 	if (!fs_type) {
+-		int megs = fs_param.s_blocks_count * 
++		int megs = (__u64)fs_param.s_blocks_count *
+ 			(EXT2_BLOCK_SIZE(&fs_param) / 1024) / 1024;
+ 
+ 		if (megs <= 3)
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+@@ -1,5 +1,11 @@
+ 2006-08-30  Eric Sandeen  <esandeen@redhat.com>
+ 
++	* online.c (online_resize_fs): use div_ceil for r_frac calculation.
++	* resize2fs.c (adjust_fs_info): avoid overflow in blk calculation
++		when figuring new reserved blocks count.
++
++2006-08-30  Eric Sandeen  <esandeen@redhat.com>
++
+ 	* resize2fs.c (adjust_fs_info): Disallow > 2^32 indoes at resize time.
+ 
+ 2006-08-30  Eric Sandeen  <esandeen@redhat.com>
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/online.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/online.c
++++ e2fsprogs-1.39-my-patches-from-ted/resize/online.c
+@@ -59,8 +59,7 @@ errcode_t online_resize_fs(ext2_filsys f
+ 		exit(1);
+ 	}
+ 
+-	r_frac = ((100 * sb->s_r_blocks_count) + sb->s_blocks_count-1) /
+-		sb->s_blocks_count;
++	r_frac = ext2fs_div_ceil(100 * sb->s_r_blocks_count, sb->s_blocks_count);
+ 
+ 	retval = ext2fs_read_bitmaps(fs);
+ 	if (retval)
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/resize2fs.c
++++ e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+@@ -250,7 +250,7 @@ retry:
+ 	/*
+ 	 * Adjust the number of reserved blocks
+ 	 */
+-	blk = old_fs->super->s_r_blocks_count * 100 /
++	blk = (__u64)old_fs->super->s_r_blocks_count * 100 /
+ 		old_fs->super->s_blocks_count;
+ 	fs->super->s_r_blocks_count = e2p_percent(blk, 
+ 						  fs->super->s_blocks_count);

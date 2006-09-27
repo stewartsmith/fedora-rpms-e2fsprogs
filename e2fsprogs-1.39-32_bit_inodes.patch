@@ -1,0 +1,168 @@
+# HG changeset patch
+# User tytso@mit.edu
+# Date Tue Sep 12 14:56:17 2006 -0400
+# Node ID 7e1e8751d2be27716166e88453b52273b7096039
+# parent: 1aa8aca8acebca38b38ee003c17a045bc5fde185
+Add checks to make sure inode counts don't overflow a 32-bit value
+
+Signed-off-by: Eric Sandeen <esandeen@redhat.com>
+
+Index: e2fsprogs-1.39-my-patches-from-ted/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/e2fsck/ChangeLog
+@@ -6,6 +6,10 @@
+ 
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* unix.c (show_stats): use ext2_ino_t for inode containers.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* e2fsck.h (e2fsck): Use unsigned types for filesystem counters.
+ 	* emptydir.c (add_empty_dirblock):
+ 	* iscan.c (main):
+Index: e2fsprogs-1.39-my-patches-from-ted/e2fsck/unix.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/e2fsck/unix.c
++++ e2fsprogs-1.39-my-patches-from-ted/e2fsck/unix.c
+@@ -98,7 +98,7 @@ static void usage(e2fsck_t ctx)
+ static void show_stats(e2fsck_t	ctx)
+ {
+ 	ext2_filsys fs = ctx->fs;
+-	__u32 inodes, inodes_used;
++	ext2_ino_t inodes, inodes_used;
+ 	blk_t blocks, blocks_used;
+ 	int dir_links;
+ 	int num_files, num_links;
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ChangeLog
+@@ -8,6 +8,11 @@
+ 
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* initialize.c (ext2fs_initialize): Make sure inode count does
++		not overflow 32 bits.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* bmove.c (process_block):
+ 	* getsize.c (main):
+ 	* icount.c (ext2fs_create_icount2, insert_icount_el):
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/initialize.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/initialize.c
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/initialize.c
+@@ -246,9 +246,8 @@ retry:
+ 	if (ipg > (unsigned) EXT2_MAX_INODES_PER_GROUP(super))
+ 		ipg = EXT2_MAX_INODES_PER_GROUP(super);
+ 
++ipg_retry:
+ 	super->s_inodes_per_group = ipg;
+-	if (super->s_inodes_count > ipg * fs->group_desc_count)
+-		super->s_inodes_count = ipg * fs->group_desc_count;
+ 
+ 	/*
+ 	 * Make sure the number of inodes per group completely fills
+@@ -276,6 +275,10 @@ retry:
+ 	/*
+ 	 * adjust inode count to reflect the adjusted inodes_per_group
+ 	 */
++	if ((__u64)super->s_inodes_per_group * fs->group_desc_count > ~0U) {
++		ipg--;
++		goto ipg_retry;
++	}
+ 	super->s_inodes_count = super->s_inodes_per_group *
+ 		fs->group_desc_count;
+ 	super->s_free_inodes_count = super->s_inodes_count;
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+@@ -5,6 +5,10 @@
+ 
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* mke2fs.c (PRS): Disallow > 2^32 inodes at mkfs time.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* dumpe2fs.c (list_bad_blocks):
+ 	* e2image.c (output_meta_data_blocks, write_raw_image_file):
+ 	* mke2fs.c (test_disk, handle_bad_blocks): Fix printf formats.
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/mke2fs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/mke2fs.c
++++ e2fsprogs-1.39-my-patches-from-ted/misc/mke2fs.c
+@@ -895,7 +895,7 @@ static void PRS(int argc, char *argv[])
+ 	double		reserved_ratio = 5.0;
+ 	int		sector_size = 0;
+ 	int		show_version_only = 0;
+-	ext2_ino_t	num_inodes = 0;
++	__u64		num_inodes = 0;	/* u64 to catch too-large input */
+ 	errcode_t	retval;
+ 	char *		oldpath = getenv("PATH");
+ 	char *		extended_opts = 0;
+@@ -1430,6 +1430,21 @@ static void PRS(int argc, char *argv[])
+ 		fs_param.s_inode_size = inode_size;
+ 	}
+ 
++	/* Make sure number of inodes specified will fit in 32 bits */
++	if (num_inodes == 0) {
++		__u64 n;
++		n = (__u64) fs_param.s_blocks_count * blocksize / inode_ratio;
++		if (n > ~0U) {
++			com_err(program_name, 0,
++			    _("too many inodes (%llu), raise inode ratio?"), n);
++			exit(1);
++		}
++	} else if (num_inodes > ~0U) {
++		com_err(program_name, 0,
++			_("too many inodes (%llu), specify < 2^32 inodes"),
++			  (__u64)num_inodes);
++		exit(1);
++	}
+ 	/*
+ 	 * Calculate number of inodes based on the inode ratio
+ 	 */
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+@@ -1,5 +1,9 @@
+ 2006-08-30  Eric Sandeen  <esandeen@redhat.com>
+ 
++	* resize2fs.c (adjust_fs_info): Disallow > 2^32 indoes at resize time.
++
++2006-08-30  Eric Sandeen  <esandeen@redhat.com>
++
+ 	* online.c (online_resize_fs): Fix printf formats.
+ 
+ 2006-08-30  Eric Sandeen  <esandeen@redhat.com>
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/resize2fs.c
++++ e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+@@ -186,6 +186,7 @@ errcode_t adjust_fs_info(ext2_filsys fs,
+ 	unsigned long	i, j, old_desc_blocks, max_group;
+ 	unsigned int	meta_bg, meta_bg_size;
+ 	int		has_super;
++	__u64		new_inodes;	/* u64 to check for overflow */
+ 
+ 	fs->super->s_blocks_count = new_size;
+ 
+@@ -226,6 +227,12 @@ retry:
+ 	/*
+ 	 * Adjust the number of inodes
+ 	 */
++	new_inodes =(__u64)fs->super->s_inodes_per_group * fs->group_desc_count;
++	if (new_inodes > ~0U) {
++		fprintf(stderr, _("inodes (%llu) must be less than %u"),
++				   new_inodes, ~0U);
++		return EXT2_ET_TOO_MANY_INODES;
++	}
+ 	fs->super->s_inodes_count = fs->super->s_inodes_per_group *
+ 		fs->group_desc_count;
+ 

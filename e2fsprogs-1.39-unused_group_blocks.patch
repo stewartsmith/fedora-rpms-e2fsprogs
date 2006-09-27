@@ -1,0 +1,182 @@
+# HG changeset patch
+# User tytso@mit.edu
+# Date Tue Sep 12 14:56:12 2006 -0400
+# Node ID 59bf36fb8344bb7a3971af7df22d41f8d8b14610
+# parent: 90cd01f7fcd6293846f0b3ca6ce2b007e3dd7d51
+Remove unused variables
+
+Signed-off-by: Eric Sandeen <esandeen@redhat.com>
+
+Index: e2fsprogs-1.39-my-patches-from-ted/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/e2fsck/ChangeLog
+@@ -1,5 +1,9 @@
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* pass1.c (handle_fs_bad_blocks): Remove unused variables.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* pass1b.c (check_if_fs_block): Change block group loop to use 
+ 		a common pattern of first_block/last_block, etc.
+ 	
+Index: e2fsprogs-1.39-my-patches-from-ted/e2fsck/pass1.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/e2fsck/pass1.c
++++ e2fsprogs-1.39-my-patches-from-ted/e2fsck/pass1.c
+@@ -1981,14 +1981,13 @@ static void handle_fs_bad_blocks(e2fsck_
+ static void mark_table_blocks(e2fsck_t ctx)
+ {
+ 	ext2_filsys fs = ctx->fs;
+-	blk_t	block, b;
++	blk_t	b;
+ 	dgrp_t	i;
+ 	int	j;
+ 	struct problem_context pctx;
+ 	
+ 	clear_problem_context(&pctx);
+ 	
+-	block = fs->super->s_first_data_block;
+ 	for (i = 0; i < fs->group_desc_count; i++) {
+ 		pctx.group = i;
+ 
+@@ -2049,7 +2048,6 @@ static void mark_table_blocks(e2fsck_t c
+ 				     fs->group_desc[i].bg_inode_bitmap);
+ 			}
+ 		}
+-		block += fs->super->s_blocks_per_group;
+ 	}
+ }
+ 	
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ChangeLog
+@@ -1,5 +1,10 @@
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* closefs.c (write_backup_super):
++	* initialize.c (ext2fs_initialize): Remove unused variables.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* check_desc.c (ext2fs_check_desc): avoid overflows when iterating
+ 		over group descriptors on very large filesystems.
+ 
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/closefs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/closefs.c
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/closefs.c
+@@ -206,7 +206,6 @@ static errcode_t write_backup_super(ext2
+ errcode_t ext2fs_flush(ext2_filsys fs)
+ {
+ 	dgrp_t		i,j;
+-	blk_t		group_block;
+ 	errcode_t	retval;
+ 	unsigned long	fs_state;
+ 	struct ext2_super_block *super_shadow = 0;
+@@ -275,7 +274,6 @@ errcode_t ext2fs_flush(ext2_filsys fs)
+ 	 * Write out the master group descriptors, and the backup
+ 	 * superblocks and group descriptors.
+ 	 */
+-	group_block = fs->super->s_first_data_block;
+ 	group_ptr = (char *) group_shadow;
+ 	if (fs->super->s_feature_incompat & EXT2_FEATURE_INCOMPAT_META_BG)
+ 		old_desc_blocks = fs->super->s_first_meta_bg;
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/initialize.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/initialize.c
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/initialize.c
+@@ -99,7 +99,6 @@ errcode_t ext2fs_initialize(const char *
+ 	int		frags_per_block;
+ 	unsigned int	rem;
+ 	unsigned int	overhead = 0;
+-	blk_t		group_block;
+ 	unsigned int	ipg;
+ 	dgrp_t		i;
+ 	blk_t		numblocks;
+@@ -360,7 +359,6 @@ retry:
+ 	 * inode table have not been allocated (and in fact won't be
+ 	 * by this routine), they are accounted for nevertheless.
+ 	 */
+-	group_block = super->s_first_data_block;
+ 	super->s_free_blocks_count = 0;
+ 	for (i = 0; i < fs->group_desc_count; i++) {
+ 		numblocks = ext2fs_reserve_super_and_bgd(fs, i, fs->block_map);
+@@ -370,8 +368,6 @@ retry:
+ 		fs->group_desc[i].bg_free_inodes_count =
+ 			fs->super->s_inodes_per_group;
+ 		fs->group_desc[i].bg_used_dirs_count = 0;
+-		
+-		group_block += super->s_blocks_per_group;
+ 	}
+ 	
+ 	ext2fs_mark_super_dirty(fs);
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+@@ -1,5 +1,10 @@
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
++	* e2image.c (mark_table_blocks): Remove unused first_block
++		incrementing from loop.
++
++2006-08-30  Eric Sandeen <esandeen@redhat.com>
++
+ 	* dumpe2fs.c (list_desc, mark_table_blocks): Avoid overflows when
+ 		iterating over group descriptors on very large
+ 		filesystems.
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/e2image.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/e2image.c
++++ e2fsprogs-1.39-my-patches-from-ted/misc/e2image.c
+@@ -287,7 +287,6 @@ static void mark_table_blocks(ext2_filsy
+ 			ext2fs_mark_block_bitmap(meta_block_map,
+ 				 fs->group_desc[i].bg_inode_bitmap);
+ 		}
+-		first_block += fs->super->s_blocks_per_group;
+ 	}
+ }
+ 
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+@@ -1,3 +1,7 @@
++2006-08-30  Eric Sandeen  <esandeen@redhat.com>
++
++	* resize2fs.c (mark_table_blocks): Remove unused variable.
++
+ 2006-08-30  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* resize2fs.c (adjust_fs_info), online.c (online_resize_fs): Use
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/resize2fs.c
++++ e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+@@ -536,14 +536,13 @@ errout:
+ static errcode_t mark_table_blocks(ext2_filsys fs,
+ 				   ext2fs_block_bitmap bmap)
+ {
+-	blk_t			block, b;
++	blk_t			b;
+ 	unsigned int		j;
+ 	dgrp_t			i;
+ 	unsigned long		meta_bg_size;
+ 	unsigned int		old_desc_blocks;
+ 
+ 	meta_bg_size = (fs->blocksize / sizeof (struct ext2_group_desc));
+-	block = fs->super->s_first_data_block;
+ 	if (fs->super->s_feature_incompat & EXT2_FEATURE_INCOMPAT_META_BG)
+ 		old_desc_blocks = fs->super->s_first_meta_bg;
+ 	else
+@@ -571,7 +570,6 @@ static errcode_t mark_table_blocks(ext2_
+ 		 */
+ 		ext2fs_mark_block_bitmap(bmap,
+ 					 fs->group_desc[i].bg_inode_bitmap);
+-		block += fs->super->s_blocks_per_group;
+ 	}
+ 	return 0;
+ }

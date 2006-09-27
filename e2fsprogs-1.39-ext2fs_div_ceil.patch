@@ -1,0 +1,282 @@
+# HG changeset patch
+# User tytso@mit.edu
+# Date Wed Aug 30 01:57:00 2006 -0400
+# Node ID 59f8a8974d914231642239f176284d92dce0678d
+# parent: c76ddbe4519a571de3868c2888d8bb99a559046f
+Fix potential 2**32-1 overflow problems by ext2fs_div_ceil()
+
+Add a new function, ext2fs_div_ceil(), which correctly calculates a division
+of two unsigned integer where the result is always rounded up the next
+largest integer.   This is used everywhere where we might have
+previously caused an overflow when the number of blocks
+or inodes is too close to 2**32-1.
+
+Based on patches from Eric Sandeen, but generalized to use this new function
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Eric Sandeen <esandeen@redhat.com>
+
+Index: e2fsprogs-1.39-my-patches-from-ted/ext2ed/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/ext2ed/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/ext2ed/ChangeLog
+@@ -1,3 +1,8 @@
++2006-08-30  Theodore Tso  <tytso@mit.edu>
++
++	* init.c (div_ceil, set_file_system_info): Fix potential overflow
++		for really big filesystems.
++
+ 2006-06-30  Theodore Ts'o  <tytso@mit.edu>
+ 
+ 	* Release of E2fsprogs 1.38
+Index: e2fsprogs-1.39-my-patches-from-ted/ext2ed/init.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/ext2ed/init.c
++++ e2fsprogs-1.39-my-patches-from-ted/ext2ed/init.c
+@@ -370,6 +370,13 @@ void add_user_command (struct struct_com
+ 	ptr->callback [num]=callback;
+ }
+ 
++static unsigned int div_ceil(unsigned int a, unsigned int b)
++{
++	if (!a)
++		return 0;
++	return ((a - 1) / b) + 1;
++}
++
+ int set_file_system_info (void)
+ 
+ {
+@@ -415,8 +422,8 @@ int set_file_system_info (void)
+ 			file_system_info.first_group_desc_offset=2*EXT2_MIN_BLOCK_SIZE;
+ 		else
+ 			file_system_info.first_group_desc_offset=file_system_info.block_size;
+-		file_system_info.groups_count=(	sb->s_blocks_count-sb->s_first_data_block+sb->s_blocks_per_group-1) /
+-						sb->s_blocks_per_group;
++		file_system_info.groups_count = div_ceil(sb->s_blocks_count, 
++						 sb->s_blocks_per_group);
+ 	
+ 		file_system_info.inodes_per_block=file_system_info.block_size/sizeof (struct ext2_inode);
+ 		file_system_info.blocks_per_group=sb->s_inodes_per_group/file_system_info.inodes_per_block;
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ChangeLog
+@@ -1,3 +1,14 @@
++2006-08-30  Theodore Tso  <tytso@mit.edu>
++
++	* ext2fs.h (ext2fs_div_ceil): Add new function which safely
++		calculates an integer division where the result is always
++		rounded up while avoiding overflow errors.
++
++	* initialize.c (calc_reserved_gdt_blocks, ext2fs_initialize):
++	* openfs.c (ext2fs_open2): Use ext2fs_div_ceil() instead of a 
++		using an open-coded expression which was subject to 
++		overflows.
++
+ 2006-05-21  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* openfs.c (ext2fs_open2): Fix type warning problem with sizeof()
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ext2fs.h
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/ext2fs.h
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/ext2fs.h
+@@ -969,6 +969,7 @@ extern int ext2fs_group_of_blk(ext2_fils
+ extern int ext2fs_group_of_ino(ext2_filsys fs, ext2_ino_t ino);
+ extern blk_t ext2fs_inode_data_blocks(ext2_filsys fs,
+ 				      struct ext2_inode *inode);
++extern unsigned int ext2fs_div_ceil(unsigned int a, unsigned int b);
+ 
+ /*
+  * The actual inlined functions definitions themselves...
+@@ -1136,6 +1137,16 @@ _INLINE_ blk_t ext2fs_inode_data_blocks(
+        return inode->i_blocks -
+               (inode->i_file_acl ? fs->blocksize >> 9 : 0);
+ }
++
++/*
++ * This is an efficient, overflow safe way of calculating ceil((1.0 * a) / b)
++ */
++_INLINE_ unsigned int ext2fs_div_ceil(unsigned int a, unsigned int b)
++{
++	if (!a)
++		return 0;
++	return ((a - 1) / b) + 1;
++}
+ #undef _INLINE_
+ #endif
+ 
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/initialize.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/initialize.c
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/initialize.c
+@@ -77,8 +77,8 @@ static unsigned int calc_reserved_gdt_bl
+ 	 */
+ 	if (sb->s_blocks_count < max_blocks / 1024)
+ 		max_blocks = sb->s_blocks_count * 1024;
+-	rsv_groups = (max_blocks - sb->s_first_data_block + bpg - 1) / bpg;
+-	rsv_gdb = (rsv_groups + gdpb - 1) / gdpb - fs->desc_blocks;
++	rsv_groups = ext2fs_div_ceil(max_blocks - sb->s_first_data_block, bpg);
++	rsv_gdb = ext2fs_div_ceil(rsv_groups, gdpb) - fs->desc_blocks;
+ 	if (rsv_gdb > EXT2_ADDR_PER_BLOCK(sb))
+ 		rsv_gdb = EXT2_ADDR_PER_BLOCK(sb);
+ #ifdef RES_GDT_DEBUG
+@@ -205,17 +205,15 @@ errcode_t ext2fs_initialize(const char *
+ 	}
+ 
+ retry:
+-	fs->group_desc_count = (super->s_blocks_count -
+-				super->s_first_data_block +
+-				EXT2_BLOCKS_PER_GROUP(super) - 1)
+-		/ EXT2_BLOCKS_PER_GROUP(super);
++	fs->group_desc_count = ext2fs_div_ceil(super->s_blocks_count -
++					       super->s_first_data_block,
++					       EXT2_BLOCKS_PER_GROUP(super));
+ 	if (fs->group_desc_count == 0) {
+ 		retval = EXT2_ET_TOOSMALL;
+ 		goto cleanup;
+ 	}
+-	fs->desc_blocks = (fs->group_desc_count +
+-			   EXT2_DESC_PER_BLOCK(super) - 1)
+-		/ EXT2_DESC_PER_BLOCK(super);
++	fs->desc_blocks = ext2fs_div_ceil(fs->group_desc_count,
++					  EXT2_DESC_PER_BLOCK(super));
+ 
+ 	i = fs->blocksize >= 4096 ? 1 : 4096 / fs->blocksize;
+ 	set_field(s_inodes_count, super->s_blocks_count / i);
+@@ -233,8 +231,7 @@ retry:
+ 	 * should be.  But make sure that we don't allocate more than
+ 	 * one bitmap's worth of inodes each group.
+ 	 */
+-	ipg = (super->s_inodes_count + fs->group_desc_count - 1) /
+-		fs->group_desc_count;
++	ipg = ext2fs_div_ceil(super->s_inodes_count, fs->group_desc_count);
+ 	if (ipg > fs->blocksize * 8) {
+ 		if (super->s_blocks_per_group >= 256) {
+ 			/* Try again with slightly different parameters */
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/openfs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/ext2fs/openfs.c
++++ e2fsprogs-1.39-my-patches-from-ted/lib/ext2fs/openfs.c
+@@ -258,12 +258,11 @@ errcode_t ext2fs_open2(const char *name,
+ 		retval = EXT2_ET_CORRUPT_SUPERBLOCK;
+ 		goto cleanup;
+ 	}
+-	fs->group_desc_count = (fs->super->s_blocks_count -
+-				fs->super->s_first_data_block +
+-				blocks_per_group - 1) / blocks_per_group;
+-	fs->desc_blocks = (fs->group_desc_count +
+-			   EXT2_DESC_PER_BLOCK(fs->super) - 1)
+-		/ EXT2_DESC_PER_BLOCK(fs->super);
++	fs->group_desc_count = ext2fs_div_ceil(fs->super->s_blocks_count -
++					       fs->super->s_first_data_block,
++					       blocks_per_group);
++	fs->desc_blocks = ext2fs_div_ceil(fs->group_desc_count,
++					  EXT2_DESC_PER_BLOCK(fs->super));
+ 	retval = ext2fs_get_mem(fs->desc_blocks * fs->blocksize,
+ 				&fs->group_desc);
+ 	if (retval)
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/misc/ChangeLog
+@@ -1,3 +1,12 @@
++2006-08-30  Theodore Tso  <tytso@mit.edu>
++
++	* mke2fs.c (parse_extended_opts): Use ext2fs_div_ceil() instead of
++		a using an open-coded expression which was subject to
++		overflows.
++
++	* filefrag.c (div_ceil, frag_report): Fix potential overflow for
++		really big filesystems.
++
+ 2006-05-29  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* filefrag.c: Add support for ancient Linux systems that do not
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/filefrag.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/filefrag.c
++++ e2fsprogs-1.39-my-patches-from-ted/misc/filefrag.c
+@@ -47,6 +47,13 @@ int verbose = 0;
+ #define EXT3_EXTENTS_FL			0x00080000 /* Inode uses extents */
+ #define	EXT3_IOC_GETFLAGS		_IOR('f', 1, long)
+ 
++static unsigned int div_ceil(unsigned int a, unsigned int b)
++{
++	if (!a)
++		return 0;
++	return ((a - 1) / b) + 1;
++}
++
+ static unsigned long get_bmap(int fd, unsigned long block)
+ {
+ 	int	ret;
+@@ -105,7 +112,7 @@ static void frag_report(const char *file
+ 	if (verbose) {
+ 		printf("Filesystem type is: %x\n", fsinfo.f_type);
+ 	}
+-	cylgroups = (fsinfo.f_blocks + fsinfo.f_bsize*8-1) / fsinfo.f_bsize*8;
++	cylgroups = div_ceil(fsinfo.f_blocks, fsinfo.f_bsize*8);
+ 	if (verbose) {
+ 		printf("Filesystem cylinder groups is approximately %ld\n", 
+ 		       cylgroups);
+Index: e2fsprogs-1.39-my-patches-from-ted/misc/mke2fs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/misc/mke2fs.c
++++ e2fsprogs-1.39-my-patches-from-ted/misc/mke2fs.c
+@@ -819,12 +819,12 @@ static void parse_extended_opts(struct e
+ 			if (!bpg)
+ 				bpg = blocksize * 8;
+ 			gdpb = blocksize / sizeof(struct ext2_group_desc);
+-			group_desc_count = (param->s_blocks_count +
+-					    bpg - 1) / bpg;
++			group_desc_count = 
++				ext2fs_div_ceil(param->s_blocks_count, bpg);
+ 			desc_blocks = (group_desc_count +
+ 				       gdpb - 1) / gdpb;
+-			rsv_groups = (resize + bpg - 1) / bpg;
+-			rsv_gdb = (rsv_groups + gdpb - 1) / gdpb - 
++			rsv_groups = ext2fs_div_ceil(resize, bpg);
++			rsv_gdb = ext2fs_div_ceil(rsv_groups, gdpb) - 
+ 				desc_blocks;
+ 			if (rsv_gdb > (int) EXT2_ADDR_PER_BLOCK(param))
+ 				rsv_gdb = EXT2_ADDR_PER_BLOCK(param);
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/ChangeLog
++++ e2fsprogs-1.39-my-patches-from-ted/resize/ChangeLog
+@@ -1,3 +1,9 @@
++2006-08-30  Theodore Tso  <tytso@mit.edu>
++
++	* resize2fs.c (adjust_fs_info): Use ext2fs_div_ceil() instead of a
++		using an open-coded expression which was subject to
++		overflows.
++
+ 2006-05-22  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* resize2fs.8.in: Fixed spelling mistake (Addresses Debian Bug:
+Index: e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/resize/resize2fs.c
++++ e2fsprogs-1.39-my-patches-from-ted/resize/resize2fs.c
+@@ -190,15 +190,13 @@ errcode_t adjust_fs_info(ext2_filsys fs,
+ 	fs->super->s_blocks_count = new_size;
+ 
+ retry:
+-	fs->group_desc_count = (fs->super->s_blocks_count -
+-				fs->super->s_first_data_block +
+-				EXT2_BLOCKS_PER_GROUP(fs->super) - 1)
+-		/ EXT2_BLOCKS_PER_GROUP(fs->super);
++	fs->group_desc_count = ext2fs_div_ceil(fs->super->s_blocks_count -
++				       fs->super->s_first_data_block,
++				       EXT2_BLOCKS_PER_GROUP(fs->super));
+ 	if (fs->group_desc_count == 0)
+ 		return EXT2_ET_TOOSMALL;
+-	fs->desc_blocks = (fs->group_desc_count +
+-			   EXT2_DESC_PER_BLOCK(fs->super) - 1)
+-		/ EXT2_DESC_PER_BLOCK(fs->super);
++	fs->desc_blocks = ext2fs_div_ceil(fs->group_desc_count, 
++					  EXT2_DESC_PER_BLOCK(fs->super));
+ 
+ 	/*
+ 	 * Overhead is the number of bookkeeping blocks per group.  It

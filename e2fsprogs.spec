@@ -1,10 +1,10 @@
 %define	_root_sbindir	/sbin
 %define	_root_libdir	/%{_lib}
 
-Summary: Utilities for managing the second extended (ext2) filesystem.
+Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.39
-Release: 6
+Release: 7
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -18,6 +18,17 @@ Patch38: e2fsprogs-1.39-blkid-devname.patch
 Patch39: e2fsprogs-1.39-multilib.patch
 Patch40: e2fsprogs-1.39-leak.patch
 Patch41: e2fsprogs-1.39-blkid-fatlabel.patch
+Patch50: e2fsprogs-1.39-ext2fs_div_ceil.patch
+Patch51: e2fsprogs-1.39-fix-loop-wraps.patch
+Patch52: e2fsprogs-1.39-e2p_percent.patch
+Patch53: e2fsprogs-1.39-group_desc_loops.patch
+Patch54: e2fsprogs-1.39-unused_group_blocks.patch
+Patch55: e2fsprogs-1.39-fix_formats.patch
+Patch56: e2fsprogs-1.39-group_block_inlines.patch
+Patch57: e2fsprogs-1.39-32_bit_inodes.patch
+Patch58: e2fsprogs-1.39-more_rounding_overflows.patch
+Patch59: e2fsprogs-1.39-large_file_size.patch
+Patch60: e2fsprogs-1.39-e2p_percent_div.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -28,19 +39,20 @@ BuildRequires: device-mapper >= 1.02.02-3
 %description
 The e2fsprogs package contains a number of utilities for creating,
 checking, modifying, and correcting any inconsistencies in second
-extended (ext2) filesystems. E2fsprogs contains e2fsck (used to
-repair filesystem inconsistencies after an unclean shutdown), mke2fs
-(used to initialize a partition to contain an empty ext2 filesystem),
-debugfs (used to examine the internal structure of a filesystem, to
-manually repair a corrupted filesystem, or to create test cases for
-e2fsck), tune2fs (used to modify filesystem parameters), and most of
-the other core ext2fs filesystem utilities.
+and third extended (ext2/ext3) filesystems. E2fsprogs contains
+e2fsck (used to repair filesystem inconsistencies after an unclean
+shutdown), mke2fs (used to initialize a partition to contain an
+empty ext2 filesystem), debugfs (used to examine the internal
+structure of a filesystem, to manually repair a corrupted
+filesystem, or to create test cases for e2fsck), tune2fs (used to
+modify filesystem parameters), and most of the other core ext2fs
+filesystem utilities.
 
 You should install the e2fsprogs package if you need to manage the
-performance of an ext2 filesystem.
+performance of an ext2 and/or ext3 filesystem.
 
 %package libs
-Summary: Ext2 filesystem-specific static libraries and headers.
+Summary: Ext2/3 filesystem-specific static libraries and headers
 Group: Development/Libraries
 Prereq: /sbin/ldconfig
 
@@ -48,16 +60,17 @@ Prereq: /sbin/ldconfig
 E2fsprogs-lib contains the libraries of the e2fsprogs package.
 
 %package devel
-Summary: Ext2 filesystem-specific static libraries and headers.
+Summary: Ext2/3 filesystem-specific static libraries and headers
 Group: Development/Libraries
 Requires: e2fsprogs-libs = %{version}-%{release}
 Prereq: /sbin/install-info
 
 %description devel
 E2fsprogs-devel contains the libraries and header files needed to
-develop second extended (ext2) filesystem-specific programs.
+develop second and third extended (ext2/ext3) filesystem-specific
+programs.
 
-You should install e2fsprogs-devel if you want to develop ext2
+You should install e2fsprogs-devel if you want to develop ext2/ext3
 filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
@@ -83,6 +96,18 @@ also want to install e2fsprogs.
 %patch40 -p1 -b .leak
 # Fix poblem with empty FAT label.
 %patch41 -p1 -b .fatlabel
+# 32-bit 16T fixups
+%patch50 -p1 -b .ext2fs_div_ceil
+%patch51 -p1 -b .fix-loop-wraps
+%patch52 -p1 -b .e2p_percent
+%patch53 -p1 -b .group_desc_loops
+%patch54 -p1 -b .unused_group_blocks
+%patch55 -p1 -b .fix_formats
+%patch56 -p1 -b .group_block_inlines
+%patch57 -p1 -b .32_bit_inodes
+%patch58 -p1 -b .more_rounding_overflows
+%patch59 -p1 -b .large_file_size
+%patch60 -p1 -b .e2p_percent_div
 
 %build
 aclocal
@@ -234,6 +259,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Sep 20 2006 Jarod Wilson <jwilson@redhat.com> - 1.39-7
+- 32-bit 16T fixups from esandeen (#202807)
+- Update summaries and descriptions
+
 * Sun Sep 17 2006 Karel Zak <kzak@redhat.com> - 1.39-6
 - Fix problem with empty FAT label (#206656)
 

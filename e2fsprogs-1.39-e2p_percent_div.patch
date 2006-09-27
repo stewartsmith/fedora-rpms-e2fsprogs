@@ -1,0 +1,132 @@
+Return-Path: <linux-ext4-owner@vger.kernel.org>
+Received: from pobox-2.corp.redhat.com ([unix socket])
+	 by pobox-2.corp.redhat.com (Cyrus v2.2.12-Invoca-RPM-2.2.12-3.RHEL4.1) with LMTPA;
+	 Wed, 20 Sep 2006 05:01:05 -0400
+X-Sieve: CMU Sieve 2.2
+Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
+	by pobox-2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id k8K915WI028994
+	for <esandeen@pobox-2.corp.redhat.com>; Wed, 20 Sep 2006 05:01:05 -0400
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.12.11.20060308/8.12.11) with ESMTP id k8K913p5009001;
+	Wed, 20 Sep 2006 05:01:03 -0400
+Received: from vger.kernel.org (vger.kernel.org [209.132.176.167])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id k8K8q7e4029305;
+	Wed, 20 Sep 2006 05:00:57 -0400
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+	id S1750745AbWITI4c (ORCPT <rfc822;twoerner@redhat.com> + 3 others);
+	Wed, 20 Sep 2006 04:56:32 -0400
+Received: (majordomo@vger.kernel.org) by vger.kernel.org id S1750747AbWITI4c
+	(ORCPT <rfc822;linux-ext4-outgoing>);
+	Wed, 20 Sep 2006 04:56:32 -0400
+Received: from ecfrec.frec.bull.fr ([129.183.4.8]:62635 "EHLO
+	ecfrec.frec.bull.fr") by vger.kernel.org with ESMTP
+	id S1750745AbWITI4a (ORCPT <rfc822;linux-ext4@vger.kernel.org>);
+	Wed, 20 Sep 2006 04:56:30 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by ecfrec.frec.bull.fr (Postfix) with ESMTP id 8B9F219D943
+	for <linux-ext4@vger.kernel.org>; Wed, 20 Sep 2006 10:56:28 +0200 (CEST)
+Received: from ecfrec.frec.bull.fr ([127.0.0.1])
+ by localhost (ecfrec.frec.bull.fr [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id 22796-03 for <linux-ext4@vger.kernel.org>;
+ Wed, 20 Sep 2006 10:56:25 +0200 (CEST)
+Received: from ecn002.frec.bull.fr (ecn002.frec.bull.fr [129.183.4.6])
+	by ecfrec.frec.bull.fr (Postfix) with ESMTP id 8D8AB19D94C
+	for <linux-ext4@vger.kernel.org>; Wed, 20 Sep 2006 10:56:09 +0200 (CEST)
+Received: from openx1.frec.bull.fr ([129.183.10.3])
+          by ecn002.frec.bull.fr (Lotus Domino Release 5.0.12)
+          with ESMTP id 2006092011020109:122246 ;
+          Wed, 20 Sep 2006 11:02:01 +0200 
+Received: by openx1.frec.bull.fr (Postfix, from userid 15348)
+	id 7751E139B4; Wed, 20 Sep 2006 10:56:08 +0200 (CEST)
+Date: 	Wed, 20 Sep 2006 10:56:08 +0200
+From: Alexandre Ratchov <alexandre.ratchov@bull.net>
+To: linux-ext4@vger.kernel.org
+Cc: Jean-Pierre Dion <jean-pierre.dion@bull.net>
+Subject: [patch] small fix for e2p_percent()
+Message-ID: <20060920085608.GA18351@openx1.frec.bull.fr>
+Mime-Version: 1.0
+User-Agent: Mutt/1.4.1i
+X-MIMETrack: Itemize by SMTP Server on ECN002/FR/BULL(Release 5.0.12  |February 13, 2003) at
+ 20/09/2006 11:02:01,
+	Serialize by Router on ECN002/FR/BULL(Release 5.0.12  |February 13, 2003) at
+ 20/09/2006 11:02:02,
+	Serialize complete at 20/09/2006 11:02:02
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Virus-Scanned: by amavisd-new at frec.bull.fr
+Sender: linux-ext4-owner@vger.kernel.org
+Precedence: bulk
+X-Mailing-List: 	linux-ext4@vger.kernel.org
+X-RedHat-Spam-Score: 0 
+
+hello,
+
+e2p_percent() doesn't work for zero percent (``mke2fs -m0'' gets killed with
+SIGFPE).
+
+is there a reason for not simply using 64 bit arithmetic? perhaps to avoid
+overflows for 7e+9TB file-systems :-), or just for correctness...
+
+So, here is the patch that fixes this. In order to avoid integer overflows,
+we pick 16 more bits to store ``base'' and do the exact division on 48 bits.
+Since ``100 * base'' always fits in 48 bits, there's never overflow. This
+still work if we remplace 'unsigned int' by 'unsigned long long'.
+
+cheers,
+
+-- Alexandre
+
+Signed-off-by: Alexandre Ratchov <alexandre.ratchov@bull.net>
+
+Index: e2fsprogs-1.39-my-patches-from-ted/lib/e2p/percent.c
+===================================================================
+--- e2fsprogs-1.39-my-patches-from-ted.orig/lib/e2p/percent.c
++++ e2fsprogs-1.39-my-patches-from-ted/lib/e2p/percent.c
+@@ -14,18 +14,41 @@
+ /*
+  * We work really hard to calculate this accurately, while avoiding
+  * an overflow.  "Is there a hyphen in anal-retentive?"  :-)
++ *
++ * -- "Yes there is, as in hair-splitting and nit-picking"
+  */
+ unsigned int e2p_percent(int percent, unsigned int base)
+ {
+-	unsigned int mask = ~((1 << (sizeof(unsigned int) - 1) * 8) - 1);
++	unsigned hi, lo, q, r;
+ 
+-	if (100 % percent == 0)
+-		return base / (100 / percent);
+-	if (mask & base) 
+-		return (base / 100) * percent;
+-	return base * percent / 100;
++	/* 
++	 * in order to avoid overflow we write 'base' as:
++	 *
++	 *	base = hi * 2^16 + lo 
++	 * 
++	 * then we do all computations separately on 'hi' and 'lo'.
++	 * By using the definition of division:
++	 *
++	 *	precent * base = result * 100 + reminder
++	 *
++	 * (reminder < 100), we obtain the exact value of 'result' 
++	 * as follows:
++	 */
++#define BITS	16
++#define MASK	((1 << BITS) - 1)
++
++	hi = percent * (base >> BITS);
++	lo = percent * (base & MASK);
++
++	q = ((hi / 100) << BITS) + lo / 100;
++	r = ((hi % 100) << BITS) + lo % 100;
++		
++	return q + r / 100;
++#undef BITS
++#undef MASK
+ }
+ 
++
+ #ifdef DEBUG
+ #include <unistd.h>
+ #include <stdio.h>

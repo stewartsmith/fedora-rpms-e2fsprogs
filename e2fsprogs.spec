@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.39
-Release: 7
+Release: 8
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -29,6 +29,7 @@ Patch57: e2fsprogs-1.39-32_bit_inodes.patch
 Patch58: e2fsprogs-1.39-more_rounding_overflows.patch
 Patch59: e2fsprogs-1.39-large_file_size.patch
 Patch60: e2fsprogs-1.39-e2p_percent_div.patch
+Patch61: e2fsprogs-1.39-uuid.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -108,6 +109,7 @@ also want to install e2fsprogs.
 %patch58 -p1 -b .more_rounding_overflows
 %patch59 -p1 -b .large_file_size
 %patch60 -p1 -b .e2p_percent_div
+%patch61 -p1 -b .uuid
 
 %build
 aclocal
@@ -259,6 +261,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Dec 18 2006 Thomas Woerner <twoerner@redhat.com> - 1.39-8
+- make uuid_generate_time generate unique uuids (#218606)
+
 * Wed Sep 20 2006 Jarod Wilson <jwilson@redhat.com> - 1.39-7
 - 32-bit 16T fixups from esandeen (#202807)
 - Update summaries and descriptions

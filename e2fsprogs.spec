@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.39
-Release: 9
+Release: 10
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -36,7 +36,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
 BuildRequires: gettext, texinfo, autoconf, automake >= 1.10, libselinux-devel
 BuildRequires: libsepol-devel, gettext-devel, pkgconfig
-BuildRequires: device-mapper >= 1.02.02-3
+BuildRequires: device-mapper-devel
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -263,6 +263,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Feb 05 2007 Alasdair Kergon <agk@redhat.com> - 1.39-10
+- Add build dependency on new device-mapper-devel package.
+
 * Mon Dec 25 2006 Thomas Woerner <twoerner@redhat.com> - 1.39-9
 - build fixes for new automake 1.10 (#220715)
 

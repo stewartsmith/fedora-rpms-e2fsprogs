@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.39
-Release: 10
+Release: 11
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -56,7 +56,7 @@ performance of an ext2 and/or ext3 filesystem.
 %package libs
 Summary: Ext2/3 filesystem-specific static libraries and headers
 Group: Development/Libraries
-Prereq: /sbin/ldconfig
+Requires(post): /sbin/ldconfig
 
 %description libs
 E2fsprogs-lib contains the libraries of the e2fsprogs package.
@@ -65,7 +65,8 @@ E2fsprogs-lib contains the libraries of the e2fsprogs package.
 Summary: Ext2/3 filesystem-specific static libraries and headers
 Group: Development/Libraries
 Requires: e2fsprogs-libs = %{version}-%{release}
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(postun): /sbin/install-info
 
 %description devel
 E2fsprogs-devel contains the libraries and header files needed to
@@ -118,7 +119,7 @@ aclocal
 autoconf
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
 make -C po update-po
-make
+make %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
@@ -263,6 +264,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Feb 23 2007 Karsten Hopp <karsten@redhat.com> 1.39-11
+- fix post/preun requirements
+- use smp flags
+
 * Mon Feb 05 2007 Alasdair Kergon <agk@redhat.com> - 1.39-10
 - Add build dependency on new device-mapper-devel package.
 

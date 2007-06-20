@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.39
-Release: 11
+Release: 12
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -31,6 +31,7 @@ Patch59: e2fsprogs-1.39-large_file_size.patch
 Patch60: e2fsprogs-1.39-e2p_percent_div.patch
 Patch61: e2fsprogs-1.39-uuid.patch
 Patch62: e2fsprogs-1.39-mkinstalldirs.patch
+Patch63: e2fsprogs-1.39-LUKS-blkid.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -113,6 +114,7 @@ also want to install e2fsprogs.
 %patch60 -p1 -b .e2p_percent_div
 %patch61 -p1 -b .uuid
 %patch62 -p1 -b .mkinstalldirs
+%patch63 -p1 -b .LUKS
 
 %build
 aclocal
@@ -264,6 +266,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Jun 20 2007 Eric Sandeen <esandeen@redhat.com> 1.39-12
+- add LUKS support to libblkid
+
 * Fri Feb 23 2007 Karsten Hopp <karsten@redhat.com> 1.39-11
 - fix post/preun requirements
 - use smp flags

@@ -1,0 +1,49 @@
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1159151618 14400
+# Node ID 6ded68c87fd5e19be3a43ced60477d96b87cbae0
+# Parent d39ab0d5fde2da82c7de72a536c9bd635d372836
+blkid_devno_to_devname(): Avoid recursive loops due to symlinks in /dev
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/lib/blkid/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/blkid/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/blkid/ChangeLog
+@@ -2,6 +2,11 @@
+ 
+ 	* read.c (parse_dev): Fix memory leak on error path.
+ 
++2006-09-24  Theodore Tso  <tytso@mit.edu>
++
++	* devno.c (scan_dir): Don't follow symlinks when recursively
++		searching directories under /dev.
++
+ 2006-09-17  Karel Zak  <kzak@redhat.com> 
+ 
+ 	* probe.c (probe_fat): Fix problem with empty FAT label.
+Index: e2fsprogs-1.39-RHEL5/lib/blkid/devno.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/blkid/devno.c
++++ e2fsprogs-1.39-RHEL5/lib/blkid/devno.c
+@@ -120,15 +120,16 @@ static void scan_dir(char *dirname, dev_
+ 		if (stat(path, &st) < 0)
+ 			continue;
+ 
+-		if (S_ISDIR(st.st_mode))
+-			add_to_dirlist(path, list);
+-		else if (S_ISBLK(st.st_mode) && st.st_rdev == devno) {
++		if (S_ISBLK(st.st_mode) && st.st_rdev == devno) {
+ 			*devname = blkid_strdup(path);
+ 			DBG(DEBUG_DEVNO,
+ 			    printf("found 0x%llx at %s (%p)\n", devno,
+ 				   path, *devname));
+ 			break;
+ 		}
++		if (S_ISDIR(st.st_mode) && !lstat(path, &st) && 
++		    S_ISDIR(st.st_mode))
++			add_to_dirlist(path, list);
+ 	}
+ 	closedir(dir);
+ 	return;

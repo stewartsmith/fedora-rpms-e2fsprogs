@@ -1,0 +1,1995 @@
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174230993 14400
+# Node ID 6727a63dca01a234bf336c791ea872d964bdb19d
+# Parent 5d5a64d315ac91d34ee02a415fde544093ba477b
+[COVERITY] Fix missing return code check for ext2fs_write_inode
+
+Found 2 of the three places where a return code for ext2fs_write_inode() was
+not being checked.
+
+The second fix in e2fsck/emptydir.c is basically just to shut coverity up even
+though it really is unnecessary.
+
+Coverity ID: 1: Checked Return
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/emptydir.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/emptydir.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/emptydir.c
+@@ -170,7 +170,9 @@ static int fix_directory(ext2_filsys fs,
+ 		edi->inode.i_size -= edi->freed_blocks * fs->blocksize;
+ 		edi->inode.i_blocks -= edi->freed_blocks *
+ 			(fs->blocksize / 512);
+-		(void) ext2fs_write_inode(fs, db->ino, &edi->inode);
++		retval = ext2fs_write_inode(fs, db->ino, &edi->inode);
++		if (retval)
++			return 0;
+ 	}
+ 	return 0;
+ }
+Index: e2fsprogs-1.39-RHEL5/resize/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/resize/ChangeLog
++++ e2fsprogs-1.39-RHEL5/resize/ChangeLog
+@@ -1,3 +1,8 @@
++2007-03-18  Theodore Tso  <tytso@mit.edu>
++
++	* resize2fs.c (check_and_change_inodes): Check to make sure the
++		inode write was sucessful.
++
+ 2006-08-30  Eric Sandeen  <esandeen@redhat.com>
+ 
+ 	* online.c (online_resize_fs): use div_ceil for r_frac calculation.
+Index: e2fsprogs-1.39-RHEL5/resize/resize2fs.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/resize/resize2fs.c
++++ e2fsprogs-1.39-RHEL5/resize/resize2fs.c
+@@ -1306,7 +1306,9 @@ static int check_and_change_inodes(ext2_
+ 	retval = ext2fs_read_inode(is->rfs->old_fs, dir, &inode);
+ 	if (retval == 0) {
+ 		inode.i_mtime = inode.i_ctime = time(0);
+-		ext2fs_write_inode(is->rfs->old_fs, dir, &inode);
++		is->err = ext2fs_write_inode(is->rfs->old_fs, dir, &inode);
++		if (is->err)
++			return DIRENT_ABORT;
+ 	}
+ 
+ 	return DIRENT_CHANGED;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174307805 14400
+# Node ID f2b55541174de6277f11618cfdc3745b6833fbc4
+# Parent 5b4e3e808f5e3ae78a9bb5bcd85696dfa2312192
+[COVERITY] Fix segfault bug if the profile directory is empty
+
+Coverity ID: 5: Forward NULL
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,3 +1,9 @@
++2007-03-19  Theodore Tso  <tytso@mit.edu>
++
++	* profile.c (profile_init, get_dirlist): Fix bug where if a
++		profile directory is completely empty, the profile library
++		would segfault.
++
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
+ 	* pass1.c (handle_bad_fs_blocks): use blk_t, not int for first_block.
+Index: e2fsprogs-1.39-RHEL5/e2fsck/profile.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/profile.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/profile.c
+@@ -279,8 +279,10 @@ static errcode_t get_dirlist(const char 
+ 		}
+ 		array[num++] = fn;
+ 	}
+-	qsort(array, num, sizeof(char *), compstr);
+-	array[num++] = 0;
++	if (array) {
++		qsort(array, num, sizeof(char *), compstr);
++		array[num++] = 0;
++	}
+ 	*ret_array = array;
+ 	closedir(dir);
+ 	return 0;
+@@ -311,6 +313,8 @@ profile_init(const char **files, profile
+ 	    for (fs = files; !PROFILE_LAST_FILESPEC(*fs); fs++) {
+ 		retval = get_dirlist(*fs, &array);
+ 		if (retval == 0) {
++			if (!array)
++				continue;
+ 			for (cpp = array; (cp = *cpp); cpp++) {
+ 				retval = profile_open_file(cp, &new_file);
+ 				if (retval == EACCES)
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174307972 14400
+# Node ID 1243b7a37f2cefef64c65f467791c2295f907104
+# Parent f2b55541174de6277f11618cfdc3745b6833fbc4
+[COVERITY] Fix bad error checking for NULL parameter in ss library
+
+Looks like flawed reasoning.  Here if info_dir is NULL then you are
+guaranteed to blow up since you will dereference it.  It seems like the
+correct thing to do here (what the code author meant to do) was to set
+*code_ptr = SS_ET_NO_INFO_DIR if info_dir was NULL or if *info_dir was
+an empty string (aka *info_dir == '\0').
+
+Coverity ID: 8: Forward Null
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/lib/ss/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ss/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/ss/ChangeLog
+@@ -1,3 +1,8 @@
++2007-03-19  Theodore Tso  <tytso@mit.edu>
++
++	* help.c (ss_add_info_dir): Fix error checking for NULL parameter
++		passed via info_dir.
++
+ 2005-12-10  Theodore Ts'o  <tytso@mit.edu>
+ 
+ 	* Makefile.in: Add a dependency to make sure that the
+Index: e2fsprogs-1.39-RHEL5/lib/ss/help.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ss/help.c
++++ e2fsprogs-1.39-RHEL5/lib/ss/help.c
+@@ -138,7 +138,7 @@ void ss_add_info_dir(sci_idx, info_dir, 
+     register char **dirs;
+ 
+     info = ss_info(sci_idx);
+-    if (info_dir == NULL && *info_dir) {
++    if (info_dir == NULL || *info_dir == '\0') {
+ 	*code_ptr = SS_ET_NO_INFO_DIR;
+ 	return;
+     }
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174308730 14400
+# Node ID 69479f9c2f1ca73b8dcd9fca8692cb165b046995
+# Parent 1243b7a37f2cefef64c65f467791c2295f907104
+[COVERITY] Check for NULL return from dict_lookup() in e2fsck
+
+The dict_lookup() function can potentially return a NULL dnode_t.  It is
+not checked in two places in the clone_file() function.  Looks to be
+safe to continue if n is NULL, so just print a warning message and
+continue.
+
+Coverity ID: 9: Null Returns
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,5 +1,9 @@
+ 2007-03-19  Theodore Tso  <tytso@mit.edu>
+ 
++	* pass1b.c (clone_file): Fix a coverity-found bug; add error
++		checking in case dict_lookup() returns NULL when looking up
++		an block or inode record after cloning the EA block.
++
+ 	* profile.c (profile_init, get_dirlist): Fix bug where if a
+ 		profile directory is completely empty, the profile library
+ 		would segfault.
+Index: e2fsprogs-1.39-RHEL5/e2fsck/pass1b.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/pass1b.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/pass1b.c
+@@ -752,11 +752,26 @@ static int clone_file(e2fsck_t ctx, ext2
+ 		 * them to point to the new EA block.
+ 		 */
+ 		n = dict_lookup(&blk_dict, INT_TO_VOIDPTR(blk));
++		if (!n) {
++			com_err("clone_file", 0, 
++				_("internal error: couldn't lookup EA "
++				  "block record for %u"), blk);
++			retval = 0; /* OK to stumble on... */
++			goto errout;
++		}
+ 		db = (struct dup_block *) dnode_get(n);
+ 		for (ino_el = db->inode_list; ino_el; ino_el = ino_el->next) {
+ 			if (ino_el->inode == ino)
+ 				continue;
+ 			n = dict_lookup(&ino_dict, INT_TO_VOIDPTR(ino_el->inode));
++			if (!n) {
++				com_err("clone_file", 0, 
++					_("internal error: couldn't lookup EA "
++					  "inode record for %u"), 
++					ino_el->inode);
++				retval = 0; /* OK to stumble on... */
++				goto errout;
++			}
+ 			di = (struct dup_inode *) dnode_get(n);
+ 			if (di->inode.i_file_acl == blk) {
+ 				di->inode.i_file_acl = dp->inode.i_file_acl;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174309127 14400
+# Node ID dcaef25d7a5550b034898123e995444b8d49bcae
+# Parent 69479f9c2f1ca73b8dcd9fca8692cb165b046995
+[COVERITY] Add missing NULL check to e2fsck_get_dir_info()
+
+It is possible that e2fsck_get_dir_info() returns a NULL pointer.
+We do not want to blow up when dereferencing p.  It seems to be
+more sane/safe to call fix_problem(ctx, PR_3_NO_DIRINFO, pctx)
+if p is NULL at this point since we do not have any DIRINFO
+for pctx->ino.
+
+Also fix another (already existing) error check for
+e2fsck_get_dir_info() later in the function so that it reports the
+correct inode number if the dirinfo information is not found for
+p->parent.
+
+(Both of these are "should-never-happen" internal e2fsck errors that
+would indicate a programming bug of some kind.)
+
+Coverity ID: 10: Null Returns
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,5 +1,11 @@
+ 2007-03-19  Theodore Tso  <tytso@mit.edu>
+ 
++	* pass3.c (check_directory): Add error check in case
++		e2fsck_get_dir_info() returns NULL.  Also fix another
++		error check for e2fsck_get_dir_info() to display the
++		correct inode number in case of this internal (should
++		never happen) error.
++
+ 	* pass1b.c (clone_file): Fix a coverity-found bug; add error
+ 		checking in case dict_lookup() returns NULL when looking up
+ 		an block or inode record after cloning the EA block.
+Index: e2fsprogs-1.39-RHEL5/e2fsck/pass3.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/pass3.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/pass3.c
+@@ -306,6 +306,11 @@ static int check_directory(e2fsck_t ctx,
+ 					ext2fs_unmark_valid(fs);
+ 				else {
+ 					p = e2fsck_get_dir_info(ctx, pctx->ino);
++					if (!p) {
++						fix_problem(ctx, 
++						    PR_3_NO_DIRINFO, pctx);
++						return 0;
++					}
+ 					p->parent = ctx->lost_and_found;
+ 					fix_dotdot(ctx, p, ctx->lost_and_found);
+ 				}
+@@ -314,6 +319,7 @@ static int check_directory(e2fsck_t ctx,
+ 		}
+ 		p = e2fsck_get_dir_info(ctx, p->parent);
+ 		if (!p) {
++			pctx->ino = p->parent;
+ 			fix_problem(ctx, PR_3_NO_DIRINFO, pctx);
+ 			return 0;
+ 		}
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174504155 14400
+# Node ID 4c321a4ecbd6d56b4bbbb2dfb2527bf886c4ad57
+# Parent dcaef25d7a5550b034898123e995444b8d49bcae
+[COVERITY] Avoid static buffer overruns in debugfs
+
+Add an extra byte to EXT2_NAME_LEN in the static allocation for the
+required trailing null.  This allows filenames up to the maximum
+length of EXT2_NAME_LEN withover an overrun.
+
+Coverity ID: 11: Overrun Static
+Coverity ID: 12: Overrun Static
+Coverity ID: 13: Overrun Static
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+@@ -1,3 +1,10 @@
++2007-03-21  Theodore Tso  <tytso@mit.edu>
++
++	* dump.c (rdump_dirent), htree.c (htree_dump_leaf_node), 
++		ls.c (list_dir_proc): Add an extra byte to EXT2_NAME_LEN
++		to avoid the possibility of an array overrun if the
++		filename is exactly EXT2_NAME_LEN in size.
++
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
+ 	* htree.c (htree_dump_int_node): Fix printf formats.
+Index: e2fsprogs-1.39-RHEL5/debugfs/dump.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/dump.c
++++ e2fsprogs-1.39-RHEL5/debugfs/dump.c
+@@ -292,7 +292,7 @@ static int rdump_dirent(struct ext2_dir_
+ 			int blocksize EXT2FS_ATTR((unused)),
+ 			char *buf EXT2FS_ATTR((unused)), void *private)
+ {
+-	char name[EXT2_NAME_LEN];
++	char name[EXT2_NAME_LEN + 1];
+ 	int thislen;
+ 	const char *dumproot = private;
+ 	struct ext2_inode inode;
+Index: e2fsprogs-1.39-RHEL5/debugfs/htree.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/htree.c
++++ e2fsprogs-1.39-RHEL5/debugfs/htree.c
+@@ -35,7 +35,7 @@ static void htree_dump_leaf_node(ext2_fi
+ 	struct ext2_dir_entry *dirent;
+ 	int		thislen, col = 0;
+ 	unsigned int	offset = 0;
+-	char		name[EXT2_NAME_LEN];
++	char		name[EXT2_NAME_LEN + 1];
+ 	char		tmp[EXT2_NAME_LEN + 16];
+ 	blk_t		pblk;
+ 	ext2_dirhash_t 	hash;
+Index: e2fsprogs-1.39-RHEL5/debugfs/ls.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/ls.c
++++ e2fsprogs-1.39-RHEL5/debugfs/ls.c
+@@ -52,7 +52,7 @@ static int list_dir_proc(ext2_ino_t dir 
+ 	ext2_ino_t		ino;
+ 	struct tm		*tm_p;
+ 	time_t			modtime;
+-	char			name[EXT2_NAME_LEN];
++	char			name[EXT2_NAME_LEN + 1];
+ 	char			tmp[EXT2_NAME_LEN + 16];
+ 	char			datestr[80];
+ 	char			lbr, rbr;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174508077 14400
+# Node ID 54ccaea56d803d9e08740e3a739585aabc802738
+# Parent 4c321a4ecbd6d56b4bbbb2dfb2527bf886c4ad57
+[COVERITY] Fix memory leak in profile library
+
+The profile must be freed early if the subsequent memory allocation
+fails for 'expanded_filename'.
+
+Coverity ID: 14: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,3 +1,8 @@
++2007-03-21  Theodore Tso  <tytso@mit.edu>
++
++	* profile.c (profile_open_file): Fix memory leak if malloc() fails
++		while setting up the profile data structure.
++
+ 2007-03-19  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* pass3.c (check_directory): Add error check in case
+Index: e2fsprogs-1.39-RHEL5/e2fsck/profile.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/profile.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/profile.c
+@@ -417,8 +417,10 @@ errcode_t profile_open_file(const char *
+ 			len += strlen(home_env);
+ 	}
+ 	expanded_filename = malloc(len);
+-	if (expanded_filename == 0)
++	if (expanded_filename == 0) {
++	    profile_free_file(prf);	
+ 	    return errno;
++	}
+ 	if (home_env) {
+ 	    strcpy(expanded_filename, home_env);
+ 	    strcat(expanded_filename, filespec+1);
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174510127 14400
+# Node ID c80153bb3122b949a88a9842239ed9ea617f82b4
+# Parent 54ccaea56d803d9e08740e3a739585aabc802738
+[COVERITY] Fix memory leak in libe2p (e2p_edit_feature)
+
+Coverity ID: 15: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/lib/e2p/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/e2p/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/e2p/ChangeLog
+@@ -1,3 +1,7 @@
++2007-03-21  Theodore Tso  <tytso@mit.edu>
++
++	* feature.c (e2p_edit_feature): Fix memory leak.
++
+ 2006-08-30  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* percent.c (e2p_percent): Add a new function which accurate and
+Index: e2fsprogs-1.39-RHEL5/lib/e2p/feature.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/e2p/feature.c
++++ e2fsprogs-1.39-RHEL5/lib/e2p/feature.c
+@@ -151,10 +151,11 @@ static char *skip_over_word(char *cp)
+  */
+ int e2p_edit_feature(const char *str, __u32 *compat_array, __u32 *ok_array)
+ {
+-	char	*cp, *buf, *next;
+-	int	neg;
++	char		*cp, *buf, *next;
++	int		neg;
+ 	unsigned int	mask;
+ 	int		compat_type;
++	int		rc = 0;
+ 
+ 	buf = malloc(strlen(str)+1);
+ 	if (!buf)
+@@ -186,15 +187,19 @@ int e2p_edit_feature(const char *str, __
+ 			cp++;
+ 			break;
+ 		}
+-		if (e2p_string2feature(cp, &compat_type, &mask))
+-			return 1;
+-		if (ok_array && !(ok_array[compat_type] & mask))
+-			return 1;
++		if (e2p_string2feature(cp, &compat_type, &mask)) {
++			rc = 1;
++			break;
++		}
++		if (ok_array && !(ok_array[compat_type] & mask)) {
++			rc = 1;
++			break;
++		}
+ 		if (neg)
+ 			compat_array[compat_type] &= ~mask;
+ 		else
+ 			compat_array[compat_type] |= mask;
+ 	}
+-	return 0;
++	free(buf);
++	return rc;
+ }
+-
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174511650 14400
+# Node ID 35af21f328c24bbc37f5d3e31af048bcb3d6a865
+# Parent c80153bb3122b949a88a9842239ed9ea617f82b4
+[COVERITY] Fix memory leak in libe2p (e2p_edit_mntopts)
+
+Need to free memory allocated to buf.
+
+Coverity ID: 17: Resource Leak
+Coverity ID: 18: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/lib/e2p/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/e2p/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/e2p/ChangeLog
+@@ -1,6 +1,6 @@
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+-
+-	* feature.c (e2p_edit_feature): Fix memory leak.
++	* feature.c (e2p_edit_feature), mntopts.c (e2p_edit_mntopts): Fix
++		memory leak.
+ 
+ 2006-08-30  Theodore Tso  <tytso@mit.edu>
+ 
+Index: e2fsprogs-1.39-RHEL5/lib/e2p/mntopts.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/e2p/mntopts.c
++++ e2fsprogs-1.39-RHEL5/lib/e2p/mntopts.c
+@@ -98,6 +98,7 @@ int e2p_edit_mntopts(const char *str, __
+ 	char	*cp, *buf, *next;
+ 	int	neg;
+ 	unsigned int	mask;
++	int	rc = 0;
+ 
+ 	buf = malloc(strlen(str)+1);
+ 	if (!buf)
+@@ -120,10 +121,14 @@ int e2p_edit_mntopts(const char *str, __
+ 			cp++;
+ 			break;
+ 		}
+-		if (e2p_string2mntopt(cp, &mask))
+-			return 1;
+-		if (ok && !(ok & mask))
+-			return 1;
++		if (e2p_string2mntopt(cp, &mask)) {
++			rc = 1;
++			break;
++		}
++		if (ok && !(ok & mask)) {
++			rc = 1;
++			break;
++		}
+ 		if (mask & EXT3_DEFM_JMODE)
+ 			*mntopts &= ~EXT3_DEFM_JMODE;
+ 		if (neg)
+@@ -132,5 +137,6 @@ int e2p_edit_mntopts(const char *str, __
+ 			*mntopts |= mask;
+ 		cp = next ? next+1 : 0;
+ 	}
+-	return 0;
++	free(buf);
++	return rc;
+ }
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174511995 14400
+# Node ID 74de9a3409aefeb23105a766ac76a85bac9f610b
+# Parent 4a11c7eb563bb63681e85c0fce725b3359e5043c
+[COVERITY] Fix (error case) file handle leak in util/subst program
+
+Need to close old_f before returning since it had been successfully opened
+before.
+
+Coverity ID: 19: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/util/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/util/ChangeLog
++++ e2fsprogs-1.39-RHEL5/util/ChangeLog
+@@ -1,3 +1,8 @@
++2007-03-21  Theodore Tso  <tytso@mit.edu>
++
++	* subst.c (compare_file): Close old FILE handle if the new FILE
++		handle open failed.
++
+ 2005-10-26  Theodore Ts'o  <tytso@mit.edu>
+ 
+ 	* Makefile.in: Use BUILD_CCFLAGS and BUILD_LDFLAGS instead of
+Index: e2fsprogs-1.39-RHEL5/util/subst.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/util/subst.c
++++ e2fsprogs-1.39-RHEL5/util/subst.c
+@@ -273,8 +273,10 @@ static int compare_file(const char *outf
+ 	if (!old_f)
+ 		return 0;
+ 	new_f = fopen(newfn, "r");
+-	if (!new_f)
++	if (!new_f) {
++		fclose(old_f);
+ 		return 0;
++	}
+ 
+ 	while (1) {
+ 		oldcp = fgets(oldbuf, sizeof(oldbuf), old_f);
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174512887 14400
+# Node ID 68907ddfca40353a3289789145c551af1ad6f131
+# Parent 74de9a3409aefeb23105a766ac76a85bac9f610b
+[COVERITY] Fix memory leak in libss (ss_execute_line)
+
+Fix a memory leak by freeing the argv[] array if ss_parse_line returns 0
+for argc 0 (which will happen if the user his return and sends an empty
+line to the application).
+
+Potentially need to free argv before early return since it was allocated
+memory. Need to be careful since it may be possible for ss_parse() to have
+freed the memory allocated to it if it detects an unbalanced set of quotes
+passed to it.
+
+Coverity ID: 21: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/lib/ss/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ss/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/ss/ChangeLog
+@@ -1,3 +1,10 @@
++2007-03-21  Theodore Tso  <tytso@mit.edu>
++
++	* execute_cmd.c (ss_execute_line): Fix a memory leak by freeing
++		the argv[] array if ss_parse_line returns 0 for argc 0
++		(which will happen if the user his return and sends an
++		empty line to the application).
++
+ 2007-03-19  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* help.c (ss_add_info_dir): Fix error checking for NULL parameter
+Index: e2fsprogs-1.39-RHEL5/lib/ss/execute_cmd.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ss/execute_cmd.c
++++ e2fsprogs-1.39-RHEL5/lib/ss/execute_cmd.c
+@@ -220,8 +220,11 @@ int ss_execute_line (sci_idx, line_ptr)
+ 
+     /* parse it */
+     argv = ss_parse(sci_idx, line_ptr, &argc);
+-    if (argc == 0)
++    if (argc == 0) {
++	if (argv)
++	    free(argv);
+         return 0;
++    }
+ 
+     /* look it up in the request tables, execute if found */
+     ret = really_execute_command (sci_idx, argc, &argv);
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174513127 14400
+# Node ID 3885e6245a0a595c0ce5ea11bf53f0df5160527d
+# Parent 68907ddfca40353a3289789145c551af1ad6f131
+[COVERITY] Fix (error case) memory leak in libext2fs (ext2fs_write_inode_full)
+
+Need to free w_inode on early exit if w_inode != &temp_inode.
+
+Coverity ID: 22: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/lib/ext2fs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ext2fs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/ext2fs/ChangeLog
+@@ -1,3 +1,8 @@
++2007-03-21  Theodore Tso  <tytso@mit.edu>
++
++	* inode.c (ext2fs_write_inode_full): Fix memory leak on error
++		return (when the inode table is missing).
++
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
+ 	* alloc_tables.c (ext2fs_allocate_group_table):
+Index: e2fsprogs-1.39-RHEL5/lib/ext2fs/inode.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ext2fs/inode.c
++++ e2fsprogs-1.39-RHEL5/lib/ext2fs/inode.c
+@@ -669,8 +669,10 @@ errcode_t ext2fs_write_inode_full(ext2_f
+ 	offset = ((ino - 1) % EXT2_INODES_PER_GROUP(fs->super)) *
+ 		EXT2_INODE_SIZE(fs->super);
+ 	block = offset >> EXT2_BLOCK_SIZE_BITS(fs->super);
+-	if (!fs->group_desc[(unsigned) group].bg_inode_table)
+-		return EXT2_ET_MISSING_INODE_TABLE;
++	if (!fs->group_desc[(unsigned) group].bg_inode_table) {
++		retval = EXT2_ET_MISSING_INODE_TABLE;
++		goto errout;
++	}
+ 	block_nr = fs->group_desc[(unsigned) group].bg_inode_table + block;
+ 
+ 	offset &= (EXT2_BLOCK_SIZE(fs->super) - 1);
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174513417 14400
+# Node ID 972658aa60ac87100f9cee0f088a69bf76cd4358
+# Parent 3885e6245a0a595c0ce5ea11bf53f0df5160527d
+[COVERITY] Fix (error case) memory leak in libext2fs (ext2fs_image_inode_write)
+
+Use pre-existing early exit label in function to handle proper
+error code return and local memory allocation cleanup.
+
+Coverity ID: 23: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/lib/ext2fs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ext2fs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/ext2fs/ChangeLog
+@@ -1,7 +1,8 @@
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+-	* inode.c (ext2fs_write_inode_full): Fix memory leak on error
+-		return (when the inode table is missing).
++	* imager.c (ext2fs_image_inode_write), inode.c
++		(ext2fs_write_inode_full): Fix memory leak on error return
++		(when the inode table is missing).
+ 
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
+Index: e2fsprogs-1.39-RHEL5/lib/ext2fs/imager.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/ext2fs/imager.c
++++ e2fsprogs-1.39-RHEL5/lib/ext2fs/imager.c
+@@ -72,8 +72,10 @@ errcode_t ext2fs_image_inode_write(ext2_
+ 	
+ 	for (group = 0; group < fs->group_desc_count; group++) {
+ 		blk = fs->group_desc[(unsigned)group].bg_inode_table;
+-		if (!blk)
+-			return EXT2_ET_MISSING_INODE_TABLE;
++		if (!blk) {
++			retval = EXT2_ET_MISSING_INODE_TABLE;
++			goto errout;
++		}
+ 		left = fs->inode_blocks_per_group;
+ 		while (left) {
+ 			c = BUF_BLOCKS;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174514013 14400
+# Node ID 1a1e76e5c7a371d6ea3f4eba25033de2a39c8799
+# Parent 972658aa60ac87100f9cee0f088a69bf76cd4358
+[COVERITY] Fix (error case) memory leak in debugfs
+
+Handle leaked cbuf due to early returns with a generic failure path.
+
+Coverity ID: 24: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+@@ -1,5 +1,7 @@
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
++	* htree.c (htree_dump_int_block): Fix memory leak on error paths.
++
+ 	* dump.c (rdump_dirent), htree.c (htree_dump_leaf_node), 
+ 		ls.c (list_dir_proc): Add an extra byte to EXT2_NAME_LEN
+ 		to avoid the possibility of an array overrun if the
+Index: e2fsprogs-1.39-RHEL5/debugfs/htree.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/htree.c
++++ e2fsprogs-1.39-RHEL5/debugfs/htree.c
+@@ -156,19 +156,20 @@ static void htree_dump_int_block(ext2_fi
+ 	if (errcode) {
+ 		com_err("htree_dump_int_block", errcode,
+ 			"while mapping logical block %u\n", blk);
+-		return;
++		goto errout;
+ 	}
+ 
+ 	errcode = io_channel_read_blk(current_fs->io, pblk, 1, buf);
+ 	if (errcode) {
+ 		com_err("htree_dump_int_block", errcode,
+ 			"while 	reading block %u\n", blk);
+-		return;
++		goto errout;
+ 	}
+ 
+ 	htree_dump_int_node(fs, ino, inode, rootnode,
+ 			    (struct ext2_dx_entry *) (buf+8),
+ 			    cbuf, level);
++errout:
+ 	free(cbuf);
+ }
+ 
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174518971 14400
+# Node ID cfa5b6c5fab5b3e46d068205e6f045e34b02faab
+# Parent 1a1e76e5c7a371d6ea3f4eba25033de2a39c8799
+[COVERITY] Fix memory leak on error handling in the debugfs's icheck command
+
+Coverity ID: 25: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+@@ -1,5 +1,8 @@
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
++	* icheck.c (do_icheck): Fix memory leak and clean up error
++		handling paths.
++
+ 	* htree.c (htree_dump_int_block): Fix memory leak on error paths.
+ 
+ 	* dump.c (rdump_dirent), htree.c (htree_dump_leaf_node), 
+Index: e2fsprogs-1.39-RHEL5/debugfs/icheck.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/icheck.c
++++ e2fsprogs-1.39-RHEL5/debugfs/icheck.c
+@@ -86,7 +86,7 @@ void do_icheck(int argc, char **argv)
+ 
+ 	for (i=1; i < argc; i++) {
+ 		if (strtoblk(argv[0], argv[i], &bw.barray[i-1].blk))
+-			return;
++			goto error_out;
+ 	}
+ 
+ 	bw.num_blocks = bw.blocks_left = argc-1;
+@@ -160,7 +160,8 @@ void do_icheck(int argc, char **argv)
+ 
+ error_out:
+ 	free(bw.barray);
+-	free(block_buf);
++	if (block_buf)
++		free(block_buf);
+ 	if (scan)
+ 		ext2fs_close_inode_scan(scan);
+ 	return;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174518993 14400
+# Node ID e480993060b28c885da1c98c1e7a350a2fc1eda7
+# Parent cfa5b6c5fab5b3e46d068205e6f045e34b02faab
+[COVERITY] Fix memory leak in e2image
+
+zero_buf and buf must be freed on return from the
+output_meta_data_blocks() function.
+
+Coverity ID: 26+27: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/ChangeLog
++++ e2fsprogs-1.39-RHEL5/misc/ChangeLog
+@@ -1,3 +1,7 @@
++2007-03-21  Theodore Tso  <tytso@mit.edu>
++
++	* e2image.c (output_meta_data_blocks): Fix memory leak.
++
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
+ 	* mke2fs.c (PRS): Avoid overflow in megs calculation.
+Index: e2fsprogs-1.39-RHEL5/misc/e2image.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/e2image.c
++++ e2fsprogs-1.39-RHEL5/misc/e2image.c
+@@ -441,6 +441,8 @@ static void output_meta_data_blocks(ext2
+ 		}
+ 	}
+ 	write_block(fd, zero_buf, sparse, 1, -1);
++	free(zero_buf);
++	free(buf);
+ }
+ 
+ static void write_raw_image_file(ext2_filsys fs, int fd, int scramble_flag)
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174519012 14400
+# Node ID 76ed8e6813754f21ed37b1db5f2f1e792b228201
+# Parent e480993060b28c885da1c98c1e7a350a2fc1eda7
+[COVERITY] Fix memory leak in e2image (write_raw_image_file)
+
+Coverity ID: 28: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/ChangeLog
++++ e2fsprogs-1.39-RHEL5/misc/ChangeLog
+@@ -1,6 +1,7 @@
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+-	* e2image.c (output_meta_data_blocks): Fix memory leak.
++	* e2image.c (output_meta_data_blocks, write_raw_image_file): Fix
++		memory leak.
+ 
+ 2006-08-30  Eric Sandeen <esandeen@redhat.com>
+ 
+Index: e2fsprogs-1.39-RHEL5/misc/e2image.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/e2image.c
++++ e2fsprogs-1.39-RHEL5/misc/e2image.c
+@@ -539,6 +539,7 @@ static void write_raw_image_file(ext2_fi
+ 	}
+ 	use_inode_shortcuts(fs, 0);
+ 	output_meta_data_blocks(fs, fd);
++	free(block_buf);
+ }
+ 
+ static void install_image(char *device, char *image_fn, int raw_flag)
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174704959 14400
+# Node ID 0c78001fe1cfdd87a23a416df5382a01d0c36822
+# Parent 76ed8e6813754f21ed37b1db5f2f1e792b228201
+[COVERITY] Fix (error case) memory leak in blkid library (parse_dev)
+
+Coverity ID: 29: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/lib/blkid/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/blkid/ChangeLog
++++ e2fsprogs-1.39-RHEL5/lib/blkid/ChangeLog
+@@ -2,6 +2,10 @@
+ 
+ 	* probe.c (probe_luks): Add support for cryptsetup-luks partitions
+ 
++2007-03-23  Theodore Tso  <tytso@mit.edu>
++
++	* read.c (parse_dev): Fix memory leak on error path.
++
+ 2006-09-17  Karel Zak  <kzak@redhat.com> 
+ 
+        * probe.c (probe_fat): Fix problem with empty FAT label.
+Index: e2fsprogs-1.39-RHEL5/lib/blkid/read.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/lib/blkid/read.c
++++ e2fsprogs-1.39-RHEL5/lib/blkid/read.c
+@@ -223,8 +223,10 @@ static int parse_dev(blkid_cache cache, 
+ 
+ 	DBG(DEBUG_READ, printf("found dev %s\n", name));
+ 
+-	if (!(*dev = blkid_get_dev(cache, name, BLKID_DEV_CREATE)))
++	if (!(*dev = blkid_get_dev(cache, name, BLKID_DEV_CREATE))) {
++		free(name);
+ 		return -BLKID_ERR_MEM;
++	}
+ 
+ 	free(name);
+ 	return 1;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1174705269 14400
+# Node ID 5b0d17e905ca2c472c69c5da4f0652dfe6bed6e4
+# Parent 0c78001fe1cfdd87a23a416df5382a01d0c36822
+[COVERITY] Fix file handle leak in debugfs's logdump (in error case)
+
+Also fixed a bug in checking if the fopen failed.
+
+Coverity ID: 30: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+@@ -1,3 +1,8 @@
++2007-03-23  Theodore Tso  <tytso@mit.edu>
++
++	* logdump.c (do_logdump): Fix file handle leak if logdump fails
++		with an error.
++
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* icheck.c (do_icheck): Fix memory leak and clean up error
+Index: e2fsprogs-1.39-RHEL5/debugfs/logdump.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/logdump.c
++++ e2fsprogs-1.39-RHEL5/debugfs/logdump.c
+@@ -170,10 +170,10 @@ void do_logdump(int argc, char **argv)
+ 	} else {
+ 		out_fn = argv[optind];
+ 		out_file = fopen(out_fn, "w");
+-		if (!out_file < 0) {
++		if (!out_file) {
+ 			com_err(argv[0], errno, "while opening %s for logdump",
+ 				out_fn);
+-			return;
++			goto errout;
+ 		}
+ 	}
+ 
+@@ -185,7 +185,7 @@ void do_logdump(int argc, char **argv)
+ 	}
+ 
+ 	if (!journal_fn && check_fs_open(argv[0]))
+-		return;
++		goto errout;
+ 
+ 	if (journal_fn) {
+ 		/* Set up to read journal from a regular file somewhere */
+@@ -193,7 +193,7 @@ void do_logdump(int argc, char **argv)
+ 		if (journal_fd < 0) {
+ 			com_err(argv[0], errno, "while opening %s for logdump",
+ 				journal_fn);
+-			return;
++			goto errout;
+ 		}
+ 		
+ 		journal_source.where = JOURNAL_IS_EXTERNAL;
+@@ -203,7 +203,7 @@ void do_logdump(int argc, char **argv)
+ 			if (es->s_jnl_backup_type != EXT3_JNL_BACKUP_BLOCKS) {
+ 				com_err(argv[0], 0,
+ 					"no journal backup in super block\n");
+-				return;
++				goto errout;
+ 			}
+ 			memset(&journal_inode, 0, sizeof(struct ext2_inode));
+ 			memcpy(&journal_inode.i_block[0], es->s_jnl_blocks, 
+@@ -214,14 +214,14 @@ void do_logdump(int argc, char **argv)
+ 		} else {
+ 			if (debugfs_read_inode(journal_inum, &journal_inode, 
+ 					       argv[0]))
+-				return;
++				goto errout;
+ 		}
+ 		
+ 		retval = ext2fs_file_open2(current_fs, journal_inum,
+ 					   &journal_inode, 0, &journal_file);
+ 		if (retval) {
+ 			com_err(argv[0], retval, "while opening ext2 file");
+-			return;
++			goto errout;
+ 		}
+ 		journal_source.where = JOURNAL_IS_INTERNAL;
+ 		journal_source.file = journal_file;
+@@ -234,14 +234,14 @@ void do_logdump(int argc, char **argv)
+ 				journal_fn = blkid_devno_to_devname(es->s_journal_dev);
+ 		if (!journal_fn) {
+ 			com_err(argv[0], 0, "filesystem has no journal");
+-			return;
++			goto errout;
+ 		}
+ 		journal_fd = open(journal_fn, O_RDONLY, 0);
+ 		if (journal_fd < 0) {
+ 			com_err(argv[0], errno, "while opening %s for logdump",
+ 				journal_fn);
+ 			free(journal_fn);
+-			return;
++			goto errout;
+ 		}
+ 		fprintf(out_file, "Using external journal found at %s\n",
+ 			journal_fn);
+@@ -257,6 +257,7 @@ void do_logdump(int argc, char **argv)
+ 	else
+ 		close(journal_fd);
+ 
++errout:
+ 	if (out_file != stdout)
+ 		fclose(out_file);
+ 
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175089687 14400
+# Node ID e5b520d1790cc02fbd1492e097b734cf6a734424
+# Parent 5b0d17e905ca2c472c69c5da4f0652dfe6bed6e4
+[COVERITY] Fix memory leak in fsck on error paths
+
+The memory allocated by inst is not reclaimed.  There also was a
+call to exit that coverity did not catch the resource leak.  This
+might not really be a big issue since the memory will be freed when
+fsck exits, but it should be done anyway imho.
+
+Coverity ID: 32: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/ChangeLog
++++ e2fsprogs-1.39-RHEL5/misc/ChangeLog
+@@ -1,3 +1,7 @@
++2007-03-28  Theodore Tso  <tytso@mit.edu>
++
++	* fsck.c (execute): Fix memory leak on error paths
++
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* e2image.c (output_meta_data_blocks, write_raw_image_file): Fix
+Index: e2fsprogs-1.39-RHEL5/misc/fsck.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/fsck.c
++++ e2fsprogs-1.39-RHEL5/misc/fsck.c
+@@ -470,6 +470,7 @@ static int execute(const char *type, con
+ 	s = find_fsck(prog);
+ 	if (s == NULL) {
+ 		fprintf(stderr, _("fsck: %s: not found\n"), prog);
++		free(inst);
+ 		return ENOENT;
+ 	}
+ 
+@@ -486,12 +487,14 @@ static int execute(const char *type, con
+ 		pid = -1;
+ 	else if ((pid = fork()) < 0) {
+ 		perror("fork");
++		free(inst);
+ 		return errno;
+ 	} else if (pid == 0) {
+ 		if (!interactive)
+ 			close(0);
+ 		(void) execv(s, argv);
+ 		perror(argv[0]);
++		free(inst);
+ 		exit(EXIT_ERROR);
+ 	}
+ 
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175089833 14400
+# Node ID 14bbf7a55b751c218e22667911bd06ffa1060844
+# Parent e5b520d1790cc02fbd1492e097b734cf6a734424
+[COVERITY] Fix memory leak in tune2fs and mke2fs when parsing journal options
+
+Coverity ID: 33: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/ChangeLog
++++ e2fsprogs-1.39-RHEL5/misc/ChangeLog
+@@ -1,5 +1,7 @@
+ 2007-03-28  Theodore Tso  <tytso@mit.edu>
+ 
++	* util.c (parse_journal_opts): Fix memory leak
++
+ 	* fsck.c (execute): Fix memory leak on error paths
+ 
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+Index: e2fsprogs-1.39-RHEL5/misc/util.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/util.c
++++ e2fsprogs-1.39-RHEL5/misc/util.c
+@@ -234,8 +234,10 @@ void parse_journal_opts(const char *opts
+ 			"\tdevice=<journal device>\n\n"
+ 			"The journal size must be between "
+ 			"1024 and 102400 filesystem blocks.\n\n"), stderr);
++		free(buf);
+ 		exit(1);
+ 	}
++	free(buf);
+ }	
+ 
+ /*
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1180625447 14400
+# Node ID dd13025ad0d7299f905e1ac8548a283466e8304c
+# Parent 7ff0d3542dae9c4aff72f9570032a6b5d1bfb5d5
+[COVERITY] Free memory leak in mke2fs when parsing extended options
+
+Coverity ID: 34: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/misc/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/ChangeLog
++++ e2fsprogs-1.39-RHEL5/misc/ChangeLog
+@@ -1,3 +1,7 @@
++2007-05-31  Theodore Tso  <tytso@mit.edu>
++
++	* mke2fs.c (parse_extended_opts): Free allocated buf on return
++
+ 2007-03-28  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* util.c (parse_journal_opts): Fix memory leak
+Index: e2fsprogs-1.39-RHEL5/misc/mke2fs.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/misc/mke2fs.c
++++ e2fsprogs-1.39-RHEL5/misc/mke2fs.c
+@@ -846,8 +846,10 @@ static void parse_extended_opts(struct e
+ 			"Valid extended options are:\n"
+ 			"\tstride=<stride length in blocks>\n"
+ 			"\tresize=<resize maximum size in blocks>\n\n"));
++		free(buf);
+ 		exit(1);
+ 	}
++	free(buf);
+ }	
+ 
+ static __u32 ok_features[3] = {
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175095704 14400
+# Node ID c74ac4ed81554417e27828d240bfd57e5cc2e376
+# Parent 14bbf7a55b751c218e22667911bd06ffa1060844
+[COVERITY] Fix memory leak when parsing extended options in e2fsck
+
+Coverity ID: 35: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,3 +1,7 @@
++2007-03-28  Theodore Tso  <tytso@mit.edu>
++
++	* unix.c (parse_extended_opts): Fix memory leak
++
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* profile.c (profile_open_file): Fix memory leak if malloc() fails
+Index: e2fsprogs-1.39-RHEL5/e2fsck/unix.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/unix.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/unix.c
+@@ -523,7 +523,7 @@ static void parse_extended_opts(e2fsck_t
+ 		if (p) {
+ 			*p = 0;
+ 			next = p+1;
+-		} 
++		}
+ 		arg = strchr(token, '=');
+ 		if (arg) {
+ 			*arg = 0;
+@@ -549,6 +549,8 @@ static void parse_extended_opts(e2fsck_t
+ 			extended_usage++;
+ 		}
+ 	}
++	free(buf);
++
+ 	if (extended_usage) {
+ 		fputs(("\nExtended options are separated by commas, "
+ 		       "and may take an argument which\n"
+@@ -557,7 +559,7 @@ static void parse_extended_opts(e2fsck_t
+ 		       "\tea_ver=<ea_version (1 or 2)>\n\n"), stderr);
+ 		exit(1);
+ 	}
+-}	
++}
+ 
+ static void syntax_err_report(const char *filename, long err, int line_num)
+ {
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175096500 14400
+# Node ID fbeefe85b80a7614e3dae5d9df3480acae777956
+# Parent c74ac4ed81554417e27828d240bfd57e5cc2e376
+[COVERITY] Fix memory leak when parsing extended options in e2fsck
+
+Coverity ID: 36: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,6 +1,7 @@
+ 2007-03-28  Theodore Tso  <tytso@mit.edu>
+ 
+-	* unix.c (parse_extended_opts): Fix memory leak
++	* pass1.c (check_ext_attr), unix.c (parse_extended_opts): Fix
++		memory leak
+ 
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+Index: e2fsprogs-1.39-RHEL5/e2fsck/pass1.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/pass1.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/pass1.c
+@@ -1161,7 +1161,7 @@ static int check_ext_attr(e2fsck_t ctx, 
+ 	struct ext2_ext_attr_entry *entry;
+ 	int		count;
+ 	region_t	region;
+-	
++
+ 	blk = inode->i_file_acl;
+ 	if (blk == 0)
+ 		return 0;
+@@ -1227,7 +1227,7 @@ static int check_ext_attr(e2fsck_t ctx, 
+ 		ea_refcount_increment(ctx->refcount_extra, blk, 0);
+ 		return 1;
+ 	}
+-	
++
+ 	/*
+ 	 * OK, we haven't seen this EA block yet.  So we need to
+ 	 * validate it
+@@ -1261,7 +1261,7 @@ static int check_ext_attr(e2fsck_t ctx, 
+ 		if (fix_problem(ctx, PR_1_EA_ALLOC_COLLISION, pctx))
+ 			goto clear_extattr;
+ 	}
+-	
++
+ 	entry = (struct ext2_ext_attr_entry *)(header+1);
+ 	end = block_buf + fs->blocksize;
+ 	while ((char *)entry < end && *(__u32 *)entry) {
+@@ -1300,10 +1300,11 @@ static int check_ext_attr(e2fsck_t ctx, 
+ 		ea_refcount_store(ctx->refcount, blk, count);
+ 	mark_block_used(ctx, blk);
+ 	ext2fs_fast_mark_block_bitmap(ctx->block_ea_map, blk);
+-	
+ 	return 1;
+ 
+ clear_extattr:
++	if (region)
++		region_free(region);
+ 	inode->i_file_acl = 0;
+ 	e2fsck_write_inode(ctx, ino, inode, "check_ext_attr");
+ 	return 0;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175097440 14400
+# Node ID 631e7131571ffb7e7590cc32e145179ec2bf5038
+# Parent fbeefe85b80a7614e3dae5d9df3480acae777956
+[COVERITY] Fix (error case only) memory leak in e2fsck pass #1
+
+Coverity ID: 37: Resource Leak
+Coverity ID: 38: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,7 +1,7 @@
+ 2007-03-28  Theodore Tso  <tytso@mit.edu>
+ 
+-	* pass1.c (check_ext_attr), unix.c (parse_extended_opts): Fix
+-		memory leak
++	* pass1.c (e2fsck_pass1, check_ext_attr), 
++		unix.c (parse_extended_opts): Fix memory leak
+ 
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+Index: e2fsprogs-1.39-RHEL5/e2fsck/pass1.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/pass1.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/pass1.c
+@@ -481,6 +481,7 @@ void e2fsck_pass1(e2fsck_t ctx)
+ 	if (pctx.errcode) {
+ 		fix_problem(ctx, PR_1_ALLOCATE_DBCOUNT, &pctx);
+ 		ctx->flags |= E2F_FLAG_ABORT;
++		ext2fs_free_mem(&inode);
+ 		return;
+ 	}
+ 
+@@ -508,6 +509,8 @@ void e2fsck_pass1(e2fsck_t ctx)
+ 	if (pctx.errcode) {
+ 		fix_problem(ctx, PR_1_ISCAN_ERROR, &pctx);
+ 		ctx->flags |= E2F_FLAG_ABORT;
++		ext2fs_free_mem(&block_buf);
++		ext2fs_free_mem(&inode);
+ 		return;
+ 	}
+ 	ext2fs_inode_scan_flags(scan, EXT2_SF_SKIP_MISSING_ITABLE, 0);
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175098061 14400
+# Node ID 7990a50a0b52a4d276c4dbfa45b6e966aff73bdf
+# Parent 631e7131571ffb7e7590cc32e145179ec2bf5038
+[COVERITY] Fix (error case only) memory leak in e2fsck pass #5
+
+Coverity ID: 39: Resource Leak
+Coverity ID: 40: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,7 +1,8 @@
+ 2007-03-28  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* pass1.c (e2fsck_pass1, check_ext_attr), 
+-		unix.c (parse_extended_opts): Fix memory leak
++		pass5.c (check_block_bitmaps, check_inode_bitmaps): 
++		unix.c (parse_extended_opts): Fix memory leaks
+ 
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+ 
+Index: e2fsprogs-1.39-RHEL5/e2fsck/pass5.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/pass5.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/pass5.c
+@@ -107,7 +107,7 @@ static void print_bitmap_problem(e2fsck_
+ 	pctx->blk = pctx->blk2 = NO_BLK;
+ 	pctx->ino = pctx->ino2 = 0;
+ }
+-	
++
+ static void check_block_bitmaps(e2fsck_t ctx)
+ {
+ 	ext2_filsys fs = ctx->fs;
+@@ -123,7 +123,7 @@ static void check_block_bitmaps(e2fsck_t
+ 	errcode_t	retval;
+ 	int		lazy_bg = 0;
+ 	int		skip_group = 0;
+-	
++
+ 	clear_problem_context(&pctx);
+ 	free_array = (int *) e2fsck_allocate_memory(ctx,
+ 	    fs->group_desc_count * sizeof(int), "free block count array");
+@@ -140,9 +140,9 @@ static void check_block_bitmaps(e2fsck_t
+ 		fix_problem(ctx, PR_5_BMAP_ENDPOINTS, &pctx);
+ 
+ 		ctx->flags |= E2F_FLAG_ABORT; /* fatal */
+-		return;
++		goto errout;
+ 	}
+-		       
++
+ 	if ((fs->super->s_first_data_block <
+ 	     ext2fs_get_block_bitmap_start(fs->block_map)) ||
+ 	    (fs->super->s_blocks_count-1 >
+@@ -155,11 +155,10 @@ static void check_block_bitmaps(e2fsck_t
+ 		fix_problem(ctx, PR_5_BMAP_ENDPOINTS, &pctx);
+ 
+ 		ctx->flags |= E2F_FLAG_ABORT; /* fatal */
+-		return;
++		goto errout;
+ 	}
+-		       
+-	if (EXT2_HAS_COMPAT_FEATURE(fs->super, 
+-				    EXT2_FEATURE_COMPAT_LAZY_BG))
++
++	if (EXT2_HAS_COMPAT_FEATURE(fs->super, EXT2_FEATURE_COMPAT_LAZY_BG))
+ 		lazy_bg++;
+ 
+ redo_counts:
+@@ -193,7 +192,7 @@ redo_counts:
+ 			actual = (actual != 0);
+ 		} else
+ 			bitmap = ext2fs_fast_test_block_bitmap(fs->block_map, i);
+-		
++
+ 		if (actual == bitmap)
+ 			goto do_counts;
+ 
+@@ -223,7 +222,7 @@ redo_counts:
+ 		}
+ 		ctx->flags |= E2F_FLAG_PROG_SUPPRESS;
+ 		had_problem++;
+-		
++
+ 	do_counts:
+ 		if (!bitmap && !skip_group) {
+ 			group_free++;
+@@ -241,7 +240,7 @@ redo_counts:
+ 			if (ctx->progress)
+ 				if ((ctx->progress)(ctx, 5, group,
+ 						    fs->group_desc_count*2))
+-					return;
++					goto errout;
+ 			if (lazy_bg &&
+ 			    (i != fs->super->s_blocks_count-1) &&
+ 			    (fs->group_desc[group].bg_flags &
+@@ -256,7 +255,7 @@ redo_counts:
+ 	else
+ 		fixit = -1;
+ 	ctx->flags &= ~E2F_FLAG_PROG_SUPPRESS;
+-	
++
+ 	if (fixit == 1) {
+ 		ext2fs_free_block_bitmap(fs->block_map);
+ 		retval = ext2fs_copy_bitmap(ctx->block_found_map,
+@@ -265,11 +264,11 @@ redo_counts:
+ 			clear_problem_context(&pctx);
+ 			fix_problem(ctx, PR_5_COPY_BBITMAP_ERROR, &pctx);
+ 			ctx->flags |= E2F_FLAG_ABORT;
+-			return;
++			goto errout;
+ 		}
+ 		ext2fs_set_bitmap_padding(fs->block_map);
+ 		ext2fs_mark_bb_dirty(fs);
+-		
++
+ 		/* Redo the counts */
+ 		blocks = 0; free_blocks = 0; group_free = 0; group = 0;
+ 		memset(free_array, 0, fs->group_desc_count * sizeof(int));
+@@ -303,9 +302,10 @@ redo_counts:
+ 		} else
+ 			ext2fs_unmark_valid(fs);
+ 	}
++errout:
+ 	ext2fs_free_mem(&free_array);
+ }
+-			
++
+ static void check_inode_bitmaps(e2fsck_t ctx)
+ {
+ 	ext2_filsys fs = ctx->fs;
+@@ -323,16 +323,16 @@ static void check_inode_bitmaps(e2fsck_t
+ 	int		problem, save_problem, fixit, had_problem;
+ 	int		lazy_bg = 0;
+ 	int		skip_group = 0;
+-	
++
+ 	clear_problem_context(&pctx);
+ 	free_array = (int *) e2fsck_allocate_memory(ctx,
+ 	    fs->group_desc_count * sizeof(int), "free inode count array");
+-				     
++
+ 	dir_array = (int *) e2fsck_allocate_memory(ctx,
+ 	   fs->group_desc_count * sizeof(int), "directory count array");
+-				     
++
+ 	if ((1 < ext2fs_get_inode_bitmap_start(ctx->inode_used_map)) ||
+-	    (fs->super->s_inodes_count > 
++	    (fs->super->s_inodes_count >
+ 	     ext2fs_get_inode_bitmap_end(ctx->inode_used_map))) {
+ 		pctx.num = 3;
+ 		pctx.blk = 1;
+@@ -342,10 +342,10 @@ static void check_inode_bitmaps(e2fsck_t
+ 		fix_problem(ctx, PR_5_BMAP_ENDPOINTS, &pctx);
+ 
+ 		ctx->flags |= E2F_FLAG_ABORT; /* fatal */
+-		return;
++		goto errout;
+ 	}
+ 	if ((1 < ext2fs_get_inode_bitmap_start(fs->inode_map)) ||
+-	    (fs->super->s_inodes_count > 
++	    (fs->super->s_inodes_count >
+ 	     ext2fs_get_inode_bitmap_end(fs->inode_map))) {
+ 		pctx.num = 4;
+ 		pctx.blk = 1;
+@@ -355,10 +355,10 @@ static void check_inode_bitmaps(e2fsck_t
+ 		fix_problem(ctx, PR_5_BMAP_ENDPOINTS, &pctx);
+ 
+ 		ctx->flags |= E2F_FLAG_ABORT; /* fatal */
+-		return;
++		goto errout;
+ 	}
+ 
+-	if (EXT2_HAS_COMPAT_FEATURE(fs->super, 
++	if (EXT2_HAS_COMPAT_FEATURE(fs->super,
+ 				    EXT2_FEATURE_COMPAT_LAZY_BG))
+ 		lazy_bg++;
+ 
+@@ -373,13 +373,13 @@ redo_counts:
+ 	/* Protect loop from wrap-around if inodes_count is maxed */
+ 	for (i = 1; i <= fs->super->s_inodes_count && i > 0; i++) {
+ 		actual = ext2fs_fast_test_inode_bitmap(ctx->inode_used_map, i);
+-		if (skip_group) 
++		if (skip_group)
+ 			bitmap = 0;
+ 		else
+ 			bitmap = ext2fs_fast_test_inode_bitmap(fs->inode_map, i);
+ 		if (actual == bitmap)
+ 			goto do_counts;
+-		
++
+ 		if (!actual && bitmap) {
+ 			/*
+ 			 * Inode wasn't used, but marked in bitmap
+@@ -406,7 +406,7 @@ redo_counts:
+ 		}
+ 		ctx->flags |= E2F_FLAG_PROG_SUPPRESS;
+ 		had_problem++;
+-		
++
+ do_counts:
+ 		if (bitmap) {
+ 			if (ext2fs_test_inode_bitmap(ctx->inode_dir_map, i))
+@@ -429,7 +429,7 @@ do_counts:
+ 				if ((ctx->progress)(ctx, 5,
+ 					    group + fs->group_desc_count,
+ 					    fs->group_desc_count*2))
+-					return;
++					goto errout;
+ 			if (lazy_bg &&
+ 			    (i != fs->super->s_inodes_count) &&
+ 			    (fs->group_desc[group].bg_flags &
+@@ -439,13 +439,13 @@ do_counts:
+ 	}
+ 	if (pctx.ino)
+ 		print_bitmap_problem(ctx, save_problem, &pctx);
+-	
++
+ 	if (had_problem)
+ 		fixit = end_problem_latch(ctx, PR_LATCH_IBITMAP);
+ 	else
+ 		fixit = -1;
+ 	ctx->flags &= ~E2F_FLAG_PROG_SUPPRESS;
+-	
++
+ 	if (fixit == 1) {
+ 		ext2fs_free_inode_bitmap(fs->inode_map);
+ 		retval = ext2fs_copy_bitmap(ctx->inode_used_map,
+@@ -454,7 +454,7 @@ do_counts:
+ 			clear_problem_context(&pctx);
+ 			fix_problem(ctx, PR_5_COPY_IBITMAP_ERROR, &pctx);
+ 			ctx->flags |= E2F_FLAG_ABORT;
+-			return;
++			goto errout;
+ 		}
+ 		ext2fs_set_bitmap_padding(fs->inode_map);
+ 		ext2fs_mark_ib_dirty(fs);
+@@ -467,7 +467,7 @@ do_counts:
+ 		goto redo_counts;
+ 	} else if (fixit == 0)
+ 		ext2fs_unmark_valid(fs);
+-	
++
+ 	for (i = 0; i < fs->group_desc_count; i++) {
+ 		if (free_array[i] != fs->group_desc[i].bg_free_inodes_count) {
+ 			pctx.group = i;
+@@ -506,6 +506,7 @@ do_counts:
+ 		} else
+ 			ext2fs_unmark_valid(fs);
+ 	}
++errout:
+ 	ext2fs_free_mem(&free_array);
+ 	ext2fs_free_mem(&dir_array);
+ }
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175099801 14400
+# Node ID 41169d959e94ac9713a7c781a8a195e73a06b1ff
+# Parent 7990a50a0b52a4d276c4dbfa45b6e966aff73bdf
+[COVERITY] Fix (error case only) memory leak in e2fsck -S
+
+Coverity ID: 41: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -1,7 +1,8 @@
+ 2007-03-28  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* pass1.c (e2fsck_pass1, check_ext_attr), 
+-		pass5.c (check_block_bitmaps, check_inode_bitmaps): 
++		pass5.c (check_block_bitmaps, check_inode_bitmaps),
++		swapfs.c (swap_inodes), 
+ 		unix.c (parse_extended_opts): Fix memory leaks
+ 
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+Index: e2fsprogs-1.39-RHEL5/e2fsck/swapfs.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/swapfs.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/swapfs.c
+@@ -113,7 +113,7 @@ static void swap_inodes(e2fsck_t ctx)
+ 	dgrp_t			group;
+ 	unsigned int		i;
+ 	ext2_ino_t		ino = 1;
+-	char 			*buf, *block_buf;
++	char 			*buf = NULL, *block_buf = NULL;
+ 	errcode_t		retval;
+ 	struct ext2_inode *	inode;
+ 
+@@ -125,7 +125,7 @@ static void swap_inodes(e2fsck_t ctx)
+ 		com_err("swap_inodes", retval,
+ 			_("while allocating inode buffer"));
+ 		ctx->flags |= E2F_FLAG_ABORT;
+-		return;
++		goto errout;
+ 	}
+ 	block_buf = (char *) e2fsck_allocate_memory(ctx, fs->blocksize * 4,
+ 						    "block interate buffer");
+@@ -138,7 +138,7 @@ static void swap_inodes(e2fsck_t ctx)
+ 				_("while reading inode table (group %d)"),
+ 				group);
+ 			ctx->flags |= E2F_FLAG_ABORT;
+-			return;
++			goto errout;
+ 		}
+ 		inode = (struct ext2_inode *) buf;
+ 		for (i=0; i < fs->super->s_inodes_per_group;
+@@ -163,7 +163,7 @@ static void swap_inodes(e2fsck_t ctx)
+ 				swap_inode_blocks(ctx, ino, block_buf, inode);
+ 
+ 			if (ctx->flags & E2F_FLAG_SIGNAL_MASK)
+-				return;
++				goto errout;
+ 			
+ 			if (fs->flags & EXT2_FLAG_SWAP_BYTES_WRITE)
+ 				ext2fs_swap_inode(fs, inode, inode, 1);
+@@ -176,11 +176,14 @@ static void swap_inodes(e2fsck_t ctx)
+ 				_("while writing inode table (group %d)"),
+ 				group);
+ 			ctx->flags |= E2F_FLAG_ABORT;
+-			return;
++			goto errout;
+ 		}
+ 	}
+-	ext2fs_free_mem(&buf);
+-	ext2fs_free_mem(&block_buf);
++errout:
++	if (buf)
++		ext2fs_free_mem(&buf);
++	if (block_buf)
++		ext2fs_free_mem(&block_buf);
+ 	e2fsck_use_inode_shortcuts(ctx, 0);
+ 	ext2fs_flush_icache(fs);
+ }
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175100185 14400
+# Node ID 8d2467f79e369a2ad8fcdbc9d11c816e3ad68e20
+# Parent 41169d959e94ac9713a7c781a8a195e73a06b1ff
+[COVERITY] Fix (error case only) memory leak in e2fsck pass #4
+
+Coverity ID: 42: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -2,7 +2,7 @@
+ 
+ 	* pass1.c (e2fsck_pass1, check_ext_attr), 
+ 		pass5.c (check_block_bitmaps, check_inode_bitmaps),
+-		swapfs.c (swap_inodes), 
++		pass4.c (e2fsck_pass4), swapfs.c (swap_inodes), 
+ 		unix.c (parse_extended_opts): Fix memory leaks
+ 
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+Index: e2fsprogs-1.39-RHEL5/e2fsck/pass4.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/pass4.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/pass4.c
+@@ -114,12 +114,12 @@ void e2fsck_pass4(e2fsck_t ctx)
+ 	/* Protect loop from wrap-around if s_inodes_count maxed */
+ 	for (i=1; i <= fs->super->s_inodes_count && i > 0; i++) {
+ 		if (ctx->flags & E2F_FLAG_SIGNAL_MASK)
+-			return;
++			goto errout;
+ 		if ((i % fs->super->s_inodes_per_group) == 0) {
+ 			group++;
+ 			if (ctx->progress)
+ 				if ((ctx->progress)(ctx, 4, group, maxgroup))
+-					return;
++					goto errout;
+ 		}
+ 		if (i == EXT2_BAD_INO ||
+ 		    (i > EXT2_ROOT_INO && i < EXT2_FIRST_INODE(fs->super)))
+@@ -167,6 +167,7 @@ void e2fsck_pass4(e2fsck_t ctx)
+ 	ctx->inode_bb_map = 0;
+ 	ext2fs_free_inode_bitmap(ctx->inode_imagic_map);
+ 	ctx->inode_imagic_map = 0;
++errout:
+ 	if (buf)
+ 		ext2fs_free_mem(&buf);
+ #ifdef RESOURCE_TRACK
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175141957 14400
+# Node ID 3fe5a1e5c3a4f7e4158f7e13c8e8fad0355fa473
+# Parent 8d2467f79e369a2ad8fcdbc9d11c816e3ad68e20
+[COVERITY] Fix (error case only) memory leak in e2fsck_get_journal
+
+Coverity ID: 43: Resource Leak
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/ChangeLog
++++ e2fsprogs-1.39-RHEL5/e2fsck/ChangeLog
+@@ -3,6 +3,7 @@
+ 	* pass1.c (e2fsck_pass1, check_ext_attr), 
+ 		pass5.c (check_block_bitmaps, check_inode_bitmaps),
+ 		pass4.c (e2fsck_pass4), swapfs.c (swap_inodes), 
++		journal.c (e2fsck_get_journal), 
+ 		unix.c (parse_extended_opts): Fix memory leaks
+ 
+ 2007-03-21  Theodore Tso  <tytso@mit.edu>
+Index: e2fsprogs-1.39-RHEL5/e2fsck/journal.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/e2fsck/journal.c
++++ e2fsprogs-1.39-RHEL5/e2fsck/journal.c
+@@ -206,9 +206,9 @@ static errcode_t e2fsck_get_journal(e2fs
+ 	int			ext_journal = 0;
+ 	int			tried_backup_jnl = 0;
+ 	int			i;
+-		
++
+ 	clear_problem_context(&pctx);
+-	
++
+ 	journal = e2fsck_allocate_memory(ctx, sizeof(journal_t), "journal");
+ 	if (!journal) {
+ 		return EXT2_ET_NO_MEMORY;
+@@ -220,19 +220,21 @@ static errcode_t e2fsck_get_journal(e2fs
+ 		goto errout;
+ 	}
+ 	dev_journal = dev_fs+1;
+-	
++
+ 	dev_fs->k_ctx = dev_journal->k_ctx = ctx;
+ 	dev_fs->k_dev = K_DEV_FS;
+ 	dev_journal->k_dev = K_DEV_JOURNAL;
+-	
++
+ 	journal->j_dev = dev_journal;
+ 	journal->j_fs_dev = dev_fs;
+ 	journal->j_inode = NULL;
+ 	journal->j_blocksize = ctx->fs->blocksize;
+ 
+ 	if (uuid_is_null(sb->s_journal_uuid)) {
+-		if (!sb->s_journal_inum)
+-			return EXT2_ET_BAD_INODE_NUM;
++		if (!sb->s_journal_inum) {
++			retval = EXT2_ET_BAD_INODE_NUM;
++			goto errout;
++		}
+ 		j_inode = e2fsck_allocate_memory(ctx, sizeof(*j_inode),
+ 						 "journal inode");
+ 		if (!j_inode) {
+@@ -242,7 +244,7 @@ static errcode_t e2fsck_get_journal(e2fs
+ 
+ 		j_inode->i_ctx = ctx;
+ 		j_inode->i_ino = sb->s_journal_inum;
+-		
++
+ 		if ((retval = ext2fs_read_inode(ctx->fs,
+ 						sb->s_journal_inum,
+ 						&j_inode->i_ext2))) {
+@@ -311,12 +313,13 @@ static errcode_t e2fsck_get_journal(e2fs
+ 				ctx->journal_name = blkid_devno_to_devname(sb->s_journal_dev);
+ 		}
+ 		journal_name = ctx->journal_name;
+-			
++
+ 		if (!journal_name) {
+ 			fix_problem(ctx, PR_0_CANT_FIND_JOURNAL, &pctx);
+-			return EXT2_ET_LOAD_EXT_JOURNAL;
++			retval = EXT2_ET_LOAD_EXT_JOURNAL;
++			goto errout;
+ 		}
+-		
++
+ 		jfs_debug(1, "Using journal file %s\n", journal_name);
+ 		io_ptr = unix_io_manager;
+ 	}
+@@ -368,7 +371,7 @@ static errcode_t e2fsck_get_journal(e2fs
+ 			retval = EXT2_ET_LOAD_EXT_JOURNAL;
+ 			goto errout;
+ 		}
+-		
++
+ 		journal->j_maxlen = jsuper.s_blocks_count;
+ 		start++;
+ 	}
+@@ -377,10 +380,10 @@ static errcode_t e2fsck_get_journal(e2fs
+ 		retval = EXT2_ET_NO_MEMORY;
+ 		goto errout;
+ 	}
+-	
++
+ 	journal->j_sb_buffer = bh;
+ 	journal->j_superblock = (journal_superblock_t *)bh->b_data;
+-	
++
+ #ifdef USE_INODE_IO
+ 	if (j_inode)
+ 		ext2fs_free_mem(&j_inode);
+@@ -397,7 +400,6 @@ errout:
+ 	if (journal)
+ 		ext2fs_free_mem(&journal);
+ 	return retval;
+-	
+ }
+ 
+ static errcode_t e2fsck_journal_fix_bad_inode(e2fsck_t ctx,
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175142370 14400
+# Node ID 83742c60d8d8d5c9f4b9d6819a543adabe207352
+# Parent 3fe5a1e5c3a4f7e4158f7e13c8e8fad0355fa473
+[COVERITY] Fix coverity warning in debugfs
+
+This is a no-op since long_opt isn't currently being used; the -l option
+to htree_dump is currently unwired to anything at the moment.
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Coverity ID: 47: Used before assigned
+
+Index: e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+@@ -1,3 +1,9 @@
++2007-03-29  Theodore Tso  <tytso@mit.edu>
++
++	* htree.c (do_htree_dump): Fix coverity use before assignment
++		warning.  (long_opt isn't being used for anything right
++		now, so this is a no-op)
++
+ 2007-03-23  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* logdump.c (do_logdump): Fix file handle leak if logdump fails
+Index: e2fsprogs-1.39-RHEL5/debugfs/htree.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/htree.c
++++ e2fsprogs-1.39-RHEL5/debugfs/htree.c
+@@ -180,7 +180,7 @@ void do_htree_dump(int argc, char *argv[
+ 	ext2_ino_t	ino;
+ 	struct ext2_inode inode;
+ 	int		c;
+-	int		long_opt;
++	int		long_opt = 0;
+ 	char		*buf = NULL;
+ 	struct 		ext2_dx_root_info  *rootnode;
+ 	struct 		ext2_dx_entry *ent;
+
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1175142743 14400
+# Node ID 11d3e029aa835208505e6f03689a4879fb669c3d
+# Parent 83742c60d8d8d5c9f4b9d6819a543adabe207352
+[COVERITY] Handle potential case in debugfs if ext2fs_get_pathname returns NULL
+
+Coverity ID: 51: Use After Free
+
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+
+Index: e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/ChangeLog
++++ e2fsprogs-1.39-RHEL5/debugfs/ChangeLog
+@@ -1,5 +1,8 @@
+ 2007-03-29  Theodore Tso  <tytso@mit.edu>
+ 
++	* debugfs.c (do_print_working_directory): Handle the case if
++		ext2fs_get_pathname returns NULL for the pathname.
++
+ 	* htree.c (do_htree_dump): Fix coverity use before assignment
+ 		warning.  (long_opt isn't being used for anything right
+ 		now, so this is a no-op)
+Index: e2fsprogs-1.39-RHEL5/debugfs/debugfs.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/debugfs.c
++++ e2fsprogs-1.39-RHEL5/debugfs/debugfs.c
+@@ -950,15 +950,23 @@ void do_print_working_directory(int argc
+ 		com_err(argv[0], retval,
+ 			"while trying to get pathname of cwd");
+ 	}
+-	printf("[pwd]   INODE: %6u  PATH: %s\n", cwd, pathname);
+-	free(pathname);
++	printf("[pwd]   INODE: %6u  PATH: %s\n",
++	       cwd, pathname ? pathname : "NULL");
++        if (pathname) {
++		free(pathname);
++		pathname = NULL;
++        }
+ 	retval = ext2fs_get_pathname(current_fs, root, 0, &pathname);
+ 	if (retval) {
+ 		com_err(argv[0], retval,
+ 			"while trying to get pathname of root");
+ 	}
+-	printf("[root]  INODE: %6u  PATH: %s\n", root, pathname);
+-	free(pathname);
++	printf("[root]  INODE: %6u  PATH: %s\n",
++	       root, pathname ? pathname : "NULL");
++	if (pathname) {
++		free(pathname);
++		pathname = NULL;
++	}
+ 	return;
+ }
+ 

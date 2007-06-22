@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.39
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -32,6 +32,13 @@ Patch60: e2fsprogs-1.39-e2p_percent_div.patch
 Patch61: e2fsprogs-1.39-uuid.patch
 Patch62: e2fsprogs-1.39-mkinstalldirs.patch
 Patch63: e2fsprogs-1.39-LUKS-blkid.patch
+Patch64: e2fsprogs-1.39-coverity.patch
+Patch65: e2fsprogs-1.39-dump_unused-segfault.patch
+Patch66: e2fsprogs-1.39-lsdel-segfault.patch
+Patch67: e2fsprogs-1.39-logdump-symlinks.patch
+Patch68: e2fsprogs-1.39-save-backup-sbs.patch
+Patch69: e2fsprogs-1.39-symlink-byteswap.patch
+Patch70: e2fsprogs-1.39-xattr-sanity.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -114,8 +121,21 @@ also want to install e2fsprogs.
 %patch60 -p1 -b .e2p_percent_div
 %patch61 -p1 -b .uuid
 %patch62 -p1 -b .mkinstalldirs
+# Teach blkid about luks
 %patch63 -p1 -b .LUKS
-
+# Fix many coverity-found leaks etc
+%patch64 -p1 -b .coverity
+# A couple of segfaults in debugfs if no fs is open
+%patch65 -p1 -b .dump_unused
+%patch66 -p1 -b .lsdel
+# Avoid recursive loops due to symlinks in /dev
+%patch67 -p1 -b .dev-symlinks
+# Don't write changes to the backup superblocks by default
+%patch68 -p1 -b .backup-sbs
+# Correct byteswapping for fast symlinks with xattrs
+%patch69 -p1 -b .symlink-byteswap
+# e2fsck: added sanity check for xattr validation
+%patch70 -p1 -b .xattr-sanity
 %build
 aclocal
 autoconf
@@ -266,11 +286,19 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Jun 22 2007 Eric Sandeen <esandeen@redhat.com> 1.39-14
+- Many coverity-found potential leaks, segfaults, etc (#239354)
+- Fix debugfs segfaults when no fs open (#208416, #209330)
+- Avoid recursive loops in logdump due to symlinks in /dev (#210371)
+- Don't write changes to the backup superblocks by default (#229561)
+- Correct byteswapping for fast symlinks with xattrs (#232663)
+- e2fsck: added sanity check for xattr validation (#230193)
+
 * Wed Jun 20 2007 Eric Sandeen <esandeen@redhat.com> 1.39-13
 - add dist tag to release field
 
 * Wed Jun 20 2007 Eric Sandeen <esandeen@redhat.com> 1.39-12
-- add LUKS support to libblkid
+- add LUKS support to libblkid (#242421)
 
 * Fri Feb 23 2007 Karsten Hopp <karsten@redhat.com> 1.39-11
 - fix post/preun requirements

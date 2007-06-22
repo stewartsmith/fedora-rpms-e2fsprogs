@@ -1,0 +1,52 @@
+# HG changeset patch
+# User tytso@mit.edu
+# Date 1156885376 14400
+# Node ID 78dd5824848b223988f2d8531c7dbbf068bc255e
+# Parent 712ade33bdf31b709d4796721bfa0f458f858a24
+Fix debugfs coredump when lsdel is run without an open filesystem
+
+Addresses Debian Bug: #378335
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+--- a/debugfs/ChangeLog	Sat Aug 19 21:16:17 2006 -0400
++++ b/debugfs/ChangeLog	Tue Aug 29 17:02:56 2006 -0400
+@@ -28,6 +28,12 @@
+ 
+ 	* htree.c (htree_dump_int_node): Fix printf formats.
+ 
++2006-08-29  Theodore Tso  <tytso@mit.edu>
++
++	* lsdel.c (do_lsdel): Fix core-dumping bug.  Don't depend on
++		current_fs being non-NULL until after the call to
++		common_args_process().  (Addresses Debian Bug: #378335)
++
+ 2006-05-29  Theodore Tso  <tytso@mit.edu>
+ 
+ 	* util.c (reset_getopt): In order to support ancient Linux header
+Index: e2fsprogs-1.39-RHEL5/debugfs/lsdel.c
+===================================================================
+--- e2fsprogs-1.39-RHEL5.orig/debugfs/lsdel.c
++++ e2fsprogs-1.39-RHEL5/debugfs/lsdel.c
+@@ -81,12 +81,13 @@ void do_lsdel(int argc, char **argv)
+ 	int			i;
+  	long			secs = 0;
+  	char			*tmp;
+-	time_t			now = current_fs->now ? current_fs->now : time(0);
++	time_t			now;
+ 	FILE			*out;
+ 	
+ 	if (common_args_process(argc, argv, 1, 2, "ls_deleted_inodes",
+ 				"[secs]", 0))
+ 		return;
++
+ 	if (argc > 1) {
+ 		secs = strtol(argv[1],&tmp,0);
+ 		if (*tmp) {
+@@ -95,6 +96,7 @@ void do_lsdel(int argc, char **argv)
+ 		}
+ 	}
+ 
++	now = current_fs->now ? current_fs->now : time(0);
+ 	max_delarray = 100;
+ 	num_delarray = 0;
+ 	delarray = malloc(max_delarray * sizeof(struct deleted_info));

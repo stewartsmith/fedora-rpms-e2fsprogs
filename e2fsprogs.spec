@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.39
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -286,6 +286,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Mon Jun 25 2007 Eric Sandeen <esandeen@redhat.com> 1.39-15
+- Fix up .po files to remove timestamps; multilib issues (#245653)
+
 * Fri Jun 22 2007 Eric Sandeen <esandeen@redhat.com> 1.39-14
 - Many coverity-found potential leaks, segfaults, etc (#239354)
 - Fix debugfs segfaults when no fs open (#208416, #209330)

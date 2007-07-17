@@ -1,0 +1,22 @@
+Index: e2fsprogs-1.40.2/misc/badblocks.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/misc/badblocks.c
++++ e2fsprogs-1.40.2/misc/badblocks.c
+@@ -992,7 +992,7 @@ int main (int argc, char ** argv)
+ 		last_block = strtoul (argv[optind], &tmp, 0);
+ 		printf("last_block = %d (%s)\n", last_block, argv[optind]);
+ 		if (*tmp || errno || 
+-		    (last_block == ULONG_MAX && errno == ERANGE)) {
++		    (last_block == UINT_MAX && errno == ERANGE)) {
+ 			com_err (program_name, 0, _("invalid blocks count - %s"),
+ 				 argv[optind]);
+ 			exit (1);
+@@ -1005,7 +1005,7 @@ int main (int argc, char ** argv)
+ 		from_count = strtoul (argv[optind], &tmp, 0);
+ 		printf("from_count = %d\n", from_count);
+ 		if (*tmp || errno ||
+-		    (from_count == ULONG_MAX && errno == ERANGE)) {
++		    (from_count == UINT_MAX && errno == ERANGE)) {
+ 			com_err (program_name, 0, _("invalid starting block - %s"),
+ 				 argv[optind]);
+ 			exit (1);

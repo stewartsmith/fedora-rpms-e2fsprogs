@@ -3,42 +3,18 @@
 
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
-Version: 1.39
-Release: 15%{?dist}
+Version: 1.40.2
+Release: 1%{?dist}
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
-Patch29: e2fsprogs-1.39-close-on-error.patch
 Patch30: e2fsprogs-1.38-resize-inode.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch34: e2fsprogs-1.39-blkid-devmapper.patch
 Patch36: e2fsprogs-1.38-etcblkid.patch
-Patch37: e2fsprogs-1.39-blkid-gfs.patch
-Patch38: e2fsprogs-1.39-blkid-devname.patch
 Patch39: e2fsprogs-1.39-multilib.patch
-Patch40: e2fsprogs-1.39-leak.patch
-Patch41: e2fsprogs-1.39-blkid-fatlabel.patch
-Patch50: e2fsprogs-1.39-ext2fs_div_ceil.patch
-Patch51: e2fsprogs-1.39-fix-loop-wraps.patch
-Patch52: e2fsprogs-1.39-e2p_percent.patch
-Patch53: e2fsprogs-1.39-group_desc_loops.patch
-Patch54: e2fsprogs-1.39-unused_group_blocks.patch
-Patch55: e2fsprogs-1.39-fix_formats.patch
-Patch56: e2fsprogs-1.39-group_block_inlines.patch
-Patch57: e2fsprogs-1.39-32_bit_inodes.patch
-Patch58: e2fsprogs-1.39-more_rounding_overflows.patch
-Patch59: e2fsprogs-1.39-large_file_size.patch
-Patch60: e2fsprogs-1.39-e2p_percent_div.patch
-Patch61: e2fsprogs-1.39-uuid.patch
 Patch62: e2fsprogs-1.39-mkinstalldirs.patch
-Patch63: e2fsprogs-1.39-LUKS-blkid.patch
-Patch64: e2fsprogs-1.39-coverity.patch
-Patch65: e2fsprogs-1.39-dump_unused-segfault.patch
-Patch66: e2fsprogs-1.39-lsdel-segfault.patch
-Patch67: e2fsprogs-1.39-logdump-symlinks.patch
-Patch68: e2fsprogs-1.39-save-backup-sbs.patch
-Patch69: e2fsprogs-1.39-symlink-byteswap.patch
-Patch70: e2fsprogs-1.39-xattr-sanity.patch
+Patch63: e2fsprogs-1.40.2-warning-fixes.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -87,55 +63,20 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q -n e2fsprogs-%{version}
-# close fd's on error
-%patch29 -p1 -b .close-on-error
-# enable tune2fs to set and clear the resize inode
+# enable tune2fs to set and clear the resize inode (#167816)
 %patch30 -p1 -b .resize-inode
-# drop timestamp from mo files
+# drop timestamp from mo files (#168815/168814/245653)
 %patch32 -p1 -b .pottcdate
 # look at device mapper devices
 %patch34 -p1 -b .dm
 # put blkid.tab in /etc/blkid/
 %patch36 -p1 -b .etcblkid
-# GFS/GFS2 detection
-%patch37 -p1 -b .gfs
-# Fix device mapper names in blkid
-%patch38 -p1 -b .devname
-# Fix multilib conflicts
+# Fix multilib conflicts (#192665)
 %patch39 -p1 -b .multilib
-# Fix probing from leaking memory in error cases.
-%patch40 -p1 -b .leak
-# Fix poblem with empty FAT label.
-%patch41 -p1 -b .fatlabel
-# 32-bit 16T fixups
-%patch50 -p1 -b .ext2fs_div_ceil
-%patch51 -p1 -b .fix-loop-wraps
-%patch52 -p1 -b .e2p_percent
-%patch53 -p1 -b .group_desc_loops
-%patch54 -p1 -b .unused_group_blocks
-%patch55 -p1 -b .fix_formats
-%patch56 -p1 -b .group_block_inlines
-%patch57 -p1 -b .32_bit_inodes
-%patch58 -p1 -b .more_rounding_overflows
-%patch59 -p1 -b .large_file_size
-%patch60 -p1 -b .e2p_percent_div
-%patch61 -p1 -b .uuid
+# Fix for newer autoconf (#220715)
 %patch62 -p1 -b .mkinstalldirs
-# Teach blkid about luks
-%patch63 -p1 -b .LUKS
-# Fix many coverity-found leaks etc
-%patch64 -p1 -b .coverity
-# A couple of segfaults in debugfs if no fs is open
-%patch65 -p1 -b .dump_unused
-%patch66 -p1 -b .lsdel
-# Avoid recursive loops due to symlinks in /dev
-%patch67 -p1 -b .dev-symlinks
-# Don't write changes to the backup superblocks by default
-%patch68 -p1 -b .backup-sbs
-# Correct byteswapping for fast symlinks with xattrs
-%patch69 -p1 -b .symlink-byteswap
-# e2fsck: added sanity check for xattr validation
-%patch70 -p1 -b .xattr-sanity
+# Fix type warning in badblocks
+%patch63 -p1 -b .warnings
 %build
 aclocal
 autoconf
@@ -286,6 +227,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Jul 17 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-1
+- New version 1.40.2
+- Fix up warning in badblocks
+
 * Mon Jun 25 2007 Eric Sandeen <esandeen@redhat.com> 1.39-15
 - Fix up .po files to remove timestamps; multilib issues (#245653)
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPL
 Group: System Environment/Base
 Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
@@ -15,6 +15,7 @@ Patch36: e2fsprogs-1.38-etcblkid.patch
 Patch39: e2fsprogs-1.39-multilib.patch
 Patch62: e2fsprogs-1.39-mkinstalldirs.patch
 Patch63: e2fsprogs-1.40.2-warning-fixes.patch
+Patch64: e2fsprogs-1.40.2-swapfs.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
@@ -77,6 +78,8 @@ also want to install e2fsprogs.
 %patch62 -p1 -b .mkinstalldirs
 # Fix type warning in badblocks
 %patch63 -p1 -b .warnings
+# Fix ext2fs_swap_inode_full() on bigendian boxes
+%patch64 -p1 -b .swapfs
 %build
 aclocal
 autoconf
@@ -227,6 +230,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Jul 18 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-2
+- Fix bug in ext2fs_swap_inode_full() on big-endian boxes
+
 * Tue Jul 17 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-1
 - New version 1.40.2
 - Fix up warning in badblocks

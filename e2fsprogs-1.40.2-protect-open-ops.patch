@@ -1,0 +1,91 @@
+Index: e2fsprogs-1.40.2/debugfs/debugfs.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/debugfs/debugfs.c
++++ e2fsprogs-1.40.2/debugfs/debugfs.c
+@@ -62,7 +62,7 @@ static void open_filesystem(char *device
+ 			current_fs = NULL;
+ 			return;
+ 		}
+-		retval = unix_io_manager->open(data_filename, 0, &data_io);
++		retval = (unix_io_manager->open)(data_filename, 0, &data_io);
+ 		if (retval) {
+ 			com_err(data_filename, 0, "while opening data source");
+ 			current_fs = NULL;
+Index: e2fsprogs-1.40.2/e2fsck/journal.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/e2fsck/journal.c
++++ e2fsprogs-1.40.2/e2fsck/journal.c
+@@ -362,7 +362,7 @@ static errcode_t e2fsck_get_journal(e2fs
+ #ifndef USE_INODE_IO
+ 	if (ext_journal)
+ #endif
+-		retval = io_ptr->open(journal_name, IO_FLAG_RW,
++		retval = (io_ptr->open)(journal_name, IO_FLAG_RW,
+ 				      &ctx->journal_io);
+ 	if (retval)
+ 		goto errout;
+Index: e2fsprogs-1.40.2/e2fsck/util.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/e2fsck/util.c
++++ e2fsprogs-1.40.2/e2fsck/util.c
+@@ -435,7 +435,7 @@ blk_t get_backup_sb(e2fsck_t ctx, ext2_f
+ 	if (!name || !manager)
+ 		goto cleanup;
+ 
+-	if (manager->open(name, 0, &io) != 0)
++	if ((manager->open)(name, 0, &io) != 0)
+ 		goto cleanup;
+ 
+ 	if (ext2fs_get_mem(SUPERBLOCK_SIZE, &buf))
+Index: e2fsprogs-1.40.2/lib/ext2fs/initialize.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/lib/ext2fs/initialize.c
++++ e2fsprogs-1.40.2/lib/ext2fs/initialize.c
+@@ -124,7 +124,7 @@ errcode_t ext2fs_initialize(const char *
+ 	io_flags = IO_FLAG_RW;
+ 	if (flags & EXT2_FLAG_EXCLUSIVE)
+ 		io_flags |= IO_FLAG_EXCLUSIVE;
+-	retval = manager->open(name, io_flags, &fs->io);
++	retval = (manager->open)(name, io_flags, &fs->io);
+ 	if (retval)
+ 		goto cleanup;
+ 	fs->image_io = fs->io;
+Index: e2fsprogs-1.40.2/lib/ext2fs/openfs.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/lib/ext2fs/openfs.c
++++ e2fsprogs-1.40.2/lib/ext2fs/openfs.c
+@@ -119,7 +119,7 @@ errcode_t ext2fs_open2(const char *name,
+ 		io_flags |= IO_FLAG_RW;
+ 	if (flags & EXT2_FLAG_EXCLUSIVE)
+ 		io_flags |= IO_FLAG_EXCLUSIVE;
+-	retval = manager->open(fs->device_name, io_flags, &fs->io);
++	retval = (manager->open)(fs->device_name, io_flags, &fs->io);
+ 	if (retval)
+ 		goto cleanup;
+ 	if (io_options && 
+Index: e2fsprogs-1.40.2/lib/ext2fs/test_io.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/lib/ext2fs/test_io.c
++++ e2fsprogs-1.40.2/lib/ext2fs/test_io.c
+@@ -195,7 +195,7 @@ static errcode_t test_open(const char *n
+ 	memset(data, 0, sizeof(struct test_private_data));
+ 	data->magic = EXT2_ET_MAGIC_TEST_IO_CHANNEL;
+ 	if (test_io_backing_manager) {
+-		retval = test_io_backing_manager->open(name, flags,
++		retval = (test_io_backing_manager->open)(name, flags,
+ 						       &data->real);
+ 		if (retval)
+ 			goto cleanup;
+Index: e2fsprogs-1.40.2/misc/e2image.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/misc/e2image.c
++++ e2fsprogs-1.40.2/misc/e2image.c
+@@ -584,7 +584,7 @@ static void install_image(char *device, 
+ 		exit(1);
+ 	}
+ 
+-	retval = io_ptr->open(device, IO_FLAG_RW, &io); 
++	retval = (io_ptr->open)(device, IO_FLAG_RW, &io); 
+ 	if (retval) {
+ 		com_err(device, 0, "while opening device file");
+ 		exit(1);

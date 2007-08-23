@@ -4,10 +4,12 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 2%{?dist}
-License: GPL
+Release: 3%{?dist}
+# License based on upstream-modified COPYING file,
+# which clearly states "V2" intent.
+License: GPLv2
 Group: System Environment/Base
-Source:  ftp://download.sourceforge.net/pub/sourceforge/e2fsprogs/e2fsprogs-%{version}.tar.gz
+Source: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Patch30: e2fsprogs-1.38-resize-inode.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch34: e2fsprogs-1.39-blkid-devmapper.patch
@@ -16,12 +18,15 @@ Patch39: e2fsprogs-1.39-multilib.patch
 Patch62: e2fsprogs-1.39-mkinstalldirs.patch
 Patch63: e2fsprogs-1.40.2-warning-fixes.patch
 Patch64: e2fsprogs-1.40.2-swapfs.patch
+Patch65: e2fsprogs-1.40.2-fix-open-create-modes.patch
+Patch66: e2fsprogs-1.40.2-protect-open-ops.patch
+
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
 BuildRequires: gettext, texinfo, autoconf, automake >= 1.10, libselinux-devel
 BuildRequires: libsepol-devel, gettext-devel, pkgconfig
-BuildRequires: device-mapper-devel
+BuildRequires: device-mapper-devel gawk
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -41,6 +46,10 @@ performance of an ext2 and/or ext3 filesystem.
 %package libs
 Summary: Ext2/3 filesystem-specific static libraries and headers
 Group: Development/Libraries
+# License based on upstream-modified COPYING file,
+# which clearly states "V2" intent as well as other
+# licenses for various libs, which also have in-source specification.
+License: GPLv2 and LGPLv2 and BSD and MIT
 Requires(post): /sbin/ldconfig
 
 %description libs
@@ -49,6 +58,10 @@ E2fsprogs-lib contains the libraries of the e2fsprogs package.
 %package devel
 Summary: Ext2/3 filesystem-specific static libraries and headers
 Group: Development/Libraries
+# License based on upstream-modified COPYING file,
+# which clearly states [L]GPLv2 intent as well as other
+# licenses for various libs, which also have in-source specification.
+License: GPLv2 and LGPLv2 and BSD and MIT
 Requires: e2fsprogs-libs = %{version}-%{release}
 Requires(post): /sbin/install-info
 Requires(postun): /sbin/install-info
@@ -80,6 +93,10 @@ also want to install e2fsprogs.
 %patch63 -p1 -b .warnings
 # Fix ext2fs_swap_inode_full() on bigendian boxes
 %patch64 -p1 -b .swapfs
+# fix one open("foo", O_CREAT) caller with no mode
+%patch65 -p1 -b .creatmode
+# protect ->open ops from glibc open-create-mode-checker
+%patch66 -p1 -b .open
 %build
 aclocal
 autoconf
@@ -230,6 +247,13 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Thu Aug 23 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-3
+- Update license tags
+- Fix one open-create caller with no mode
+- Protect ->open ops from glibc open-create-mode-checker
+- Fix source URL
+- Add gawk to BuildRequires
+
 * Wed Jul 18 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-2
 - Fix bug in ext2fs_swap_inode_full() on big-endian boxes
 

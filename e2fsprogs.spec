@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -63,6 +63,7 @@ Group: Development/Libraries
 # licenses for various libs, which also have in-source specification.
 License: GPLv2 and LGPLv2 and BSD and MIT
 Requires: e2fsprogs-libs = %{version}-%{release}
+Requires: gawk
 Requires(post): /sbin/install-info
 Requires(postun): /sbin/install-info
 
@@ -247,6 +248,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Wed Aug 29 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-4
+- add gawk to e2fsprogs-devel Requires, compile_et needs it
+
 * Thu Aug 23 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-3
 - Update license tags
 - Fix one open-create caller with no mode

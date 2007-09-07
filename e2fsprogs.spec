@@ -4,12 +4,14 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
 Group: System Environment/Base
-Source: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+Source1: ext2_types-wrapper.h
+Source2: blkid_types-wrapper.h
 Patch30: e2fsprogs-1.38-resize-inode.patch
 Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch34: e2fsprogs-1.39-blkid-devmapper.patch
@@ -110,6 +112,16 @@ rm -rf %{buildroot}
 export PATH=/sbin:$PATH
 make install install-libs DESTDIR="%{buildroot}" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
+
+# ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
+mv -f $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h \
+      $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types-%{_arch}.h
+install -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
+
+mv -f $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h \
+      $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types-%{_arch}.h
+install -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h
+
 %find_lang %{name}
 
 %check
@@ -248,8 +260,11 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Fri Sep 07 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-5
+- wrap a couple headers to fix multilib issues (#270441)
+
 * Wed Aug 29 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-4
-- add gawk to e2fsprogs-devel Requires, compile_et needs it
+- add gawk to e2fsprogs-devel Requires, compile_et needs it (#265961)
 
 * Thu Aug 23 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-3
 - Update license tags

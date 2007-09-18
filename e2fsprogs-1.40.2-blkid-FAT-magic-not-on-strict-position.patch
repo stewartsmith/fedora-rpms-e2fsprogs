@@ -1,0 +1,67 @@
+From 3a493033ce3867a2561d60c1016dd0c03999e5eb Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Tue, 18 Sep 2007 15:29:59 +0200
+Subject: [PATCH] libblkid: FAT magic is not on strict position when there is a real MBR
+
+There is _optional_ reserved space before FAT:
+
+   boot  | reserved | FAT | FAT | root |  data
+  sector |  space   |  1  |  2  |  dir | region
+
+for more details see:
+  http://en.wikipedia.org/wiki/File_Allocation_Table
+
+The probe_fat() code already expects reserved space and other optional
+junk in MBR+FAT, but the blkid_magic array expects strictly defined
+positions of FAT magic strings. That's correct for 99% partitions, but
+not for situation when on the same partition is real MBR. We need to check
+for FAT filesystem also when we detect MBR signature (0x55AA on address 510).
+
+The blkid is not able to detect vfat on USB Disks where is only one
+bootable partition with vfat, for example:
+
+  # file -s /dev/sdc1
+  /dev/sdc1: x86 boot sector; GRand Unified Bootloader, stage1 version
+  0x3, 1st sector stage2 0x44ae, code offset 0x48, sectors/cluster 8,
+  Media descriptor 0xf8, heads 4, sectors 3901408 (volumes > 32 MB) ,
+  physical drive 0xdb, physical drive 0x5b, reserved 0xe, dos < 4.0
+  BootSector (0x0)
+
+  # vol_id /dev/sdc1
+  ID_FS_USAGE=filesystem
+  ID_FS_TYPE=vfat
+  ID_FS_VERSION=FAT32
+  ID_FS_UUID=0044-AE80
+  ID_FS_UUID_ENC=0044-AE80
+  ID_FS_LABEL=Mdv_Flash
+  ID_FS_LABEL_ENC=Mdv_Flash
+  ID_FS_LABEL_SAFE=Mdv_Flash
+
+old version:
+  # blkid /dev/sdc1
+
+fixed version:
+  # blkid /dev/sdc1
+  /dev/sdc1: LABEL="MDV_FLASH" UUID="0044-AE80" TYPE="vfat"
+
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ lib/blkid/probe.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/lib/blkid/probe.c b/lib/blkid/probe.c
+index d56292e..42ec234 100644
+--- a/lib/blkid/probe.c
++++ b/lib/blkid/probe.c
+@@ -849,6 +849,7 @@ static struct blkid_magic type_array[] = {
+   { "vfat",      0,   0x36,  8, "FAT12   ",             probe_fat },
+   { "vfat",      0,      0,  2, "\353\220",             probe_fat_nomagic },
+   { "vfat",      0,      0,  1, "\351",                 probe_fat_nomagic },
++  { "vfat",      0,  0x1fe,  2, "\125\252",             probe_fat },
+   { "minix",     1,   0x10,  2, "\177\023",             0 },
+   { "minix",     1,   0x10,  2, "\217\023",             0 },
+   { "minix",	 1,   0x10,  2, "\150\044",		0 },
+-- 
+1.5.2.4
+
+

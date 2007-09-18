@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 6%{?dist}
+Release: 7%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -22,6 +22,7 @@ Patch63: e2fsprogs-1.40.2-warning-fixes.patch
 Patch64: e2fsprogs-1.40.2-swapfs.patch
 Patch65: e2fsprogs-1.40.2-fix-open-create-modes.patch
 Patch66: e2fsprogs-1.40.2-protect-open-ops.patch
+Patch67: e2fsprogs-1.40.2-blkid-FAT-magic-not-on-strict-position.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -100,6 +101,9 @@ also want to install e2fsprogs.
 %patch65 -p1 -b .creatmode
 # protect ->open ops from glibc open-create-mode-checker
 %patch66 -p1 -b .open
+# fix fat probe when there is a real MBR
+%patch67 -p1 -b .blkid-fat
+
 %build
 aclocal
 autoconf
@@ -260,6 +264,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Sep 18 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-7
+- Fix blkid fat probe when there is a real MBR (#290951)
+
 * Tue Sep 18 2007 Oliver Falk <oliver@linux-kernel.at> 1.40.2-6
 - Add alpha to the header wrappers 
 

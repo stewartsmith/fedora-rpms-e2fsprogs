@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -260,6 +260,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Sep 18 2007 Oliver Falk <oliver@linux-kernel.at> 1.40.2-6
+- Add alpha to the header wrappers 
+
 * Fri Sep 07 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-5
 - wrap a couple headers to fix multilib issues (#270441)
 

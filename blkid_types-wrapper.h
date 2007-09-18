@@ -17,6 +17,8 @@
 #include "blkid_types-s390.h"
 #elif defined(__x86_64__)
 #include "blkid_types-x86_64.h"
+#elif defined(__alpha__)
+#include "blkid_types-alpha.h"
 #else
 #error "This e2fsprogs-devel package does not work your architecture?"
 #endif

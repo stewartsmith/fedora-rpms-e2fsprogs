@@ -1,0 +1,24 @@
+Sent to linux-ext4 list on 25 Sep 2007.
+
+libblkid: recognize squashfs filesystems
+
+squashfs has no uuid or labels, so all we need is the magic.
+
+Addresses-Red-Hat-Bugzilla: #305151
+    
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+
+Index: e2fsprogs-1.40.2/lib/blkid/probe.c
+===================================================================
+--- e2fsprogs-1.40.2.orig/lib/blkid/probe.c
++++ e2fsprogs-1.40.2/lib/blkid/probe.c
+@@ -898,6 +898,7 @@ static struct blkid_magic type_array[] =
+   { "ocfs2",	 4,	 0,  6,	"OCFSV2",		probe_ocfs2 },
+   { "ocfs2",	 8,	 0,  6,	"OCFSV2",		probe_ocfs2 },
+   { "crypt_LUKS", 0,	 0,  6,	"LUKS\xba\xbe",		probe_luks },
++  { "squashfs",	 0,	 0,  4,	"hsqs",			0 },
+   {   NULL,	 0,	 0,  0, NULL,			NULL }
+ };
+ 
+
+

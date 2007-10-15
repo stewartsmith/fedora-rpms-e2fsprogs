@@ -12,10 +12,11 @@ Index: e2fsprogs-1.40.2/lib/blkid/probe.c
 ===================================================================
 --- e2fsprogs-1.40.2.orig/lib/blkid/probe.c
 +++ e2fsprogs-1.40.2/lib/blkid/probe.c
-@@ -898,6 +898,7 @@ static struct blkid_magic type_array[] =
+@@ -898,6 +898,8 @@ static struct blkid_magic type_array[] =
    { "ocfs2",	 4,	 0,  6,	"OCFSV2",		probe_ocfs2 },
    { "ocfs2",	 8,	 0,  6,	"OCFSV2",		probe_ocfs2 },
    { "crypt_LUKS", 0,	 0,  6,	"LUKS\xba\xbe",		probe_luks },
++  { "squashfs",	 0,	 0,  4,	"sqsh",			0 },
 +  { "squashfs",	 0,	 0,  4,	"hsqs",			0 },
    {   NULL,	 0,	 0,  0, NULL,			NULL }
  };

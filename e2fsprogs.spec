@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 8%{?dist}
+Release: 9%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -267,6 +267,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Oct 15 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-9
+- Detect big-endian squashfs filesystems in libblkid (#305151)
+
 * Tue Oct 02 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-8
 - Detect squashfs filesystems in libblkid (#305151)
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 9%{?dist}
+Release: 10%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -48,7 +48,7 @@ You should install the e2fsprogs package if you need to manage the
 performance of an ext2 and/or ext3 filesystem.
 
 %package libs
-Summary: Ext2/3 filesystem-specific static libraries and headers
+Summary: Ext2/3 filesystem-specific shared libraries and headers
 Group: Development/Libraries
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent as well as other
@@ -117,17 +117,17 @@ make %{?_smp_mflags}
 %install
 rm -rf %{buildroot}
 export PATH=/sbin:$PATH
-make install install-libs DESTDIR="%{buildroot}" \
+make install install-libs DESTDIR=$RPM_BUILD_ROOT INSTALL="%{__install} -p" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 
 # ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
 mv -f $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h \
       $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types-%{_arch}.h
-install -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
+install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
 
 mv -f $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h \
       $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types-%{_arch}.h
-install -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h
+install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h
 
 %find_lang %{name}
 
@@ -267,6 +267,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Sat Oct 20 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-10
+- Make (more) file timestamps match those in tarball for multilib tidiness 
+- Fix e2fsprogs-libs summary (shared libs not static)
+
 * Tue Oct 15 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-9
 - Detect big-endian squashfs filesystems in libblkid (#305151)
 

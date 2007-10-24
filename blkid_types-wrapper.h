@@ -19,6 +19,8 @@
 #include "blkid_types-x86_64.h"
 #elif defined(__alpha__)
 #include "blkid_types-alpha.h"
+#elif defined(__arm__)
+#include "blkid_types-arm.h"
 #else
 #error "This e2fsprogs-devel package does not work your architecture?"
 #endif

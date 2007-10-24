@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 10%{?dist}
+Release: 11%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -267,6 +267,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Oct 23 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-11
+- Add arm to multilib header wrapper
+
 * Sat Oct 20 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-10
 - Make (more) file timestamps match those in tarball for multilib tidiness 
 - Fix e2fsprogs-libs summary (shared libs not static)

@@ -19,6 +19,8 @@
 #include "ext2_types-x86_64.h"
 #elif defined(__alpha__)
 #include "ext2_types-alpha.h"
+#elif defined(__arm__)
+#include "ext2_types-arm.h"
 #else
 #error "This e2fsprogs-devel package does not work your architecture?"
 #endif

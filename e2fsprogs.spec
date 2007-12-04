@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 12%{?dist}
+Release: 13%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -67,6 +67,7 @@ Group: Development/Libraries
 # licenses for various libs, which also have in-source specification.
 License: GPLv2 and LGPLv2 and BSD and MIT
 Requires: e2fsprogs-libs = %{version}-%{release}
+Requires: device-mapper-devel >= 1.02.02-3
 Requires: gawk
 Requires(post): /sbin/install-info
 Requires(postun): /sbin/install-info
@@ -267,6 +268,10 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Dec  4 2007 Stepan Kasal <skasal@redhat.com> 1.40.2-13
+- The -devel package now requires device-mapper-devel, to match
+  the dependency in blkid.pc (#410791)
+
 * Tue Nov 27 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-12
 - Use upstream patch for blkid fat detection, avoids div-by-zero
   when encountering some BSD partitions (#398281)

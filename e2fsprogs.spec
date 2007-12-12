@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 13%{?dist}
+Release: 14%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -24,6 +24,7 @@ Patch65: e2fsprogs-1.40.2-fix-open-create-modes.patch
 Patch66: e2fsprogs-1.40.2-protect-open-ops.patch
 Patch67: e2fsprogs-1.40.2-blkid-FAT-magic-not-on-strict-position.patch
 Patch68: e2fsprogs-1.40.2-blkid-squashfs.patch
+Patch69: e2fsprogs-1.40.2-integer-overflows.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -107,6 +108,8 @@ also want to install e2fsprogs.
 %patch67 -p1 -b .blkid-fat
 # detect squashfs in libblkid (#305151)
 %patch68 -p1 -b .blkid-squashfs
+# prevent integer overflows (#414591 / CVE-2007-5497)
+%patch69 -p1 -b .overflows
 
 %build
 aclocal
@@ -268,6 +271,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Dec 11 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-14
+- Fix integer overflows (#414591 / CVE-2007-5497)
+
 * Tue Dec  4 2007 Stepan Kasal <skasal@redhat.com> 1.40.2-13
 - The -devel package now requires device-mapper-devel, to match
   the dependency in blkid.pc (#410791)

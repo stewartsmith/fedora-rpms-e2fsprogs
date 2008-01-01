@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -155,6 +155,7 @@ exit 0
 %{_root_sbindir}/tune2fs
 %{_sbindir}/filefrag
 %{_sbindir}/mklost+found
+%{_sbindir}/uuidd
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -185,6 +186,7 @@ exit 0
 %{_mandir}/man8/mklost+found.8*
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
+%{_mandir}/man8/uuidd.8*
 
 %files libs
 %defattr(-,root,root)
@@ -240,6 +242,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Jan 01 2008 Eric Sandeen <esandeen@redhat.com> 1.40.4-2
+- Add new uidd files to specfile
+
 * Tue Jan 01 2008 Eric Sandeen <esandeen@redhat.com> 1.40.4-1
 - New upstream version, drop several now-upstream patches.
 

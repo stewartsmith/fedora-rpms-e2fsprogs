@@ -89,13 +89,13 @@
  	      if (cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc 2>/dev/null) | grep ' -> ' >/dev/null; then \
 --- e2fsprogs-1.39/misc/Makefile.in.mkinstalldirs	2006-12-25 23:04:27.000000000 +0100
 +++ e2fsprogs-1.39/misc/Makefile.in	2006-12-25 23:04:27.000000000 +0100
-@@ -223,8 +223,8 @@
+@@ -246,8 +246,8 @@ filefrag.8: $(DEP_SUBSTITUTE) $(srcdir)/
  	@$(SUBSTITUTE_UPTIME) $(srcdir)/filefrag.8.in filefrag.8
  
  installdirs:
--	@echo "	MKINSTALLDIRS $(sbindir) $(root_sbindir) $(bindir) $(man1dir) $(man8dir) $(libdir)"
+-	@echo "	MKINSTALLDIRS $(sbindir) $(root_sbindir) $(bindir) $(man1dir) $(man8dir) $(libdir) $(root_sysconfdir)"
 -	@$(MKINSTALLDIRS) $(DESTDIR)$(sbindir) \
-+	@echo "	MKDIR_P $(sbindir) $(root_sbindir) $(bindir) $(man1dir) $(man8dir) $(libdir)"
++	@echo "	MKDIR_P $(sbindir) $(root_sbindir) $(bindir) $(man1dir) $(man8dir) $(libdir) $(root_sysconfdir)"
 +	@$(MKDIR_P) $(DESTDIR)$(sbindir) \
  		$(DESTDIR)$(root_sbindir) $(DESTDIR)$(bindir) \
  		$(DESTDIR)$(man1dir) $(DESTDIR)$(man8dir) \

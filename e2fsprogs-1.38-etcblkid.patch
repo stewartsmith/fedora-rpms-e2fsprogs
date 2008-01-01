@@ -40,15 +40,15 @@
  If not specified it will be the same file as that given by the
 --- e2fsprogs-1.38/misc/blkid.c.etcblkid	2006-03-08 15:02:39.000000000 -0500
 +++ e2fsprogs-1.38/misc/blkid.c	2006-03-08 15:04:19.000000000 -0500
-@@ -39,7 +39,7 @@
+@@ -40,7 +40,7 @@ static void usage(int error)
  	fprintf(out,
- 		"usage:\t%s [-c <file>] [-hl] [-o format] "
+ 		"usage:\t%s [-c <file>] [-ghl] [-o format] "
  		"[-s <tag>] [-t <token>]\n    [-v] [-w <file>] [dev ...]\n"
 -		"\t-c\tcache file (default: /etc/blkid.tab, /dev/null = none)\n"
 +		"\t-c\tcache file (default: /etc/blkid/blkid.tab, /dev/null = none)\n"
  		"\t-h\tprint this usage message and exit\n"
+ 		"\t-g\tgarbage collect the blkid cache\n"
  		"\t-s\tshow specified tag(s) (default show all tags)\n"
- 		"\t-t\tfind device with a specific token (NAME=value pair)\n"
 --- e2fsprogs-1.38/lib/blkid/Makefile.in.etcblkid	2006-03-08 15:04:56.000000000 -0500
 +++ e2fsprogs-1.38/lib/blkid/Makefile.in	2006-03-08 15:05:59.000000000 -0500
 @@ -129,9 +129,10 @@

@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
-Version: 1.40.2
-Release: 15%{?dist}
+Version: 1.40.4
+Release: 1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -15,12 +15,6 @@ Source2: blkid_types-wrapper.h
 Patch34: e2fsprogs-1.39-blkid-devmapper.patch
 Patch36: e2fsprogs-1.38-etcblkid.patch
 Patch62: e2fsprogs-1.39-mkinstalldirs.patch
-Patch63: e2fsprogs-1.40.2-warning-fixes.patch
-Patch64: e2fsprogs-1.40.2-swapfs.patch
-Patch65: e2fsprogs-1.40.2-fix-open-create-modes.patch
-Patch67: e2fsprogs-1.40.2-blkid-FAT-magic-not-on-strict-position.patch
-Patch68: e2fsprogs-1.40.2-blkid-squashfs.patch
-Patch69: e2fsprogs-1.40.2-integer-overflows.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -86,18 +80,6 @@ also want to install e2fsprogs.
 %patch36 -p1 -b .etcblkid
 # Fix for newer autoconf (#220715)
 %patch62 -p1 -b .mkinstalldirs
-# Fix type warning in badblocks
-%patch63 -p1 -b .warnings
-# Fix ext2fs_swap_inode_full() on bigendian boxes
-%patch64 -p1 -b .swapfs
-# fix one open("foo", O_CREAT) caller with no mode
-%patch65 -p1 -b .creatmode
-# fix fat probe when there is a real MBR
-%patch67 -p1 -b .blkid-fat
-# detect squashfs in libblkid (#305151)
-%patch68 -p1 -b .blkid-squashfs
-# prevent integer overflows (#414591 / CVE-2007-5497)
-%patch69 -p1 -b .overflows
 
 %build
 aclocal
@@ -258,6 +240,9 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Jan 01 2008 Eric Sandeen <esandeen@redhat.com> 1.40.4-1
+- New upstream version, drop several now-upstream patches.
+
 * Tue Jan 01 2008 Eric Sandeen <esandeen@redhat.com> 1.40.2-15
 - Drop resize_inode removal patch from tune2fs; ostensibly was
   for old kernels which could not mount, but seems to be fine.

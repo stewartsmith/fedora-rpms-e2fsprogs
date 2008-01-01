@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.2
-Release: 14%{?dist}
+Release: 15%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -12,16 +12,12 @@ Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 Source2: blkid_types-wrapper.h
-Patch30: e2fsprogs-1.38-resize-inode.patch
-Patch32: e2fsprogs-1.38-no_pottcdate.patch
 Patch34: e2fsprogs-1.39-blkid-devmapper.patch
 Patch36: e2fsprogs-1.38-etcblkid.patch
-Patch39: e2fsprogs-1.39-multilib.patch
 Patch62: e2fsprogs-1.39-mkinstalldirs.patch
 Patch63: e2fsprogs-1.40.2-warning-fixes.patch
 Patch64: e2fsprogs-1.40.2-swapfs.patch
 Patch65: e2fsprogs-1.40.2-fix-open-create-modes.patch
-Patch66: e2fsprogs-1.40.2-protect-open-ops.patch
 Patch67: e2fsprogs-1.40.2-blkid-FAT-magic-not-on-strict-position.patch
 Patch68: e2fsprogs-1.40.2-blkid-squashfs.patch
 Patch69: e2fsprogs-1.40.2-integer-overflows.patch
@@ -84,16 +80,10 @@ also want to install e2fsprogs.
 
 %prep
 %setup -q -n e2fsprogs-%{version}
-# enable tune2fs to set and clear the resize inode (#167816)
-%patch30 -p1 -b .resize-inode
-# drop timestamp from mo files (#168815/168814/245653)
-%patch32 -p1 -b .pottcdate
 # look at device mapper devices
 %patch34 -p1 -b .dm
 # put blkid.tab in /etc/blkid/
 %patch36 -p1 -b .etcblkid
-# Fix multilib conflicts (#192665)
-%patch39 -p1 -b .multilib
 # Fix for newer autoconf (#220715)
 %patch62 -p1 -b .mkinstalldirs
 # Fix type warning in badblocks
@@ -102,8 +92,6 @@ also want to install e2fsprogs.
 %patch64 -p1 -b .swapfs
 # fix one open("foo", O_CREAT) caller with no mode
 %patch65 -p1 -b .creatmode
-# protect ->open ops from glibc open-create-mode-checker
-%patch66 -p1 -b .open
 # fix fat probe when there is a real MBR
 %patch67 -p1 -b .blkid-fat
 # detect squashfs in libblkid (#305151)
@@ -115,7 +103,6 @@ also want to install e2fsprogs.
 aclocal
 autoconf
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
-make -C po update-po
 make %{?_smp_mflags}
 
 %install
@@ -271,6 +258,14 @@ exit 0
 %{_mandir}/man3/uuid_unparse.3*
 
 %changelog
+* Tue Jan 01 2008 Eric Sandeen <esandeen@redhat.com> 1.40.2-15
+- Drop resize_inode removal patch from tune2fs; ostensibly was
+  for old kernels which could not mount, but seems to be fine.
+- Drop pottcdate removal patch, and don't rebuild .po files,
+  causes multilib problems and we generally shouldn't rebuild.
+- Drop multilib patch; wrapper header should take care of this now.
+- Drop ->open rename, Fedora seems ok with this now.
+
 * Tue Dec 11 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-14
 - Fix integer overflows (#414591 / CVE-2007-5497)
 

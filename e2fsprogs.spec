@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.4
-Release: 2%{?dist}
+Release: 3%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -12,9 +12,11 @@ Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 Source2: blkid_types-wrapper.h
-Patch34: e2fsprogs-1.39-blkid-devmapper.patch
-Patch36: e2fsprogs-1.38-etcblkid.patch
-Patch62: e2fsprogs-1.39-mkinstalldirs.patch
+Source3: uuidd.init
+Patch1: e2fsprogs-1.39-blkid-devmapper.patch
+Patch2: e2fsprogs-1.38-etcblkid.patch
+Patch3: e2fsprogs-1.39-mkinstalldirs.patch
+Patch4: e2fsprogs-1.40.4-uuidd-tidy.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -72,14 +74,28 @@ You should install e2fsprogs-devel if you want to develop ext2/ext3
 filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
+%package -n uuidd
+Summary: helper daemon to guarantee uniqueness of time-based UUIDs
+Group: System Environment/Daemons
+Requires: e2fsprogs-libs = %{version}-%{release}
+License: GPLv2
+Requires(pre): shadow-utils
+
+%description -n uuidd
+The uuidd package contains a userspace daemon (uuidd) which guarantees
+uniqueness of time-based UUID generation even at very high rates on
+SMP systems.
+
 %prep
 %setup -q -n e2fsprogs-%{version}
 # look at device mapper devices
-%patch34 -p1 -b .dm
+%patch1 -p1 -b .dm
 # put blkid.tab in /etc/blkid/
-%patch36 -p1 -b .etcblkid
+%patch2 -p1 -b .etcblkid
 # Fix for newer autoconf (#220715)
-%patch62 -p1 -b .mkinstalldirs
+%patch3 -p1 -b .mkinstalldirs
+# uuidd manpage tidyup
+%patch4 -p1 -b .uuidd-tidy
 
 %build
 aclocal
@@ -101,6 +117,11 @@ install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
 mv -f $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h \
       $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types-%{_arch}.h
 install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h
+
+# Our own initscript for uuidd
+install -m 755 %{SOURCE3} $RPM_BUILD_ROOT/etc/init.d/uuidd
+# And a dir uuidd needs that the makefiles don't create
+install -d $RPM_BUILD_ROOT/var/lib/libuuid
 
 %find_lang %{name}
 
@@ -130,6 +151,23 @@ if [ $1 = 0 ]; then
 fi
 exit 0
 
+%pre -n uuidd
+getent group uuidd >/dev/null || groupadd -r uuidd
+getent passwd uuidd >/dev/null || \
+useradd -r -g uuidd -d /var/lib/libuuid -s /sbin/nologin \
+    -c "UUID generator helper daemon" uuidd
+exit 0
+
+%post -n uuidd
+/sbin/chkconfig --add uuidd
+
+%preun -n uuidd
+if [ "$1" = 0 ]
+then
+	/sbin/service uuidd stop > /dev/null 2>&1 || :
+	/sbin/chkconfig --del uuidd
+fi
+
 %files -f %{name}.lang
 %defattr(-,root,root)
 %doc README RELEASE-NOTES
@@ -155,7 +193,6 @@ exit 0
 %{_root_sbindir}/tune2fs
 %{_sbindir}/filefrag
 %{_sbindir}/mklost+found
-%{_sbindir}/uuidd
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -186,7 +223,6 @@ exit 0
 %{_mandir}/man8/mklost+found.8*
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
-%{_mandir}/man8/uuidd.8*
 
 %files libs
 %defattr(-,root,root)
@@ -241,7 +277,17 @@ exit 0
 %{_mandir}/man3/uuid_time.3*
 %{_mandir}/man3/uuid_unparse.3*
 
+%files -n uuidd
+%defattr(-,root,root)
+/etc/init.d/uuidd
+%{_mandir}/man8/uuidd.8*
+%attr(-, uuidd, uuidd) %{_sbindir}/uuidd
+%dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
+
 %changelog
+* Tue Jan 09 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-3
+- New uuidd subpackage, and properly set up uuidd at install.
+
 * Tue Jan 01 2008 Eric Sandeen <esandeen@redhat.com> 1.40.4-2
 - Add new uidd files to specfile
 

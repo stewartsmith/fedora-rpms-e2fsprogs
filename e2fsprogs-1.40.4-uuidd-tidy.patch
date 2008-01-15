@@ -12,7 +12,7 @@ Index: e2fsprogs-1.39/misc/uuidd.8.in
  .BI \-s " socketpath"
  Specify the pathname used for the unix-domain socket used by uuidd.  By
 -qdefault, the pathname used is /var/run/uuidd.sock.  This is primarily
-+default, the pathname used is /var/lib/libuuid/uuidd.sock.  This is primarily
++default, the pathname used is /var/lib/libuuid/request.  This is primarily
  for debugging purposes, since the pathname is hard-coded in the libuuid
  library.
  .TP

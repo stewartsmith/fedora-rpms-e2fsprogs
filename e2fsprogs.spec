@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.4
-Release: 3%{?dist}
+Release: 4%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -100,7 +100,7 @@ SMP systems.
 %build
 aclocal
 autoconf
-%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
+%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux --enable-dynamic-e2fsck
 make %{?_smp_mflags}
 
 %install
@@ -285,6 +285,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Mon Jan 10 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-4
+- Build e2fsck as a dynamically linked binary.
+- Re-fix uidd manpage default paths.
+
 * Tue Jan 09 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-3
 - New uuidd subpackage, and properly set up uuidd at install.
 

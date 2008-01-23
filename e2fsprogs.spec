@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.4
-Release: 4%{?dist}
+Release: 5%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -17,6 +17,8 @@ Patch1: e2fsprogs-1.39-blkid-devmapper.patch
 Patch2: e2fsprogs-1.38-etcblkid.patch
 Patch3: e2fsprogs-1.39-mkinstalldirs.patch
 Patch4: e2fsprogs-1.40.4-uuidd-tidy.patch
+Patch5: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch6: e2fsprogs-1.40.4-blkid-ext4dev.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -96,6 +98,10 @@ SMP systems.
 %patch3 -p1 -b .mkinstalldirs
 # uuidd manpage tidyup
 %patch4 -p1 -b .uuidd-tidy
+# ignore some flag differences on primary/backup sb feature checks
+%patch5 -p1 -b .featurecheck
+# teach blkid about ext4dev, for now
+%patch6 -p1 -b .ext4-blkid
 
 %build
 aclocal
@@ -285,6 +291,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Wed Jan 23 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-5
+- ignore some primary/backup superblock flag differences (#428893)
+- teach libblkid about ext4dev
+
 * Mon Jan 10 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-4
 - Build e2fsck as a dynamically linked binary.
 - Re-fix uidd manpage default paths.

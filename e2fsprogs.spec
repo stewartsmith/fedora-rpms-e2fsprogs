@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.4
-Release: 5%{?dist}
+Release: 6%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -19,6 +19,7 @@ Patch3: e2fsprogs-1.39-mkinstalldirs.patch
 Patch4: e2fsprogs-1.40.4-uuidd-tidy.patch
 Patch5: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch6: e2fsprogs-1.40.4-blkid-ext4dev.patch
+Patch7: e2fsprogs-1.40.4-no-static-e2fsck.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -102,6 +103,8 @@ SMP systems.
 %patch5 -p1 -b .featurecheck
 # teach blkid about ext4dev, for now
 %patch6 -p1 -b .ext4-blkid
+# completely clobber e2fsck.static build
+%patch7 -p1 -b .e2fsck-static
 
 %build
 aclocal
@@ -291,9 +294,12 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Wed Jan 23 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-6
+- Completely clobber e2fsck.static build.
+
 * Wed Jan 23 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-5
-- ignore some primary/backup superblock flag differences (#428893)
-- teach libblkid about ext4dev
+- Ignore some primary/backup superblock flag differences (#428893)
+- Teach libblkid about ext4dev.
 
 * Mon Jan 10 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-4
 - Build e2fsck as a dynamically linked binary.

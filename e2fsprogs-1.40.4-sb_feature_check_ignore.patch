@@ -2,7 +2,7 @@ Index: e2fsprogs-1.40.4/e2fsck/super.c
 ===================================================================
 --- e2fsprogs-1.40.4.orig/e2fsck/super.c
 +++ e2fsprogs-1.40.4/e2fsck/super.c
-@@ -814,10 +814,29 @@ int check_backup_super_block(e2fsck_t ct
+@@ -814,10 +814,32 @@ int check_backup_super_block(e2fsck_t ct
  			continue;
  		}
  
@@ -22,11 +22,14 @@ Index: e2fsprogs-1.40.4/e2fsck/super.c
 +#define FEATURE_INCOMPAT_IGNORE		(EXT3_FEATURE_INCOMPAT_EXTENTS)
 +
 +#define SUPER_COMPAT_DIFFERENT(x)	\
-+	((fs->super->x & ~FEATURE_COMPAT_IGNORE) != tfs->super->x)
++	(( fs->super->x & ~FEATURE_COMPAT_IGNORE) !=	\
++	 (tfs->super->x & ~FEATURE_COMPAT_IGNORE))
 +#define SUPER_INCOMPAT_DIFFERENT(x)	\
-+	((fs->super->x & ~FEATURE_INCOMPAT_IGNORE) != tfs->super->x)
++	(( fs->super->x & ~FEATURE_INCOMPAT_IGNORE) !=	\
++	 (tfs->super->x & ~FEATURE_INCOMPAT_IGNORE))
 +#define SUPER_RO_COMPAT_DIFFERENT(x)	\
-+	((fs->super->x & ~FEATURE_RO_COMPAT_IGNORE) != tfs->super->x)
++	(( fs->super->x & ~FEATURE_RO_COMPAT_IGNORE) !=	\
++	 (tfs->super->x & ~FEATURE_RO_COMPAT_IGNORE))
 +#define SUPER_DIFFERENT(x)		\
 +	(fs->super->x != tfs->super->x)
 +

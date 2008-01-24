@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.4
-Release: 6%{?dist}
+Release: 7%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -20,6 +20,7 @@ Patch4: e2fsprogs-1.40.4-uuidd-tidy.patch
 Patch5: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch6: e2fsprogs-1.40.4-blkid-ext4dev.patch
 Patch7: e2fsprogs-1.40.4-no-static-e2fsck.patch
+Patch8: e2fsprogs-1.40.4-big-inodes.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -105,6 +106,8 @@ SMP systems.
 %patch6 -p1 -b .ext4-blkid
 # completely clobber e2fsck.static build
 %patch7 -p1 -b .e2fsck-static
+# make 256-byte inodes in most cases
+%patch8 -p1 -b .biginodes
 
 %build
 aclocal
@@ -294,6 +297,11 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Jan 24 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-7
+- Fix sb flag comparisons properly this time (#428893)
+- Make 256-byte inodes for the [default] mkfs case.
+  This will facilitate upgrades to ext4 later, and help xattr perf.
+
 * Wed Jan 23 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-6
 - Completely clobber e2fsck.static build.
 

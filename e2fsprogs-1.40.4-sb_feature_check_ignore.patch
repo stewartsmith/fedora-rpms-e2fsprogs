@@ -1,41 +1,35 @@
-Index: e2fsprogs-1.40.4/e2fsck/super.c
+Index: e2fsprogs-1.40.5/e2fsck/super.c
 ===================================================================
---- e2fsprogs-1.40.4.orig/e2fsck/super.c
-+++ e2fsprogs-1.40.4/e2fsck/super.c
-@@ -814,10 +814,32 @@ int check_backup_super_block(e2fsck_t ct
+--- e2fsprogs-1.40.5.orig/e2fsck/super.c
++++ e2fsprogs-1.40.5/e2fsck/super.c
+@@ -793,7 +793,11 @@ void check_super_block(e2fsck_t ctx)
+  * unfortunately, we shouldn't ignore it since if it's not set in the
+  * backup, the extended attributes in the filesystem will be stripped
+  * away.
++ *
++ * Well, I'm still going that route for now, 'til I do something
++ * better.  Full-fsck after a fresh install is just no good.  -ERS
+  */
++#define FEATURE_COMPAT_IGNORE          (EXT2_FEATURE_COMPAT_EXT_ATTR)
+ #define FEATURE_RO_COMPAT_IGNORE	(EXT2_FEATURE_RO_COMPAT_LARGE_FILE| \
+ 					 EXT4_FEATURE_RO_COMPAT_DIR_NLINK)
+ #define FEATURE_INCOMPAT_IGNORE		(EXT3_FEATURE_INCOMPAT_EXTENTS)
+@@ -837,6 +841,9 @@ int check_backup_super_block(e2fsck_t ct
  			continue;
  		}
  
--#define SUPER_DIFFERENT(x) (fs->super->x != tfs->super->x)
--		if (SUPER_DIFFERENT(s_feature_compat) ||
--		    SUPER_DIFFERENT(s_feature_incompat) ||
--		    SUPER_DIFFERENT(s_feature_ro_compat) ||
-+		/*
-+		 * A few flags are set on the fly by the kernel, but
-+		 * only in the primary superblock.  They are safe
-+	 	 * to copy even if they differ.
-+	 	 */ 
-+
-+#define FEATURE_COMPAT_IGNORE		(EXT2_FEATURE_COMPAT_EXT_ATTR)
-+#define FEATURE_RO_COMPAT_IGNORE	(EXT2_FEATURE_RO_COMPAT_LARGE_FILE| \
-+					 EXT4_FEATURE_RO_COMPAT_DIR_NLINK)
-+#define FEATURE_INCOMPAT_IGNORE		(EXT3_FEATURE_INCOMPAT_EXTENTS)
-+
 +#define SUPER_COMPAT_DIFFERENT(x)	\
 +	(( fs->super->x & ~FEATURE_COMPAT_IGNORE) !=	\
 +	 (tfs->super->x & ~FEATURE_COMPAT_IGNORE))
-+#define SUPER_INCOMPAT_DIFFERENT(x)	\
-+	(( fs->super->x & ~FEATURE_INCOMPAT_IGNORE) !=	\
-+	 (tfs->super->x & ~FEATURE_INCOMPAT_IGNORE))
-+#define SUPER_RO_COMPAT_DIFFERENT(x)	\
-+	(( fs->super->x & ~FEATURE_RO_COMPAT_IGNORE) !=	\
-+	 (tfs->super->x & ~FEATURE_RO_COMPAT_IGNORE))
-+#define SUPER_DIFFERENT(x)		\
-+	(fs->super->x != tfs->super->x)
-+
+ #define SUPER_INCOMPAT_DIFFERENT(x)	\
+ 	(( fs->super->x & ~FEATURE_INCOMPAT_IGNORE) !=	\
+ 	 (tfs->super->x & ~FEATURE_INCOMPAT_IGNORE))
+@@ -846,7 +853,7 @@ int check_backup_super_block(e2fsck_t ct
+ #define SUPER_DIFFERENT(x)		\
+ 	(fs->super->x != tfs->super->x)
+ 
+-		if (SUPER_DIFFERENT(s_feature_compat) ||
 +		if (SUPER_COMPAT_DIFFERENT(s_feature_compat) ||
-+		    SUPER_INCOMPAT_DIFFERENT(s_feature_incompat) ||
-+		    SUPER_RO_COMPAT_DIFFERENT(s_feature_ro_compat) ||
+ 		    SUPER_INCOMPAT_DIFFERENT(s_feature_incompat) ||
+ 		    SUPER_RO_COMPAT_DIFFERENT(s_feature_ro_compat) ||
  		    SUPER_DIFFERENT(s_blocks_count) ||
- 		    SUPER_DIFFERENT(s_inodes_count) ||
- 		    memcmp(fs->super->s_uuid, tfs->super->s_uuid,

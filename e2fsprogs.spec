@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
-Version: 1.40.4
-Release: 7%{?dist}
+Version: 1.40.5
+Release: 1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -13,21 +13,14 @@ Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 Source2: blkid_types-wrapper.h
 Source3: uuidd.init
-Patch1: e2fsprogs-1.39-blkid-devmapper.patch
-Patch2: e2fsprogs-1.38-etcblkid.patch
-Patch3: e2fsprogs-1.39-mkinstalldirs.patch
-Patch4: e2fsprogs-1.40.4-uuidd-tidy.patch
-Patch5: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch6: e2fsprogs-1.40.4-blkid-ext4dev.patch
-Patch7: e2fsprogs-1.40.4-no-static-e2fsck.patch
-Patch8: e2fsprogs-1.40.4-big-inodes.patch
+Patch1: e2fsprogs-1.38-etcblkid.patch
+Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
-BuildRequires: gettext, texinfo, autoconf, automake >= 1.10, libselinux-devel
-BuildRequires: libsepol-devel, gettext-devel, pkgconfig
-BuildRequires: device-mapper-devel gawk
+BuildRequires: pkgconfig, texinfo, libselinux-devel
+BuildRequires: libsepol-devel, device-mapper-devel
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -92,27 +85,15 @@ SMP systems.
 
 %prep
 %setup -q -n e2fsprogs-%{version}
-# look at device mapper devices
-%patch1 -p1 -b .dm
 # put blkid.tab in /etc/blkid/
-%patch2 -p1 -b .etcblkid
-# Fix for newer autoconf (#220715)
-%patch3 -p1 -b .mkinstalldirs
-# uuidd manpage tidyup
-%patch4 -p1 -b .uuidd-tidy
+%patch1 -p1 -b .etcblkid
 # ignore some flag differences on primary/backup sb feature checks
-%patch5 -p1 -b .featurecheck
-# teach blkid about ext4dev, for now
-%patch6 -p1 -b .ext4-blkid
-# completely clobber e2fsck.static build
-%patch7 -p1 -b .e2fsck-static
-# make 256-byte inodes in most cases
-%patch8 -p1 -b .biginodes
+# mildly unsafe but 'til I get something better, avoid full fsck
+# after an selinux install...
+%patch2 -p1 -b .featurecheck
 
 %build
-aclocal
-autoconf
-%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux --enable-dynamic-e2fsck
+%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
 make %{?_smp_mflags}
 
 %install
@@ -297,6 +278,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Mon Jan 28 2008 Eric Sandeen <esandeen@redhat.com> 1.40.5-1
+- New upstream version, drop several now-upstream patches.
+
 * Thu Jan 24 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-7
 - Fix sb flag comparisons properly this time (#428893)
 - Make 256-byte inodes for the [default] mkfs case.

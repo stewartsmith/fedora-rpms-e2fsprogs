@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.5
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -278,6 +278,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Fri Feb 08 2008 Eric Sandeen <esandeen@redhat.com> 1.40.5-2
+- gcc-4.3 rebuild
+
 * Mon Jan 28 2008 Eric Sandeen <esandeen@redhat.com> 1.40.5-1
 - New upstream version, drop several now-upstream patches.
 

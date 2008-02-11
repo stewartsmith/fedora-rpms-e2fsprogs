@@ -112,7 +112,7 @@ mv -f $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h \
 install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h
 
 # Our own initscript for uuidd
-install -m 755 %{SOURCE3} $RPM_BUILD_ROOT/etc/init.d/uuidd
+install -D 755 %{SOURCE3} $RPM_BUILD_ROOT/etc/init.d/uuidd
 # And a dir uuidd needs that the makefiles don't create
 install -d $RPM_BUILD_ROOT/var/lib/libuuid
 

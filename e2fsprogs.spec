@@ -272,7 +272,7 @@ fi
 
 %files -n uuidd
 %defattr(-,root,root)
-/etc/init.d/uuidd
+/etc/rc.d/init.d/uuidd
 %{_mandir}/man8/uuidd.8*
 %attr(-, uuidd, uuidd) %{_sbindir}/uuidd
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid

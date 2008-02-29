@@ -1,0 +1,36 @@
+Index: e2fsprogs-1.40.7/lib/ext2fs/swapfs.c
+===================================================================
+--- e2fsprogs-1.40.7.orig/lib/ext2fs/swapfs.c
++++ e2fsprogs-1.40.7/lib/ext2fs/swapfs.c
+@@ -133,7 +133,7 @@ void ext2fs_swap_inode_full(ext2_filsys 
+ 			    struct ext2_inode_large *f, int hostorder,
+ 			    int bufsize)
+ {
+-	unsigned i, has_data_blocks, extra_isize;
++	unsigned i, has_data_blocks, extra_isize, attr_magic;
+ 	int islnk = 0;
+ 	__u32 *eaf, *eat;
+ 
+@@ -231,13 +231,17 @@ void ext2fs_swap_inode_full(ext2_filsys 
+ 
+ 	eaf = (__u32 *) (((char *) f) + sizeof(struct ext2_inode) +
+ 					extra_isize);
+-
+-	if (ext2fs_swab32(*eaf) != EXT2_EXT_ATTR_MAGIC)
+-		return; /* it seems no magic here */
+-
+ 	eat = (__u32 *) (((char *) t) + sizeof(struct ext2_inode) +
+ 					extra_isize);
++
++	if (hostorder)
++		attr_magic = *eaf;
+ 	*eat = ext2fs_swab32(*eaf);
++	if (!hostorder)
++		attr_magic = *eat;
++
++	if (attr_magic != EXT2_EXT_ATTR_MAGIC)
++		return; /* it seems no magic here */
+ 
+ 	/* convert EA(s) */
+ 	ext2fs_swap_ext_attr((char *) (eat + 1), (char *) (eaf + 1),
+

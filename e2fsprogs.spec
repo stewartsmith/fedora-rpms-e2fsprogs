@@ -15,6 +15,7 @@ Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch3: e2fsprogs-1.40.7-swap-inode-full-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -91,6 +92,8 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
+# fix in-inode ea swapping in swap_inode_full
+%patch3 -p1 -b .swapinode
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -281,6 +284,7 @@ fi
 * Fri Feb 29 2008 Eric Sandeen <esandeen@redhat.com> 1.40.7-1
 - New upstream version, special leap-day edition
 - Fix resize2fs losing inline xattrs when shrinking (#434893)
+  and add patch to fix swap_inode_full in this case
 - Allow mke2fs & tune2fs to manipulate large_file feature (#258381)
 - Handle lvm error conditions in libblkid (#433857)
 - Allow tune2fs to clear the resize_inode feature (#167816)

@@ -1,8 +1,30 @@
-Index: e2fsprogs-1.40.7/lib/ext2fs/swapfs.c
-===================================================================
---- e2fsprogs-1.40.7.orig/lib/ext2fs/swapfs.c
-+++ e2fsprogs-1.40.7/lib/ext2fs/swapfs.c
-@@ -133,7 +133,7 @@ void ext2fs_swap_inode_full(ext2_filsys 
+From: Eric Sandeen <sandeen@redhat.com>
+Date: Fri, 29 Feb 2008 22:10:21 +0000 (-0600)
+Subject: Fix ext2fs_swap_inode_full() for in-inode xattrs on big-endian machines
+X-Git-Url: http://git.kernel.org/?p=fs%2Fext2%2Fe2fsprogs.git;a=commitdiff_plain;h=82e541885ea912bc6764b97e2545f851cf7e3ff3
+
+Fix ext2fs_swap_inode_full() for in-inode xattrs on big-endian machines
+
+After the fix for resize2fs's inode mover losing in-inode
+extended attributes, the regression test I wrote caught
+that the attrs were still getting lost on powerpc.
+
+Looks like the problem is that ext2fs_swap_inode_full()
+isn't paying attention to whether or not the EA magic is
+in hostorder, so it's not recognized (and not swapped)
+on BE machines.  Patch below seems to fix it.
+
+Yay for regression tests.  ;)
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+---
+
+diff --git a/lib/ext2fs/swapfs.c b/lib/ext2fs/swapfs.c
+index 6576c59..e07e87c 100644
+--- a/lib/ext2fs/swapfs.c
++++ b/lib/ext2fs/swapfs.c
+@@ -133,7 +133,7 @@ void ext2fs_swap_inode_full(ext2_filsys fs, struct ext2_inode_large *t,
  			    struct ext2_inode_large *f, int hostorder,
  			    int bufsize)
  {
@@ -11,26 +33,17 @@ Index: e2fsprogs-1.40.7/lib/ext2fs/swapfs.c
  	int islnk = 0;
  	__u32 *eaf, *eat;
  
-@@ -231,13 +231,17 @@ void ext2fs_swap_inode_full(ext2_filsys 
- 
+@@ -232,7 +232,11 @@ void ext2fs_swap_inode_full(ext2_filsys fs, struct ext2_inode_large *t,
  	eaf = (__u32 *) (((char *) f) + sizeof(struct ext2_inode) +
  					extra_isize);
--
+ 
 -	if (ext2fs_swab32(*eaf) != EXT2_EXT_ATTR_MAGIC)
--		return; /* it seems no magic here */
--
- 	eat = (__u32 *) (((char *) t) + sizeof(struct ext2_inode) +
- 					extra_isize);
-+
-+	if (hostorder)
-+		attr_magic = *eaf;
- 	*eat = ext2fs_swab32(*eaf);
++	attr_magic = *eaf;
 +	if (!hostorder)
-+		attr_magic = *eat;
++		attr_magic = ext2fs_swab32(attr_magic);
 +
 +	if (attr_magic != EXT2_EXT_ATTR_MAGIC)
-+		return; /* it seems no magic here */
+ 		return; /* it seems no magic here */
  
- 	/* convert EA(s) */
- 	ext2fs_swap_ext_attr((char *) (eat + 1), (char *) (eaf + 1),
+ 	eat = (__u32 *) (((char *) t) + sizeof(struct ext2_inode) +
 

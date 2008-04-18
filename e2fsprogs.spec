@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.8
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -16,6 +16,7 @@ Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch3: e2fsprogs-1.40.7-swap-inode-full-fix.patch
+Patch4: e2fsprogs-1.40.8-blkid-swap-tests.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -94,6 +95,8 @@ SMP systems.
 %patch2 -p1 -b .featurecheck
 # fix in-inode ea swapping in swap_inode_full
 %patch3 -p1 -b .swapinode
+# check a bit more in swapv1 headers before recognizing as swap
+%patch4 -p1 -b .swapchecks
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -281,6 +284,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Fri Mar 14 2008 Eric Sandeen <esandeen@redhat.com> 1.40.8-2
+- Update ext2fs_swap_inode_full() fix to match upstream
+- Check more of swapv1 header in blkid detection (#442937)
+
 * Fri Mar 14 2008 Eric Sandeen <esandeen@redhat.com> 1.40.8-1
 - New upstream version
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.9
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -21,7 +21,7 @@ Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
 BuildRequires: pkgconfig, texinfo, libselinux-devel
-BuildRequires: libsepol-devel, device-mapper-devel
+BuildRequires: libsepol-devel, device-mapper-devel, util-linux
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -281,6 +281,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Mon May 12 2008 Eric Sandeen <esandeen@redhat.com> 1.40.9-2
+- Fix blkid swap recognition on big-endian boxes (#445786)
+
 * Sun Apr 27 2008 Eric Sandeen <esandeen@redhat.com> 1.40.9-1
 - New upstream version
 

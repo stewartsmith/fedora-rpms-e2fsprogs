@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
-Version: 1.40.9
-Release: 2%{?dist}
+Version: 1.40.10
+Release: 1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -281,6 +281,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Fri May 23 2008 Eric Sandeen <esandeen@redhat.com> 1.40.10-1
+- New upstream version
+
 * Mon May 12 2008 Eric Sandeen <esandeen@redhat.com> 1.40.9-2
 - Fix blkid swap recognition on big-endian boxes (#445786)
 

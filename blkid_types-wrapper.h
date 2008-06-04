@@ -21,6 +21,10 @@
 #include "blkid_types-alpha.h"
 #elif defined(__arm__)
 #include "blkid_types-arm.h"
+#elif defined(__sparc__) && defined(__arch64__)
+#include "blkid_types-sparc64.h"
+#elif defined(__sparc__)
+#include "blkid_types-sparc.h"
 #else
 #error "This e2fsprogs-devel package does not work your architecture?"
 #endif

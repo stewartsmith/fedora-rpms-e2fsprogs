@@ -21,6 +21,10 @@
 #include "ext2_types-alpha.h"
 #elif defined(__arm__)
 #include "ext2_types-arm.h"
+#elif defined(__sparc__) && defined(__arch64__)
+#include "ext2_types-sparc64.h"
+#elif defined(__sparc__)
+#include "ext2_types-sparc.h"
 #else
 #error "This e2fsprogs-devel package does not work your architecture?"
 #endif

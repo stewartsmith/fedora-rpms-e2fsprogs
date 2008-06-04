@@ -5,8 +5,6 @@
 
 #if defined(__i386__)
 #include "blkid_types-i386.h"
-#elif defined(__ia64__)
-#include "blkid_types-ia64.h"
 #elif defined(__powerpc64__)
 #include "blkid_types-ppc64.h"
 #elif defined(__powerpc__)

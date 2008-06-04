@@ -5,8 +5,6 @@
 
 #if defined(__i386__)
 #include "ext2_types-i386.h"
-#elif defined(__ia64__)
-#include "ext2_types-ia64.h"
 #elif defined(__powerpc64__)
 #include "ext2_types-ppc64.h"
 #elif defined(__powerpc__)

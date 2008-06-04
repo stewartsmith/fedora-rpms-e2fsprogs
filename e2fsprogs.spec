@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.40.10
-Release: 2%{?dist}
+Release: 3%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -61,7 +61,7 @@ Requires: e2fsprogs-libs = %{version}-%{release}
 Requires: device-mapper-devel >= 1.02.02-3
 Requires: gawk
 Requires(post): /sbin/install-info
-Requires(postun): /sbin/install-info
+Requires(preun): /sbin/install-info
 
 %description devel
 E2fsprogs-devel contains the libraries and header files needed to
@@ -106,6 +106,9 @@ make install install-libs DESTDIR=$RPM_BUILD_ROOT INSTALL="%{__install} -p" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 
 # ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
+%define multilib_arches %{ix86} x86_64 ppc ppc64 s390 s390x sparcv9 sparc64
+
+%ifarch %{multilib_arches}
 mv -f $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h \
       $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types-%{_arch}.h
 install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
@@ -113,6 +116,7 @@ install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
 mv -f $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h \
       $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types-%{_arch}.h
 install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h
+%endif
 
 # Our own initscript for uuidd
 install -D -m 755 %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/uuidd
@@ -136,14 +140,11 @@ rm -rf %{buildroot}
 %postun libs -p /sbin/ldconfig
 
 %post devel
-if [ -x /sbin/install-info ]; then
-    /sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir
-fi
-exit 0
+/sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
 
-%postun devel
+%preun devel
 if [ $1 = 0 ]; then
-   /sbin/install-info --delete %{_infodir}/libext2fs.info.gz %{_infodir}/dir
+   /sbin/install-info --delete %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
 fi
 exit 0
 
@@ -281,6 +282,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Wed Jun 04 2008 Eric Sandeen <sandeen@redhat.com> 1.40.10-3
+- Tidy up multilib hack for non-multilib arches (#446016)
+- Fix up %postun script (#449868)
+
 * Wed Jun 04 2008 Dennis Gilmore <dennis@ausil.us> 1.40.10-2
 - setup header support for sparc
 

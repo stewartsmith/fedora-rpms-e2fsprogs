@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.41
-Release: 0.WIP.0617%{?dist}
+Release: 0.WIP.0617.1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -17,6 +17,7 @@ Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch3: e2fsprogs-1.41-buildfix
 Patch4: e2fsprogs-1.41-fix-mkswap-tests
+Patch5: e2fsprogs-1.40-list_for_each_safe.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -95,6 +96,7 @@ SMP systems.
 %patch2 -p1 -b .featurecheck
 %patch3 -p1 -b .buildfix
 %patch4 -p1 -b .mkswap
+%patch5 -p1 -b .listsafe
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -293,7 +295,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
-* Tue Jun 18 2008 Eric Sandeen <sandeen@redhat.com> 1.41-0.WIP.0617
+* Fri Jun 20 2008 Eric Sandeen <sandeen@redhat.com> 1.41-0.WIP.0617.1
+- Fix blkid -g segfault when clearing entries (#452333)
+
+* Wed Jun 18 2008 Eric Sandeen <sandeen@redhat.com> 1.41-0.WIP.0617
 - New upstream snapshot release for ext4 capability
 
 * Wed Jun 04 2008 Eric Sandeen <sandeen@redhat.com> 1.40.10-3

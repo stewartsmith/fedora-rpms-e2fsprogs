@@ -4,20 +4,17 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.41
-Release: 0.WIP.0617.1%{?dist}
+Release: 0.1.WIP.0707{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
 Group: System Environment/Base
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}-WIP-0617.tar.gz
+Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}-WIP-0707.tar.gz
 Source1: ext2_types-wrapper.h
 Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch3: e2fsprogs-1.41-buildfix
-Patch4: e2fsprogs-1.41-fix-mkswap-tests
-Patch5: e2fsprogs-1.40-list_for_each_safe.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -94,9 +91,6 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
-%patch3 -p1 -b .buildfix
-%patch4 -p1 -b .mkswap
-%patch5 -p1 -b .listsafe
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -295,6 +289,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Mon Jul 07 2008 Eric Sandeen <sandeen@redhat.com> 1.41-0.1.WIP.0707
+- New upstream snapshot release
+
 * Fri Jun 20 2008 Eric Sandeen <sandeen@redhat.com> 1.41-0.WIP.0617.1
 - Fix blkid -g segfault when clearing entries (#452333)
 

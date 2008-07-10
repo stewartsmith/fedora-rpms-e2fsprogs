@@ -3,7 +3,7 @@
 
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
-Version: 1.41
+Version: 1.41.0
 Release: 1{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.

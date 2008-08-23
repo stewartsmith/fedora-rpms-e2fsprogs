@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.41.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -15,6 +15,7 @@ Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch3: e2fsprogs-1.41-group-checksum-tests
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -91,6 +92,7 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
+%patch3 -p1 -b .csum
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -289,8 +291,11 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
-* Thu Jul 10 2008 Eric Sandeen <sandeen@redhat.com> 1.41-1
-- New usptream release
+* Thu Jul 10 2008 Eric Sandeen <sandeen@redhat.com> 1.41.0-1
+- Don't check the group checksum when !GDT_CSUM (#459875)
+
+* Thu Jul 10 2008 Eric Sandeen <sandeen@redhat.com> 1.41.0-1
+- New upstream version
 - ext4 capable
 
 * Mon Jul 07 2008 Eric Sandeen <sandeen@redhat.com> 1.41-0.2.WIP.0707
@@ -307,7 +312,7 @@ fi
 
 * Wed Jun 04 2008 Eric Sandeen <sandeen@redhat.com> 1.40.10-3
 - Tidy up multilib hack for non-multilib arches (#446016)
-- Fix up %postun script (#449868)
+- Fix up postun script (#449868)
 
 * Wed Jun 04 2008 Dennis Gilmore <dennis@ausil.us> 1.40.10-2
 - setup header support for sparc

@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
-Version: 1.41.0
-Release: 2%{?dist}
+Version: 1.41.2
+Release: 1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -15,7 +15,7 @@ Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch3: e2fsprogs-1.41-group-checksum-tests
+Patch3: e2fsprogs-journal-move.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -92,7 +92,8 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
-%patch3 -p1 -b .csum
+# Only change the journal placement for ext4, for now.
+%patch3 -p1 -b .journalmove
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -291,7 +292,15 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
-* Thu Jul 10 2008 Eric Sandeen <sandeen@redhat.com> 1.41.0-1
+* Thu Oct 02 2008 Eric Sandeen <sandeen@redhat.com> 1.41.2-1
+- New upstream version
+- Updated default dir hash (half_md4) for better perf & fewer collisions
+- Fixed ext4 online resizing with flex_bg
+- ext4 journal now in extents format and in middle of filesystem
+- fix unreadable e2image files
+- fix file descriptor leak in libcom_err (#464689)
+
+* Sat Aug 23 2008 Eric Sandeen <sandeen@redhat.com> 1.41.0-2
 - Don't check the group checksum when !GDT_CSUM (#459875)
 
 * Thu Jul 10 2008 Eric Sandeen <sandeen@redhat.com> 1.41.0-1

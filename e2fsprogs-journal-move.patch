@@ -1,0 +1,19 @@
+Only move ext4's journal for now; I don't want to change this behavior
+for ext3 late in the release process.
+
+Index: e2fsprogs/lib/ext2fs/mkjournal.c
+===================================================================
+--- e2fsprogs.orig/lib/ext2fs/mkjournal.c
++++ e2fsprogs/lib/ext2fs/mkjournal.c
+@@ -332,6 +332,10 @@ static errcode_t write_journal_inode(ext
+ 	es.goal = (fs->super->s_blocks_per_group * group) +
+ 		fs->super->s_first_data_block;
+ 
++	/* quick conservative hack: if not ext4, just keep the goal at 0 */
++	if (!(fs->super->s_feature_incompat & EXT3_FEATURE_INCOMPAT_EXTENTS))
++		es.goal = 0;
++
+ 	retval = ext2fs_block_iterate2(fs, journal_ino, BLOCK_FLAG_APPEND,
+ 				       0, mkjournal_proc, &es);
+ 	if (es.err) {
+

@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.41.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -16,6 +16,7 @@ Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch3: e2fsprogs-journal-move.patch
+Patch4: e2fsprogs-fix-blkid.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -94,6 +95,8 @@ SMP systems.
 %patch2 -p1 -b .featurecheck
 # Only change the journal placement for ext4, for now.
 %patch3 -p1 -b .journalmove
+# Fix blkid to recognize ext4dev as mountable by ext4
+%patch4 -p1 -b .blkid
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -292,6 +295,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Oct 02 2008 Eric Sandeen <sandeen@redhat.com> 1.41.2-2
+- Fix blkid to recognize ext4dev filesystems as ext4-mountable
+
 * Thu Oct 02 2008 Eric Sandeen <sandeen@redhat.com> 1.41.2-1
 - New upstream version
 - Updated default dir hash (half_md4) for better perf & fewer collisions

@@ -1,0 +1,31 @@
+If only ext4 is available (as a module or in /proc/filesystems)
+blkid wasn't properly testing for it, because the time checks
+were backwards and always failed.  This caused old ext4dev
+filesystems to fail to mount as ext4.  With this patch it works
+fine.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+---
+
+Index: e2fsprogs/lib/blkid/probe.c
+===================================================================
+--- e2fsprogs.orig/lib/blkid/probe.c	2008-09-12 10:37:52.000000000 -0500
++++ e2fsprogs/lib/blkid/probe.c	2008-10-08 13:28:42.218001472 -0500
+@@ -243,7 +243,7 @@ static int system_supports_ext4(void)
+ 	static int	ret = -1;
+ 	time_t		now = time(0);
+ 
+-	if (ret != -1 || (last_check - now) < 5)
++	if (ret != -1 || (now - last_check) < 5)
+ 		return ret;
+ 	last_check = now;
+ 	ret = (fs_proc_check("ext4") || check_for_modules("ext4"));
+@@ -256,7 +256,7 @@ static int system_supports_ext4dev(void)
+ 	static int	ret = -1;
+ 	time_t		now = time(0);
+ 
+-	if (ret != -1 || (last_check - now) < 5)
++	if (ret != -1 || (now - last_check) < 5)
+ 		return ret;
+ 	last_check = now;
+ 	ret = (fs_proc_check("ext4dev") || check_for_modules("ext4dev"));

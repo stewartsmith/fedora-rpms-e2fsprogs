@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.41.3
-Release: 2%{?dist}
+Release: 3%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -15,7 +15,7 @@ Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch3: e2fsprogs-journal-move.patch
+Patch3: e2fsprogs-1.41.3-blkid-btrfs.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -292,6 +292,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Sat Jan 10 2009 Eric Sandeen <sandeen@redhat.com> 1.41.3-3
+- Remove conservative "don't change journal location" patch for F11
+- Add btrfs recognition to blkid
+
 * Mon Oct 03 2008 Eric Sandeen <sandeen@redhat.com> 1.41.3-2
 - Bump to revision 2, f10 was behind f9, oops.
 

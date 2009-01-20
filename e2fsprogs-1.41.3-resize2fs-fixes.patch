@@ -1,0 +1,234 @@
+commit c58a08e673a10d0e5fa4855ca58ab2cbf48fd029
+Author: Theodore Ts'o <tytso@mit.edu>
+Date:   Mon Jan 19 08:43:36 2009 -0500
+
+    resize2fs: Move all required blocks for ext4 filesystems
+    
+    In the function blocks_to_move(), when checking to see if a block
+    group's block bitmap is initialized, we need to check the old_fs's
+    block group descriptors, not the new file system's (already truncated)
+    group descriptor data structures.  Otherwise we will end up
+    derferencing past the end of the array boundary, and the resulting
+    garbage value may indicate that the bitmap is uninitialized, and so
+    all of the blocks in that block group will be skipped, resulting in
+    some blocks not getting marked as needing relocation.
+    
+    This showed up in the following test case:
+    
+         mke2fs -t ext4 -b 1024 test.img 1048576
+         resize2fs test.img 80000
+    
+    The journal inode after the resize operation looked like this:
+    
+    debugfs:  stat <8>
+    Inode: 8   Type: regular    Mode:  0600   Flags: 0x80000
+    ...
+    BLOCKS:
+    (IND):35385, (0-5836):2356-8192, (5837-21959):8454-24576, (21960-32506):24838-35
+    384, (32507-32767):434177-434437
+    TOTAL: 32769
+    
+    The blocks 434177-434437 were not moved because block group 53 was
+    wrongly thought to have an unitialized block group.
+    
+    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+diff --git a/resize/resize2fs.c b/resize/resize2fs.c
+index abe05f5..e7a08da 100644
+--- a/resize/resize2fs.c
++++ b/resize/resize2fs.c
+@@ -745,7 +745,7 @@ static errcode_t blocks_to_move(ext2_resize_t rfs)
+ 		g = ext2fs_group_of_blk(fs, blk);
+ 		if (EXT2_HAS_RO_COMPAT_FEATURE(fs->super,
+ 					       EXT4_FEATURE_RO_COMPAT_GDT_CSUM) &&
+-		    (fs->group_desc[g].bg_flags & EXT2_BG_BLOCK_UNINIT)) {
++		    (old_fs->group_desc[g].bg_flags & EXT2_BG_BLOCK_UNINIT)) {
+ 			/*
+ 			 * The block bitmap is uninitialized, so skip
+ 			 * to the next block group.
+
+commit 9227c5bbbd0861878ae73f7dceb4deb9e9f06a3c
+Author: Theodore Ts'o <tytso@mit.edu>
+Date:   Mon Jan 19 09:02:55 2009 -0500
+
+    resize2fs: Release bitmap and itable blocks in flex_bg filesystems
+    
+    Previously resize2fs assumed that bitmap and inode table blocks were
+    always located in their respective block group.  However, this is no
+    longer true with flex_bg.  So it is necessary to check all of the
+    block groups which will be truncated to see if they have metadata
+    blocks that need to be marked as no longer being in use in the new,
+    shrunk filesystem.
+    
+    This bug fixes resize2fs -M, which would otherwise fail because
+    without the released blocks, there would not be enough space in the
+    filesystem.  This bug also avoids (mostly harmless) filesystem
+    corruptions reported by e2fsck regarding blocks marked in use but not
+    actually used (these being the bitmap and inode table blocks
+    associated with the truncated block groups).
+    
+    Note: in theory it is possible to have block group N utilize bitmap
+    and inode table blocks in block group N+X with flex_bg.  At the moment
+    neither mke2fs nor e2fsck will create filesystems like this, which is
+    good, because resize2fs doesn't handle this case correctly.
+    
+    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+diff --git a/resize/resize2fs.c b/resize/resize2fs.c
+index e7a08da..df4dac7 100644
+--- a/resize/resize2fs.c
++++ b/resize/resize2fs.c
+@@ -232,6 +232,35 @@ static void fix_uninit_block_bitmaps(ext2_filsys fs)
+  */
+ 
+ /*
++ * If the group descriptor's bitmap and inode table blocks are valid,
++ * release them in the specified filesystem data structure
++ */
++static void free_gdp_blocks(ext2_filsys fs, struct ext2_group_desc *gdp)
++{
++	blk_t	blk;
++	int	j;
++
++	if (gdp->bg_block_bitmap &&
++	    (gdp->bg_block_bitmap < fs->super->s_blocks_count))
++		ext2fs_block_alloc_stats(fs, gdp->bg_block_bitmap, -1);
++
++	if (gdp->bg_inode_bitmap &&
++	    (gdp->bg_inode_bitmap < fs->super->s_blocks_count))
++		ext2fs_block_alloc_stats(fs, gdp->bg_inode_bitmap, -1);
++
++	if (gdp->bg_inode_table == 0 ||
++	    (gdp->bg_inode_table >= fs->super->s_blocks_count))
++		return;
++
++	for (blk = gdp->bg_inode_table, j = 0;
++	     j < fs->inode_blocks_per_group; j++, blk++) {
++		if (blk >= fs->super->s_blocks_count)
++			break;
++		ext2fs_block_alloc_stats(fs, blk, -1);
++	}
++}
++
++/*
+  * This routine is shared by the online and offline resize routines.
+  * All of the information which is adjusted in memory is done here.
+  */
+@@ -374,6 +403,14 @@ retry:
+ 	 * can exit now.
+ 	 */
+ 	if (old_fs->group_desc_count > fs->group_desc_count) {
++		/*
++		 * Check the block groups that we are chopping off
++		 * and free any blocks associated with their metadata
++		 */
++		for (i = fs->group_desc_count;
++		     i < old_fs->group_desc_count; i++) {
++			free_gdp_blocks(fs, &old_fs->group_desc[i]);
++		}
+ 		retval = 0;
+ 		goto errout;
+ 	}
+
+commit d3a8fc5ae68477118e32813230518bf4ccc73bf9
+Author: Theodore Ts'o <tytso@mit.edu>
+Date:   Mon Jan 19 14:22:52 2009 -0500
+
+    ext2fs_block_iterate2: Reflect errors from ext2fs_extent_set_bmap to caller
+    
+    If the callback function tries to change a block, and
+    ext2fs_extent_set_bmap() fails for some reason (for example, there
+    isn't enough disk space to split a node and expand the extent tree,
+    make sure that error is reflected back up to the caller.
+    
+    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+diff --git a/lib/ext2fs/block.c b/lib/ext2fs/block.c
+index b19c450..51fdd9a 100644
+--- a/lib/ext2fs/block.c
++++ b/lib/ext2fs/block.c
+@@ -434,7 +434,7 @@ errcode_t ext2fs_block_iterate2(ext2_filsys fs,
+ 						       (blk64_t) blockcnt,
+ 						       (blk64_t) new_blk, 0);
+ 					if (ctx.errcode)
+-						break;
++						goto extent_errout;
+ 				}
+ 				if (ret & BLOCK_ABORT)
+ 					break;
+
+commit 07f1a070ff45c8381c3ddf8552c726525104e1ee
+Author: Theodore Ts'o <tytso@mit.edu>
+Date:   Mon Jan 19 19:30:59 2009 -0500
+
+    ext2fs_block_iterate2: Preserve the uninit flag in extents
+    
+    When modifying a block via the block_iterate interface, preserve the
+    uninit flag in the extent.  Resize2fs uses this interface, so we have
+    to preserve the uninit status when relocating a block.
+    
+    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+diff --git a/lib/ext2fs/block.c b/lib/ext2fs/block.c
+index 51fdd9a..6ac9379 100644
+--- a/lib/ext2fs/block.c
++++ b/lib/ext2fs/block.c
+@@ -364,6 +364,7 @@ errcode_t ext2fs_block_iterate2(ext2_filsys fs,
+ 		e2_blkcnt_t		blockcnt = 0;
+ 		blk_t			blk, new_blk;
+ 		int			op = EXT2_EXTENT_ROOT;
++		int			uninit;
+ 		unsigned int		j;
+ 
+ 		ctx.errcode = ext2fs_extent_open(fs, ino, &handle);
+@@ -419,6 +420,9 @@ errcode_t ext2fs_block_iterate2(ext2_filsys fs,
+ 				}
+ 				continue;
+ 			}
++			uninit = 0;
++			if (extent.e_flags & EXT2_EXTENT_FLAGS_UNINIT)
++				uninit = EXT2_EXTENT_SET_BMAP_UNINIT;
+ 			for (blockcnt = extent.e_lblk, j = 0;
+ 			     j < extent.e_len;
+ 			     blk++, blockcnt++, j++) {
+@@ -432,7 +436,8 @@ errcode_t ext2fs_block_iterate2(ext2_filsys fs,
+ 					ctx.errcode =
+ 						ext2fs_extent_set_bmap(handle,
+ 						       (blk64_t) blockcnt,
+-						       (blk64_t) new_blk, 0);
++						       (blk64_t) new_blk,
++						       uninit);
+ 					if (ctx.errcode)
+ 						goto extent_errout;
+ 				}
+
+commit 793a04a0719d5688a0033e4bda3cf267f57ea760
+Author: Theodore Ts'o <tytso@mit.edu>
+Date:   Tue Jan 20 00:46:06 2009 -0500
+
+    resize2fs: Reserve some extra space for -P/-M for ext4 filesystems
+    
+    Some extra blocks may be needed to expand some extent allocation trees
+    while we are shrinking the filesystem.  We don't know exactly how
+    much, so we use a hueristic.
+    
+    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+diff --git a/resize/resize2fs.c b/resize/resize2fs.c
+index df4dac7..b7c42ce 100644
+--- a/resize/resize2fs.c
++++ b/resize/resize2fs.c
+@@ -1954,5 +1954,13 @@ blk_t calculate_minimum_resize_size(ext2_filsys fs)
+ 	blks_needed = (groups-1) * EXT2_BLOCKS_PER_GROUP(fs->super);
+ 	blks_needed += overhead;
+ 
++	/*
++	 * We need to reserve a few extra blocks if extents are
++	 * enabled, in case we need to grow the extent tree.  The more
++	 * we shrink the file system, the more space we need.
++	 */
++	if (fs->super->s_feature_incompat & EXT3_FEATURE_INCOMPAT_EXTENTS)
++		blks_needed += (fs->super->s_blocks_count - blks_needed)/500;
++
+ 	return blks_needed;
+ }

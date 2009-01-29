@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.41.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -15,6 +15,8 @@ Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch3: e2fsprogs-1.41.4-debugfs-stat-segfault.patch
+Patch4: e2fsprogs-1.41.4-libext2fs-info.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -91,6 +93,10 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
+# Fix segfault in debugfs "stat" if fs not open
+%patch3 -p1 -b .statfs
+# Fix up name of info file
+%patch4 -p1 -b .info
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -289,6 +295,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Jan 29 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-2
+- Fix debugfs "stat" segfault if no open fs (#482894)
+- Fix name of libext2fs info page (#481620)
+
 * Thu Jan 29 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-1
 - New upstream release
 - Dropped btrfs & resize fixes, upstream now

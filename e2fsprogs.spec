@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
-Version: 1.41.3
-Release: 4%{?dist}
+Version: 1.41.4
+Release: 1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -15,8 +15,6 @@ Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch3: e2fsprogs-1.41.3-blkid-btrfs.patch
-Patch4: e2fsprogs-1.41.3-resize2fs-fixes.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -93,10 +91,6 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
-# Only change the journal placement for ext4, for now.
-%patch3 -p1 -b .journalmove
-# Fix some resize2fs issues
-%patch4 -p1 -b .resize2fs
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -295,6 +289,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Jan 29 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-1
+- New upstream release
+- Dropped btrfs & resize fixes, upstream now
+
 * Tue Jan 20 2009 Eric Sandeen <sandeen@redhat.com> 1.41.3-4
 - resize2fs fixes, esp. for ext4
 

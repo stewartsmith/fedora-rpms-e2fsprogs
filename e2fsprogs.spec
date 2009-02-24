@@ -4,7 +4,7 @@
 Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
 Name: e2fsprogs
 Version: 1.41.4
-Release: 2%{?dist}
+Release: 3%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -295,6 +295,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Tue Feb 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.41.4-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
 * Thu Jan 29 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-2
 - Fix debugfs "stat" segfault if no open fs (#482894)
 - Fix name of libext2fs info page (#481620)

@@ -1,10 +1,10 @@
 %define	_root_sbindir	/sbin
 %define	_root_libdir	/%{_lib}
 
-Summary: Utilities for managing the second and third extended (ext2/ext3) filesystems
+Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.4
-Release: 3%{?dist}
+Release: 4%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -17,6 +17,7 @@ Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch3: e2fsprogs-1.41.4-debugfs-stat-segfault.patch
 Patch4: e2fsprogs-1.41.4-libext2fs-info.patch
+Patch5: e2fsprogs-1.41.4-fix-blkid-segfault.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -26,18 +27,18 @@ BuildRequires: libsepol-devel, device-mapper-devel, util-linux
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
-checking, modifying, and correcting any inconsistencies in second
-and third extended (ext2/ext3) filesystems. E2fsprogs contains
-e2fsck (used to repair filesystem inconsistencies after an unclean
-shutdown), mke2fs (used to initialize a partition to contain an
-empty ext2 filesystem), debugfs (used to examine the internal
+checking, modifying, and correcting any inconsistencies in second,
+third and fourth extended (ext2/ext3/ext4) filesystems. E2fsprogs
+contains e2fsck (used to repair filesystem inconsistencies after an
+unclean shutdown), mke2fs (used to initialize a partition to contain
+an empty ext2 filesystem), debugfs (used to examine the internal
 structure of a filesystem, to manually repair a corrupted
 filesystem, or to create test cases for e2fsck), tune2fs (used to
 modify filesystem parameters), and most of the other core ext2fs
 filesystem utilities.
 
 You should install the e2fsprogs package if you need to manage the
-performance of an ext2 and/or ext3 filesystem.
+performance of an ext2, ext3, or ext4 filesystem.
 
 %package libs
 Summary: Ext2/3 filesystem-specific shared libraries and headers
@@ -97,6 +98,8 @@ SMP systems.
 %patch3 -p1 -b .statfs
 # Fix up name of info file
 %patch4 -p1 -b .info
+# Fix blkid segfault in modules.dep scanning
+%patch5 -p1 -b .info
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -295,6 +298,10 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Feb 26 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-4
+- Edit summary & description to include ext4 (#487469)
+- Fix blkid null ptr deref in initrd (#486997)
+
 * Tue Feb 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.41.4-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 

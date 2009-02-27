@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.4
-Release: 4%{?dist}
+Release: 5%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -22,6 +22,7 @@ Patch5: e2fsprogs-1.41.4-fix-blkid-segfault.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
+Obsoletes: e4fsprogs
 BuildRequires: pkgconfig, texinfo, libselinux-devel
 BuildRequires: libsepol-devel, device-mapper-devel, util-linux
 
@@ -41,7 +42,7 @@ You should install the e2fsprogs package if you need to manage the
 performance of an ext2, ext3, or ext4 filesystem.
 
 %package libs
-Summary: Ext2/3 filesystem-specific shared libraries and headers
+Summary: Ext2/3/4 filesystem-specific shared libraries and headers
 Group: Development/Libraries
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent as well as other
@@ -53,7 +54,7 @@ Requires(post): /sbin/ldconfig
 E2fsprogs-lib contains the libraries of the e2fsprogs package.
 
 %package devel
-Summary: Ext2/3 filesystem-specific static libraries and headers
+Summary: Ext2/3/4 filesystem-specific static libraries and headers
 Group: Development/Libraries
 # License based on upstream-modified COPYING file,
 # which clearly states [L]GPLv2 intent as well as other
@@ -67,10 +68,10 @@ Requires(preun): /sbin/install-info
 
 %description devel
 E2fsprogs-devel contains the libraries and header files needed to
-develop second and third extended (ext2/ext3) filesystem-specific
-programs.
+develop second, third and fourth extended (ext2/ext3/ext4)
+filesystem-specific programs.
 
-You should install e2fsprogs-devel if you want to develop ext2/ext3
+You should install e2fsprogs-devel if you want to develop ext2/3/4
 filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
@@ -298,6 +299,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Feb 26 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-5
+- fix a couple missed descriptions; obsolete e4fsprogs
+
 * Thu Feb 26 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-4
 - Edit summary & description to include ext4 (#487469)
 - Fix blkid null ptr deref in initrd (#486997)

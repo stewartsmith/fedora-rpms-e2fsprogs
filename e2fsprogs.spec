@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.4
-Release: 5%{?dist}
+Release: 6%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -18,6 +18,7 @@ Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch3: e2fsprogs-1.41.4-debugfs-stat-segfault.patch
 Patch4: e2fsprogs-1.41.4-libext2fs-info.patch
 Patch5: e2fsprogs-1.41.4-fix-blkid-segfault.patch
+Patch6: e2fsprogs-1.41.4-ignore-NEEDS_RECOVERY-mismatch.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -101,6 +102,8 @@ SMP systems.
 %patch4 -p1 -b .info
 # Fix blkid segfault in modules.dep scanning
 %patch5 -p1 -b .info
+# Ignore NEEDS_RECOVERY mismatch
+%patch6 -p1 -b .recovery
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -299,6 +302,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Sat Apr 11 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-6
+- ignore differing NEEDS_RECOVERY flag on fsck post-resize (#471925)
+
 * Thu Feb 26 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-5
 - fix a couple missed descriptions; obsolete e4fsprogs
 

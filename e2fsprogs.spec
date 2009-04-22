@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.4
-Release: 6%{?dist}
+Release: 7%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -19,6 +19,7 @@ Patch3: e2fsprogs-1.41.4-debugfs-stat-segfault.patch
 Patch4: e2fsprogs-1.41.4-libext2fs-info.patch
 Patch5: e2fsprogs-1.41.4-fix-blkid-segfault.patch
 Patch6: e2fsprogs-1.41.4-ignore-NEEDS_RECOVERY-mismatch.patch
+Patch7: e2fsprogs-1.41.4-ext4-resize-fixes.patch 
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -104,6 +105,8 @@ SMP systems.
 %patch5 -p1 -b .info
 # Ignore NEEDS_RECOVERY mismatch
 %patch6 -p1 -b .recovery
+# Fix ext4 resize issues
+%patch7 -p1 -b .resize
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -302,6 +305,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Wed Apr 22 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-7
+- Fix ext4 resize issues (#496982)
+
 * Sat Apr 11 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-6
 - ignore differing NEEDS_RECOVERY flag on fsck post-resize (#471925)
 

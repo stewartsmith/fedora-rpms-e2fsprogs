@@ -1,7 +1,7 @@
-Index: e2fsprogs-1.41.1/doc/libblkid.txt
+Index: e2fsprogs-1.41.5/doc/libblkid.txt
 ===================================================================
---- e2fsprogs-1.41.1.orig/doc/libblkid.txt	2007-06-30 07:58:34.000000000 -0500
-+++ e2fsprogs-1.41.1/doc/libblkid.txt	2008-10-01 13:20:34.303063944 -0500
+--- e2fsprogs-1.41.5.orig/doc/libblkid.txt
++++ e2fsprogs-1.41.5/doc/libblkid.txt
 @@ -58,7 +58,7 @@ type, or label, or uuid for a particular
  	}
  
@@ -20,10 +20,10 @@ Index: e2fsprogs-1.41.1/doc/libblkid.txt
  
  If you have called blkid_get_cache(), you should call blkid_put_cache()
  when you are done using the blkid library functions.  This will save the
-Index: e2fsprogs-1.41.1/misc/blkid.8.in
+Index: e2fsprogs-1.41.5/misc/blkid.8.in
 ===================================================================
---- e2fsprogs-1.41.1.orig/misc/blkid.8.in	2008-08-24 23:19:56.000000000 -0500
-+++ e2fsprogs-1.41.1/misc/blkid.8.in	2008-10-01 13:20:34.303063944 -0500
+--- e2fsprogs-1.41.5.orig/misc/blkid.8.in
++++ e2fsprogs-1.41.5/misc/blkid.8.in
 @@ -55,7 +55,7 @@ more devices.
  Read from
  .I cachefile
@@ -42,10 +42,10 @@ Index: e2fsprogs-1.41.1/misc/blkid.8.in
  If you don't want to save the cache to the default file, specify
  .IR /dev/null.
  If not specified it will be the same file as that given by the
-Index: e2fsprogs-1.41.1/misc/blkid.c
+Index: e2fsprogs-1.41.5/misc/blkid.c
 ===================================================================
---- e2fsprogs-1.41.1.orig/misc/blkid.c	2008-08-28 09:26:31.000000000 -0500
-+++ e2fsprogs-1.41.1/misc/blkid.c	2008-10-01 13:20:54.787002093 -0500
+--- e2fsprogs-1.41.5.orig/misc/blkid.c
++++ e2fsprogs-1.41.5/misc/blkid.c
 @@ -52,7 +52,7 @@ static void usage(int error)
  	fprintf(out,
  		"usage:\t%s [-c <file>] [-ghlLv] [-o format] "
@@ -55,10 +55,10 @@ Index: e2fsprogs-1.41.1/misc/blkid.c
  		"\t-h\tprint this usage message and exit\n"
  		"\t-g\tgarbage collect the blkid cache\n"
  		"\t-s\tshow specified tag(s) (default show all tags)\n"
-Index: e2fsprogs-1.41.1/lib/blkid/Makefile.in
+Index: e2fsprogs-1.41.5/lib/blkid/Makefile.in
 ===================================================================
---- e2fsprogs-1.41.1.orig/lib/blkid/Makefile.in	2008-08-28 09:26:31.000000000 -0500
-+++ e2fsprogs-1.41.1/lib/blkid/Makefile.in	2008-10-01 13:20:34.338002746 -0500
+--- e2fsprogs-1.41.5.orig/lib/blkid/Makefile.in
++++ e2fsprogs-1.41.5/lib/blkid/Makefile.in
 @@ -142,9 +142,10 @@ blkid.pc: $(srcdir)/blkid.pc.in $(top_bu
  	@cd $(top_builddir); CONFIG_FILES=lib/blkid/blkid.pc ./config.status
  
@@ -80,10 +80,10 @@ Index: e2fsprogs-1.41.1/lib/blkid/Makefile.in
  	for i in $(SMANPAGES); do \
  		$(RM) -f $(DESTDIR)$(man3dir)/$$i; \
  	done
-Index: e2fsprogs-1.41.1/lib/blkid/libblkid.3.in
+Index: e2fsprogs-1.41.5/lib/blkid/libblkid.3.in
 ===================================================================
---- e2fsprogs-1.41.1.orig/lib/blkid/libblkid.3.in	2008-08-24 23:19:56.000000000 -0500
-+++ e2fsprogs-1.41.1/lib/blkid/libblkid.3.in	2008-10-01 13:21:23.992001339 -0500
+--- e2fsprogs-1.41.5.orig/lib/blkid/libblkid.3.in
++++ e2fsprogs-1.41.5/lib/blkid/libblkid.3.in
 @@ -24,7 +24,7 @@ A common use is to allow use of LABEL= a
  specific block device names into configuration files.
  .P
@@ -102,10 +102,10 @@ Index: e2fsprogs-1.41.1/lib/blkid/libblkid.3.in
  Caches data extracted from each recognized block device.
  .SH AVAILABILITY
  .B libblkid
-Index: e2fsprogs-1.41.1/lib/blkid/blkidP.h
+Index: e2fsprogs-1.41.5/lib/blkid/blkidP.h
 ===================================================================
---- e2fsprogs-1.41.1.orig/lib/blkid/blkidP.h	2008-08-28 09:26:31.000000000 -0500
-+++ e2fsprogs-1.41.1/lib/blkid/blkidP.h	2008-10-01 13:21:39.192001091 -0500
+--- e2fsprogs-1.41.5.orig/lib/blkid/blkidP.h
++++ e2fsprogs-1.41.5/lib/blkid/blkidP.h
 @@ -104,7 +104,7 @@ struct blkid_struct_cache
  extern char *blkid_strdup(const char *s);
  extern char *blkid_strndup(const char *s, const int length);
@@ -115,11 +115,11 @@ Index: e2fsprogs-1.41.1/lib/blkid/blkidP.h
  
  #define BLKID_ERR_IO	 5
  #define BLKID_ERR_PROC	 9
-Index: e2fsprogs-1.41.1/RELEASE-NOTES
+Index: e2fsprogs-1.41.5/RELEASE-NOTES
 ===================================================================
---- e2fsprogs-1.41.1.orig/RELEASE-NOTES	2008-09-01 15:01:14.000000000 -0500
-+++ e2fsprogs-1.41.1/RELEASE-NOTES	2008-10-01 13:20:34.383001892 -0500
-@@ -2460,7 +2460,7 @@ label.
+--- e2fsprogs-1.41.5.orig/RELEASE-NOTES
++++ e2fsprogs-1.41.5/RELEASE-NOTES
+@@ -2829,7 +2829,7 @@ label.
  
  Fixed a bug in the blkid library wihch could avoid an infinite loop
  in blkid_find_dev_with_tag() if /proc is not mounted and there the

@@ -1,8 +1,8 @@
-Index: e2fsprogs-1.40.5/e2fsck/super.c
+Index: e2fsprogs-1.41.5/e2fsck/super.c
 ===================================================================
---- e2fsprogs-1.40.5.orig/e2fsck/super.c
-+++ e2fsprogs-1.40.5/e2fsck/super.c
-@@ -793,7 +793,11 @@ void check_super_block(e2fsck_t ctx)
+--- e2fsprogs-1.41.5.orig/e2fsck/super.c
++++ e2fsprogs-1.41.5/e2fsck/super.c
+@@ -869,7 +869,11 @@ void check_super_block(e2fsck_t ctx)
   * unfortunately, we shouldn't ignore it since if it's not set in the
   * backup, the extended attributes in the filesystem will be stripped
   * away.
@@ -13,20 +13,20 @@ Index: e2fsprogs-1.40.5/e2fsck/super.c
 +#define FEATURE_COMPAT_IGNORE          (EXT2_FEATURE_COMPAT_EXT_ATTR)
  #define FEATURE_RO_COMPAT_IGNORE	(EXT2_FEATURE_RO_COMPAT_LARGE_FILE| \
  					 EXT4_FEATURE_RO_COMPAT_DIR_NLINK)
- #define FEATURE_INCOMPAT_IGNORE		(EXT3_FEATURE_INCOMPAT_EXTENTS)
-@@ -837,6 +841,9 @@ int check_backup_super_block(e2fsck_t ct
+ #define FEATURE_INCOMPAT_IGNORE		(EXT3_FEATURE_INCOMPAT_EXTENTS| \
+@@ -921,6 +925,9 @@ int check_backup_super_block(e2fsck_t ct
+ 		    (EXT2_INODE_SIZE(backup_sb) < EXT2_GOOD_OLD_INODE_SIZE))
  			continue;
- 		}
  
 +#define SUPER_COMPAT_DIFFERENT(x)	\
-+	(( fs->super->x & ~FEATURE_COMPAT_IGNORE) !=	\
-+	 (tfs->super->x & ~FEATURE_COMPAT_IGNORE))
++	((fs->super->x & ~FEATURE_COMPAT_IGNORE) !=	\
++	 (backup_sb->x & ~FEATURE_COMPAT_IGNORE))
  #define SUPER_INCOMPAT_DIFFERENT(x)	\
- 	(( fs->super->x & ~FEATURE_INCOMPAT_IGNORE) !=	\
- 	 (tfs->super->x & ~FEATURE_INCOMPAT_IGNORE))
-@@ -846,7 +853,7 @@ int check_backup_super_block(e2fsck_t ct
+ 	((fs->super->x & ~FEATURE_INCOMPAT_IGNORE) !=	\
+ 	 (backup_sb->x & ~FEATURE_INCOMPAT_IGNORE))
+@@ -930,7 +937,7 @@ int check_backup_super_block(e2fsck_t ct
  #define SUPER_DIFFERENT(x)		\
- 	(fs->super->x != tfs->super->x)
+ 	(fs->super->x != backup_sb->x)
  
 -		if (SUPER_DIFFERENT(s_feature_compat) ||
 +		if (SUPER_COMPAT_DIFFERENT(s_feature_compat) ||

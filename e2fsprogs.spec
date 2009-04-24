@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.4
-Release: 8%{?dist}
+Version: 1.41.5
+Release: 1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -15,12 +15,6 @@ Source2: blkid_types-wrapper.h
 Source3: uuidd.init
 Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch3: e2fsprogs-1.41.4-debugfs-stat-segfault.patch
-Patch4: e2fsprogs-1.41.4-libext2fs-info.patch
-Patch5: e2fsprogs-1.41.4-fix-blkid-segfault.patch
-Patch6: e2fsprogs-1.41.4-ignore-NEEDS_RECOVERY-mismatch.patch
-Patch7: e2fsprogs-1.41.4-ext4-resize-fixes.patch 
-Patch8: e2fsprogs-1.41.4-fix-external-journals.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -98,18 +92,6 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
-# Fix segfault in debugfs "stat" if fs not open
-%patch3 -p1 -b .statfs
-# Fix up name of info file
-%patch4 -p1 -b .info
-# Fix blkid segfault in modules.dep scanning
-%patch5 -p1 -b .info
-# Ignore NEEDS_RECOVERY mismatch
-%patch6 -p1 -b .recovery
-# Fix ext4 resize issues
-%patch7 -p1 -b .resize
-# Fix external journals
-%patch8 -p1 -b .ext-journal
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
@@ -308,6 +290,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Fri Apr 24 2009 Eric Sandeen <sandeen@redhat.com> 1.41.5-1
+- New upstream version
+
 * Wed Apr 22 2009 Eric Sandeen <sandeen@redhat.com> 1.41.4-8
 - Fix support for external journals
 

@@ -3,7 +3,7 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.5
+Version: 1.41.6
 Release: 1%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
@@ -290,6 +290,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Sat May 30 2009 Eric Sandeen <sandeen@redhat.com> 1.41.6-1
+- New upstream version
+
 * Fri Apr 24 2009 Eric Sandeen <sandeen@redhat.com> 1.41.5-1
 - New upstream version
 

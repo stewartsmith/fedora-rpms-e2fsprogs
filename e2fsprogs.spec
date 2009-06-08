@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.6
-Release: 2%{?dist}
+Release: 3%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -20,7 +20,8 @@ Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
 Obsoletes: e4fsprogs
 BuildRequires: pkgconfig, texinfo, libselinux-devel
 BuildRequires: libsepol-devel
-BuildRequires: libblkid-devel
+#BuildRequires: libblkid-devel
+BuildRequires: e2fsprogs-devel
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -270,6 +271,11 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Mon Jun  8 2009 Karel Zak <kzak@redhat.com> 1.41.6-3
+- temporary use BuildRequires: e2fsprogs-devel (we cannot install 
+  new util-linux-ng with libblkid to buildroots without new e2fsprogs 
+  without libblkid). 
+
 * Thu Jun  4 2009 Karel Zak <kzak@redhat.com> 1.41.6-2
 - disable libblkid (replaced by libblkid from util-linux-ng)
 

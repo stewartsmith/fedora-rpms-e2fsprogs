@@ -4,16 +4,14 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.6
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
 Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
-Source2: blkid_types-wrapper.h
 Source3: uuidd.init
-Patch1: e2fsprogs-1.38-etcblkid.patch
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 
 Url: http://e2fsprogs.sourceforge.net/
@@ -21,7 +19,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
 Obsoletes: e4fsprogs
 BuildRequires: pkgconfig, texinfo, libselinux-devel
-BuildRequires: libsepol-devel, device-mapper-devel, util-linux
+BuildRequires: libsepol-devel
+BuildRequires: libblkid-devel
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -86,15 +85,14 @@ SMP systems.
 
 %prep
 %setup -q -n e2fsprogs-%{version}
-# put blkid.tab in /etc/blkid/
-%patch1 -p1 -b .etcblkid
 # ignore some flag differences on primary/backup sb feature checks
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
 
 %build
-%configure --enable-elf-shlibs --enable-nls --disable-e2initrd-helper  --enable-blkid-devmapper --enable-blkid-selinux
+%configure --enable-elf-shlibs --enable-nls \
+	   --disable-e2initrd-helper --disable-libblkid 
 make %{?_smp_mflags}
 
 %install
@@ -110,10 +108,6 @@ make install install-libs DESTDIR=$RPM_BUILD_ROOT INSTALL="%{__install} -p" \
 mv -f $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h \
       $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types-%{_arch}.h
 install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
-
-mv -f $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h \
-      $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types-%{_arch}.h
-install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_includedir}/blkid/blkid_types.h
 %endif
 
 # Our own initscript for uuidd
@@ -128,10 +122,6 @@ make check
 
 %clean
 rm -rf %{buildroot}
-
-%post
-[ -e /etc/blkid.tab ] && mv /etc/blkid.tab /etc/blkid/blkid.tab || :
-[ -e /etc/blkid.tab.old ] && mv /etc/blkid.tab.old /etc/blkid/blkid.tab.old || :
 
 %post libs -p /sbin/ldconfig
 
@@ -167,17 +157,14 @@ fi
 %defattr(-,root,root)
 %doc README RELEASE-NOTES
 
-%dir /etc/blkid
 %config(noreplace) /etc/mke2fs.conf
 %{_root_sbindir}/badblocks
-%{_root_sbindir}/blkid
 %{_root_sbindir}/debugfs
 %{_root_sbindir}/dumpe2fs
 %{_root_sbindir}/e2fsck
 %{_root_sbindir}/e2image
 %{_root_sbindir}/e2label
 %{_root_sbindir}/e2undo
-%{_root_sbindir}/findfs
 %{_root_sbindir}/fsck
 %{_root_sbindir}/fsck.ext2
 %{_root_sbindir}/fsck.ext3
@@ -205,11 +192,9 @@ fi
 %{_mandir}/man5/mke2fs.conf.5*
 
 %{_mandir}/man8/badblocks.8*
-%{_mandir}/man8/blkid.8*
 %{_mandir}/man8/debugfs.8*
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
-%{_mandir}/man8/findfs.8*
 %{_mandir}/man8/filefrag.8*
 %{_mandir}/man8/fsck.ext2.8*
 %{_mandir}/man8/fsck.ext3.8*
@@ -231,7 +216,6 @@ fi
 
 %files libs
 %defattr(-,root,root)
-%{_root_libdir}/libblkid.so.*
 %{_root_libdir}/libcom_err.so.*
 %{_root_libdir}/libe2p.so.*
 %{_root_libdir}/libext2fs.so.*
@@ -244,8 +228,6 @@ fi
 %{_bindir}/compile_et
 %{_bindir}/mk_cmds
 
-%{_libdir}/libblkid.a
-%{_libdir}/libblkid.so
 %{_libdir}/libcom_err.a
 %{_libdir}/libcom_err.so
 %{_libdir}/libe2p.a
@@ -260,7 +242,6 @@ fi
 
 %{_datadir}/et
 %{_datadir}/ss
-%{_includedir}/blkid
 %{_includedir}/e2p
 %{_includedir}/et
 %{_includedir}/ext2fs
@@ -269,7 +250,6 @@ fi
 %{_mandir}/man1/compile_et.1*
 %{_mandir}/man1/mk_cmds.1*
 %{_mandir}/man3/com_err.3*
-%{_mandir}/man3/libblkid.3*
 %{_mandir}/man3/uuid.3*
 %{_mandir}/man3/uuid_clear.3*
 %{_mandir}/man3/uuid_compare.3*
@@ -290,6 +270,9 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Jun  4 2009 Karel Zak <kzak@redhat.com> 1.41.6-2
+- disable libblkid (replaced by libblkid from util-linux-ng)
+
 * Sat May 30 2009 Eric Sandeen <sandeen@redhat.com> 1.41.6-1
 - New upstream version
 

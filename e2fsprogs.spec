@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.6
-Release: 4%{?dist}
+Release: 5%{?dist}
 # License based on upstream-modified COPYING file,
 # which clearly states "V2" intent.
 License: GPLv2
@@ -13,6 +13,11 @@ Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 Source3: uuidd.init
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+
+# Upstream or soon to be:
+Patch3: e2fsprogs-1.41.4-update-sb-journal-backup.patch
+Patch4: e2fsprogs-1.41.4-extent-open-leak.patch
+Patch5: e2fsprogs-1.41.4-no-full-inode-write-in-extentcode.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -89,6 +94,9 @@ SMP systems.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls \
@@ -270,6 +278,11 @@ fi
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %changelog
+* Thu Jun 18 2009 Eric Sandeen <sandeen@redhat.com> 1.41.6-5
+- Update journal backup blocks in sb after resize (#505339)
+- Fix memory leak in extent handling functions
+- Fix bug in inode writing in extent code, clobbered i_extra_isize etc
+
 * Mon Jun  8 2009 Karel Zak <kzak@redhat.com> 1.41.6-4
 - set BuildRequires: libblkid-devel (from util-linux-ng)
 

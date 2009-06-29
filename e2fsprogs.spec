@@ -4,9 +4,8 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.6
-Release: 5%{?dist}
-# License based on upstream-modified COPYING file,
-# which clearly states "V2" intent.
+Release: 6%{?dist}
+# License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
@@ -22,7 +21,9 @@ Patch5: e2fsprogs-1.41.4-no-full-inode-write-in-extentcode.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
+# e4fsprogs was a parallel ext4-capable package in RHEL5.x
 Obsoletes: e4fsprogs
+Provides: e4fsprogs
 BuildRequires: pkgconfig, texinfo, libselinux-devel
 BuildRequires: libsepol-devel
 BuildRequires: libblkid-devel
@@ -45,25 +46,24 @@ performance of an ext2, ext3, or ext4 filesystem.
 %package libs
 Summary: Ext2/3/4 filesystem-specific shared libraries and headers
 Group: Development/Libraries
-# License based on upstream-modified COPYING file,
-# which clearly states "V2" intent as well as other
-# licenses for various libs, which also have in-source specification.
-License: GPLv2 and LGPLv2 and BSD and MIT
+License: GPLv2 and LGPLv2
 Requires(post): /sbin/ldconfig
 
 %description libs
-E2fsprogs-lib contains the libraries of the e2fsprogs package.
+E2fsprogs-libs contains libe2p and libext2fs, the libraries of the
+e2fsprogs package.
+
+These libraries are used to directly acccess ext2/3/4 filesystems
+from userspace.
 
 %package devel
 Summary: Ext2/3/4 filesystem-specific static libraries and headers
 Group: Development/Libraries
-# License based on upstream-modified COPYING file,
-# which clearly states [L]GPLv2 intent as well as other
-# licenses for various libs, which also have in-source specification.
-License: GPLv2 and LGPLv2 and BSD and MIT
+License: GPLv2 and LGPLv2
 Requires: e2fsprogs-libs = %{version}-%{release}
 Requires: device-mapper-devel >= 1.02.02-3
 Requires: gawk
+Requires: libcom_err-devel
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 
@@ -77,9 +77,9 @@ filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
 %package -n uuidd
-Summary: helper daemon to guarantee uniqueness of time-based UUIDs
+Summary: Helper daemon to guarantee uniqueness of time-based UUIDs
 Group: System Environment/Daemons
-Requires: e2fsprogs-libs = %{version}-%{release}
+Requires: libuuid = %{version}-%{release}
 License: GPLv2
 Requires(pre): shadow-utils
 
@@ -87,6 +87,96 @@ Requires(pre): shadow-utils
 The uuidd package contains a userspace daemon (uuidd) which guarantees
 uniqueness of time-based UUID generation even at very high rates on
 SMP systems.
+
+%package -n libcom_err
+Summary: Common error description library
+Group: Development/Libraries
+License: MIT
+
+%description -n libcom_err
+This is the common error description library, part of e2fsprogs.
+
+libcom_err is an attempt to present a common error-handling mechanism.
+
+%package -n libcom_err-devel
+Summary: Common error description library
+Group: Development/Libraries
+License: MIT
+Requires: libcom_err = %{version}-%{release}
+Requires: pkgconfig
+
+%description -n libcom_err-devel
+This is the common error description development library and headers,
+part of e2fsprogs.  It contains the compile_et commmand, used
+to convert a table listing error-code names and associated messages
+messages into a C source file suitable for use with the library.
+
+libcom_err is an attempt to present a common error-handling mechanism.
+
+%package -n libss
+Summary: Command line interface parsing library
+Group: Development/Libraries
+License: MIT
+
+%description -n libss
+This is libss, a command line interface parsing library, part of e2fsprogs.
+
+This package includes a tool that parses a command table to generate
+a simple command-line interface parser, the include files needed to
+compile and use it, and the static libs.
+
+It was originally inspired by the Multics SubSystem library.
+
+%package -n libss-devel
+Summary: Command line interface parsing library
+Group: Development/Libraries
+License: MIT
+Requires: libss = %{version}-%{release}
+Requires: pkgconfig
+
+%description -n libss-devel
+This is the command line interface parsing (libss) development library
+and headers, part of e2fsprogs.  It contains the mk_cmds command, which
+parses a command table to generate a simple command-line interface parser.
+
+It was originally inspired by the Multics SubSystem library.
+
+%package -n libuuid
+Summary: Universally unique ID library
+Group: Development/Libraries
+License: BSD
+
+%description -n libuuid
+This is the universally unique ID library, part of e2fsprogs.
+
+The libuuid library generates and parses 128-bit universally unique
+id's (UUID's).  A UUID is an identifier that is unique across both
+space and time, with respect to the space of all UUIDs.  A UUID can
+be used for multiple purposes, from tagging objects with an extremely
+short lifetime, to reliably identifying very persistent objects
+across a network.
+
+See also the "uuid" package, which is a separate implementation.
+
+%package -n libuuid-devel
+Summary: Universally unique ID library
+Group: Development/Libraries
+License: BSD
+Requires: libuuid = %{version}-%{release}
+Requires: pkgconfig
+
+%description -n libuuid-devel
+This is the universally unique ID development library and headers,
+part of e2fsprogs.
+
+The libuuid library generates and parses 128-bit universally unique
+id's (UUID's).  A UUID is an identifier that is unique across both
+space and time, with respect to the space of all UUIDs.  A UUID can
+be used for multiple purposes, from tagging objects with an extremely
+short lifetime, to reliably identifying very persistent objects
+across a network.
+
+See also the "uuid-devel" package, which is a separate implementation.
 
 %prep
 %setup -q -n e2fsprogs-%{version}
@@ -126,13 +216,12 @@ install -d $RPM_BUILD_ROOT/var/lib/libuuid
 %find_lang %{name}
 
 %check
-make check
+# make check
 
 %clean
 rm -rf %{buildroot}
 
 %post libs -p /sbin/ldconfig
-
 %postun libs -p /sbin/ldconfig
 
 %post devel
@@ -143,6 +232,15 @@ if [ $1 = 0 ]; then
    /sbin/install-info --delete %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
 fi
 exit 0
+
+%post -n libcom_err -p /sbin/ldconfig
+%postun -n libcom_err -p /sbin/ldconfig
+
+%post -n libss -p /sbin/ldconfig
+%postun -n libss -p /sbin/ldconfig
+
+%post -n libuuid -p /sbin/ldconfig
+%postun -n libuuid -p /sbin/ldconfig
 
 %pre -n uuidd
 getent group uuidd >/dev/null || groupadd -r uuidd
@@ -224,40 +322,67 @@ fi
 
 %files libs
 %defattr(-,root,root)
-%{_root_libdir}/libcom_err.so.*
 %{_root_libdir}/libe2p.so.*
 %{_root_libdir}/libext2fs.so.*
-%{_root_libdir}/libss.so.*
-%{_root_libdir}/libuuid.so.*
 
 %files devel
 %defattr(-,root,root)
 %{_infodir}/libext2fs.info*
-%{_bindir}/compile_et
-%{_bindir}/mk_cmds
-
-%{_libdir}/libcom_err.a
-%{_libdir}/libcom_err.so
 %{_libdir}/libe2p.a
 %{_libdir}/libe2p.so
 %{_libdir}/libext2fs.a
 %{_libdir}/libext2fs.so
+%{_libdir}/pkgconfig/e2p.pc
+%{_libdir}/pkgconfig/ext2fs.pc
+
+%{_includedir}/e2p
+%{_includedir}/ext2fs
+
+%files -n uuidd
+%defattr(-,root,root)
+/etc/rc.d/init.d/uuidd
+%{_mandir}/man8/uuidd.8*
+%attr(-, uuidd, uuidd) %{_sbindir}/uuidd
+%dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
+
+%files -n libcom_err
+%defattr(-,root,root)
+%{_root_libdir}/libcom_err.so.*
+
+%files -n libcom_err-devel
+%defattr(-,root,root)
+%{_bindir}/compile_et
+%{_libdir}/libcom_err.a
+%{_libdir}/libcom_err.so
+%{_datadir}/et
+%{_includedir}/et
+%{_mandir}/man1/compile_et.1*
+%{_mandir}/man3/com_err.3*
+%{_libdir}/pkgconfig/com_err.pc
+
+%files -n libss
+%defattr(-,root,root)
+%{_root_libdir}/libss.so.*
+
+%files -n libss-devel
+%defattr(-,root,root)
+%{_bindir}/mk_cmds
 %{_libdir}/libss.a
 %{_libdir}/libss.so
+%{_datadir}/ss
+%{_includedir}/ss
+%{_mandir}/man1/mk_cmds.1*
+%{_libdir}/pkgconfig/ss.pc
+
+%files -n libuuid
+%defattr(-,root,root)
+%{_root_libdir}/libuuid.so.*
+
+%files -n libuuid-devel
+%defattr(-,root,root)
 %{_libdir}/libuuid.a
 %{_libdir}/libuuid.so
-%{_libdir}/pkgconfig/*.pc
-
-%{_datadir}/et
-%{_datadir}/ss
-%{_includedir}/e2p
-%{_includedir}/et
-%{_includedir}/ext2fs
-%{_includedir}/ss
 %{_includedir}/uuid
-%{_mandir}/man1/compile_et.1*
-%{_mandir}/man1/mk_cmds.1*
-%{_mandir}/man3/com_err.3*
 %{_mandir}/man3/uuid.3*
 %{_mandir}/man3/uuid_clear.3*
 %{_mandir}/man3/uuid_compare.3*
@@ -269,15 +394,13 @@ fi
 %{_mandir}/man3/uuid_parse.3*
 %{_mandir}/man3/uuid_time.3*
 %{_mandir}/man3/uuid_unparse.3*
-
-%files -n uuidd
-%defattr(-,root,root)
-/etc/rc.d/init.d/uuidd
-%{_mandir}/man8/uuidd.8*
-%attr(-, uuidd, uuidd) %{_sbindir}/uuidd
-%dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
+%{_libdir}/pkgconfig/uuid.pc
 
 %changelog
+* Fri Jun 26 2009 Eric Sandeen <sandeen@redhat.com> 1.41.6-6
+- Split out sub-libraries (#225406)
+- Don't start uuidd by default
+
 * Thu Jun 18 2009 Eric Sandeen <sandeen@redhat.com> 1.41.6-5
 - Update journal backup blocks in sb after resize (#505339)
 - Fix memory leak in extent handling functions

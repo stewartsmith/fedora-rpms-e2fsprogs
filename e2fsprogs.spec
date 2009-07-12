@@ -3,7 +3,7 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.7
+Version: 1.41.8
 Release: 1%{?dist}
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -183,7 +183,7 @@ See also the "uuid-devel" package, which is a separate implementation.
 %build
 %configure --enable-elf-shlibs --enable-nls \
 	   --disable-e2initrd-helper --disable-libblkid 
-make %{?_smp_mflags}
+make %{?_smp_mflags} V=1
 
 %install
 rm -rf %{buildroot}
@@ -389,6 +389,9 @@ fi
 %{_libdir}/pkgconfig/uuid.pc
 
 %changelog
+* Sun Jul 12 2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-1
+- New upstream version, several resize fixes.
+
 * Tue Jun 30 2009 Eric Sandeen <sandeen@redhat.com> 1.41.7-1
 - New upstream version
 

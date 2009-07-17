@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.8
-Release: 1%{?dist}
+Release: 2%{?dist}
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
@@ -15,10 +15,15 @@ Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires: e2fsprogs-libs = %{version}-%{release}, device-mapper
+Requires: e2fsprogs-libs = %{version}-%{release}
+Requires: device-mapper
+
 # e4fsprogs was a parallel ext4-capable package in RHEL5.x
-Obsoletes: e4fsprogs
-Provides: e4fsprogs
+%if 0%{?rhel} > 0
+Obsoletes: e4fsprogs < %{version}-%{release}
+Provides: e4fsprogs = %{version}-%{release}
+%endif
+
 BuildRequires: pkgconfig, texinfo, libselinux-devel
 BuildRequires: libsepol-devel
 BuildRequires: libblkid-devel
@@ -39,10 +44,9 @@ You should install the e2fsprogs package if you need to manage the
 performance of an ext2, ext3, or ext4 filesystem.
 
 %package libs
-Summary: Ext2/3/4 filesystem-specific shared libraries and headers
+Summary: Ext2/3/4 filesystem-specific shared libraries
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
-Requires(post): /sbin/ldconfig
 
 %description libs
 E2fsprogs-libs contains libe2p and libext2fs, the libraries of the
@@ -55,12 +59,14 @@ from userspace.
 Summary: Ext2/3/4 filesystem-specific static libraries and headers
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
+Provides: %{name}-static = %{version}-%{release}
 Requires: e2fsprogs-libs = %{version}-%{release}
 Requires: device-mapper-devel >= 1.02.02-3
 Requires: gawk
 Requires: libcom_err-devel
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
+Requires: pkgconfig
+Requires(post): info
+Requires(preun): info
 
 %description devel
 E2fsprogs-devel contains the libraries and header files needed to
@@ -97,6 +103,7 @@ libcom_err is an attempt to present a common error-handling mechanism.
 Summary: Common error description library
 Group: Development/Libraries
 License: MIT
+Provides: libcom_err-static = %{version}-%{release}
 Requires: libcom_err = %{version}-%{release}
 Requires: pkgconfig
 
@@ -126,6 +133,7 @@ It was originally inspired by the Multics SubSystem library.
 Summary: Command line interface parsing library
 Group: Development/Libraries
 License: MIT
+Provides: libss-static = %{version}-%{release}
 Requires: libss = %{version}-%{release}
 Requires: pkgconfig
 
@@ -157,6 +165,7 @@ See also the "uuid" package, which is a separate implementation.
 Summary: Universally unique ID library
 Group: Development/Libraries
 License: BSD
+Provides: libuuid-static = %{version}-%{release}
 Requires: libuuid = %{version}-%{release}
 Requires: pkgconfig
 
@@ -174,7 +183,7 @@ across a network.
 See also the "uuid-devel" package, which is a separate implementation.
 
 %prep
-%setup -q -n e2fsprogs-%{version}
+%setup -q
 # ignore some flag differences on primary/backup sb feature checks
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
@@ -188,22 +197,22 @@ make %{?_smp_mflags} V=1
 %install
 rm -rf %{buildroot}
 export PATH=/sbin:$PATH
-make install install-libs DESTDIR=$RPM_BUILD_ROOT INSTALL="%{__install} -p" \
+make install install-libs DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 
 # ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
 %define multilib_arches %{ix86} x86_64 ppc ppc64 s390 s390x sparcv9 sparc64
 
 %ifarch %{multilib_arches}
-mv -f $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h \
-      $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types-%{_arch}.h
-install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_includedir}/ext2fs/ext2_types.h
+mv -f %{buildroot}%{_includedir}/ext2fs/ext2_types.h \
+      %{buildroot}%{_includedir}/ext2fs/ext2_types-%{_arch}.h
+install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
 %endif
 
 # Our own initscript for uuidd
-install -D -m 755 %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/uuidd
+install -D -m 755 %{SOURCE3} %{buildroot}/%{_initrddir}/uuidd
 # And a dir uuidd needs that the makefiles don't create
-install -d $RPM_BUILD_ROOT/var/lib/libuuid
+install -d %{buildroot}/var/lib/libuuid
 
 %find_lang %{name}
 
@@ -253,7 +262,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(-,root,root)
-%doc README RELEASE-NOTES
+%doc COPYING README RELEASE-NOTES
 
 %config(noreplace) /etc/mke2fs.conf
 %{_root_sbindir}/badblocks
@@ -314,6 +323,7 @@ fi
 
 %files libs
 %defattr(-,root,root)
+%doc COPYING
 %{_root_libdir}/libe2p.so.*
 %{_root_libdir}/libext2fs.so.*
 
@@ -332,13 +342,15 @@ fi
 
 %files -n uuidd
 %defattr(-,root,root)
-/etc/rc.d/init.d/uuidd
+%doc COPYING
+%{_initrddir}/uuidd
 %{_mandir}/man8/uuidd.8*
 %attr(-, uuidd, uuidd) %{_sbindir}/uuidd
 %dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
 
 %files -n libcom_err
 %defattr(-,root,root)
+%doc COPYING
 %{_root_libdir}/libcom_err.so.*
 
 %files -n libcom_err-devel
@@ -354,6 +366,7 @@ fi
 
 %files -n libss
 %defattr(-,root,root)
+%doc COPYING
 %{_root_libdir}/libss.so.*
 
 %files -n libss-devel
@@ -368,6 +381,7 @@ fi
 
 %files -n libuuid
 %defattr(-,root,root)
+%doc COPYING
 %{_root_libdir}/libuuid.so.*
 
 %files -n libuuid-devel
@@ -389,6 +403,9 @@ fi
 %{_libdir}/pkgconfig/uuid.pc
 
 %changelog
+* Fri Jul 17  2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-2
+- Address some package review concerns (#225714)
+
 * Sun Jul 12 2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-1
 - New upstream version, several resize fixes.
 

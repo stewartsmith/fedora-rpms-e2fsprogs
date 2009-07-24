@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.8
-Release: 2%{?dist}
+Release: 3%{?dist}
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
@@ -403,6 +403,9 @@ fi
 %{_libdir}/pkgconfig/uuid.pc
 
 %changelog
+* Fri Jul 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.41.8-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
 * Fri Jul 17  2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-2
 - Address some package review concerns (#225714)
 

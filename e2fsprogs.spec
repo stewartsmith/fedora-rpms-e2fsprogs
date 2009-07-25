@@ -4,19 +4,17 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.8
-Release: 3%{?dist}
+Release: 4%{?dist}
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
-Source3: uuidd.init
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}
-Requires: device-mapper
 
 # e4fsprogs was a parallel ext4-capable package in RHEL5.x
 %if 0%{?rhel} > 0
@@ -27,6 +25,7 @@ Provides: e4fsprogs = %{version}-%{release}
 BuildRequires: pkgconfig, texinfo, libselinux-devel
 BuildRequires: libsepol-devel
 BuildRequires: libblkid-devel
+BuildRequires: libuuid-devel
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -61,7 +60,6 @@ Group: Development/Libraries
 License: GPLv2 and LGPLv2
 Provides: %{name}-static = %{version}-%{release}
 Requires: e2fsprogs-libs = %{version}-%{release}
-Requires: device-mapper-devel >= 1.02.02-3
 Requires: gawk
 Requires: libcom_err-devel
 Requires: pkgconfig
@@ -76,18 +74,6 @@ filesystem-specific programs.
 You should install e2fsprogs-devel if you want to develop ext2/3/4
 filesystem-specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
-
-%package -n uuidd
-Summary: Helper daemon to guarantee uniqueness of time-based UUIDs
-Group: System Environment/Daemons
-Requires: libuuid = %{version}-%{release}
-License: GPLv2
-Requires(pre): shadow-utils
-
-%description -n uuidd
-The uuidd package contains a userspace daemon (uuidd) which guarantees
-uniqueness of time-based UUID generation even at very high rates on
-SMP systems.
 
 %package -n libcom_err
 Summary: Common error description library
@@ -144,44 +130,6 @@ parses a command table to generate a simple command-line interface parser.
 
 It was originally inspired by the Multics SubSystem library.
 
-%package -n libuuid
-Summary: Universally unique ID library
-Group: Development/Libraries
-License: BSD
-
-%description -n libuuid
-This is the universally unique ID library, part of e2fsprogs.
-
-The libuuid library generates and parses 128-bit universally unique
-id's (UUID's).  A UUID is an identifier that is unique across both
-space and time, with respect to the space of all UUIDs.  A UUID can
-be used for multiple purposes, from tagging objects with an extremely
-short lifetime, to reliably identifying very persistent objects
-across a network.
-
-See also the "uuid" package, which is a separate implementation.
-
-%package -n libuuid-devel
-Summary: Universally unique ID library
-Group: Development/Libraries
-License: BSD
-Provides: libuuid-static = %{version}-%{release}
-Requires: libuuid = %{version}-%{release}
-Requires: pkgconfig
-
-%description -n libuuid-devel
-This is the universally unique ID development library and headers,
-part of e2fsprogs.
-
-The libuuid library generates and parses 128-bit universally unique
-id's (UUID's).  A UUID is an identifier that is unique across both
-space and time, with respect to the space of all UUIDs.  A UUID can
-be used for multiple purposes, from tagging objects with an extremely
-short lifetime, to reliably identifying very persistent objects
-across a network.
-
-See also the "uuid-devel" package, which is a separate implementation.
-
 %prep
 %setup -q
 # ignore some flag differences on primary/backup sb feature checks
@@ -190,8 +138,8 @@ See also the "uuid-devel" package, which is a separate implementation.
 %patch2 -p1 -b .featurecheck
 
 %build
-%configure --enable-elf-shlibs --enable-nls \
-	   --disable-e2initrd-helper --disable-libblkid 
+%configure --enable-elf-shlibs --enable-nls --disable-uuidd \
+	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid
 make %{?_smp_mflags} V=1
 
 %install
@@ -208,11 +156,6 @@ mv -f %{buildroot}%{_includedir}/ext2fs/ext2_types.h \
       %{buildroot}%{_includedir}/ext2fs/ext2_types-%{_arch}.h
 install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
 %endif
-
-# Our own initscript for uuidd
-install -D -m 755 %{SOURCE3} %{buildroot}/%{_initrddir}/uuidd
-# And a dir uuidd needs that the makefiles don't create
-install -d %{buildroot}/var/lib/libuuid
 
 %find_lang %{name}
 
@@ -239,26 +182,6 @@ exit 0
 
 %post -n libss -p /sbin/ldconfig
 %postun -n libss -p /sbin/ldconfig
-
-%post -n libuuid -p /sbin/ldconfig
-%postun -n libuuid -p /sbin/ldconfig
-
-%pre -n uuidd
-getent group uuidd >/dev/null || groupadd -r uuidd
-getent passwd uuidd >/dev/null || \
-useradd -r -g uuidd -d /var/lib/libuuid -s /sbin/nologin \
-    -c "UUID generator helper daemon" uuidd
-exit 0
-
-%post -n uuidd
-/sbin/chkconfig --add uuidd
-
-%preun -n uuidd
-if [ "$1" = 0 ]
-then
-	/sbin/service uuidd stop > /dev/null 2>&1 || :
-	/sbin/chkconfig --del uuidd
-fi
 
 %files -f %{name}.lang
 %defattr(-,root,root)
@@ -290,10 +213,8 @@ fi
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
-%{_bindir}/uuidgen
 %{_mandir}/man1/chattr.1*
 %{_mandir}/man1/lsattr.1*
-%{_mandir}/man1/uuidgen.1*
 
 %{_mandir}/man5/e2fsck.conf.5*
 %{_mandir}/man5/mke2fs.conf.5*
@@ -340,14 +261,6 @@ fi
 %{_includedir}/e2p
 %{_includedir}/ext2fs
 
-%files -n uuidd
-%defattr(-,root,root)
-%doc COPYING
-%{_initrddir}/uuidd
-%{_mandir}/man8/uuidd.8*
-%attr(-, uuidd, uuidd) %{_sbindir}/uuidd
-%dir %attr(2775, uuidd, uuidd) /var/lib/libuuid
-
 %files -n libcom_err
 %defattr(-,root,root)
 %doc COPYING
@@ -379,30 +292,10 @@ fi
 %{_mandir}/man1/mk_cmds.1*
 %{_libdir}/pkgconfig/ss.pc
 
-%files -n libuuid
-%defattr(-,root,root)
-%doc COPYING
-%{_root_libdir}/libuuid.so.*
-
-%files -n libuuid-devel
-%defattr(-,root,root)
-%{_libdir}/libuuid.a
-%{_libdir}/libuuid.so
-%{_includedir}/uuid
-%{_mandir}/man3/uuid.3*
-%{_mandir}/man3/uuid_clear.3*
-%{_mandir}/man3/uuid_compare.3*
-%{_mandir}/man3/uuid_copy.3*
-%{_mandir}/man3/uuid_generate.3*
-%{_mandir}/man3/uuid_generate_random.3*
-%{_mandir}/man3/uuid_generate_time.3*
-%{_mandir}/man3/uuid_is_null.3*
-%{_mandir}/man3/uuid_parse.3*
-%{_mandir}/man3/uuid_time.3*
-%{_mandir}/man3/uuid_unparse.3*
-%{_libdir}/pkgconfig/uuid.pc
-
 %changelog
+* Sat Jul 25 2009 Karel Zak <kzak@redhat.com> 1.41.8-4
+- disable libuuid and uuidd (replaced by util-linux-ng)
+
 * Fri Jul 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.41.8-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
 

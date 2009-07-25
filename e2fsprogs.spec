@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.8
-Release: 4%{?dist}
+Release: 5%{?dist}
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
@@ -138,7 +138,7 @@ It was originally inspired by the Multics SubSystem library.
 %patch2 -p1 -b .featurecheck
 
 %build
-%configure --enable-elf-shlibs --enable-nls --disable-uuidd \
+%configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
 	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid
 make %{?_smp_mflags} V=1
 
@@ -195,7 +195,6 @@ exit 0
 %{_root_sbindir}/e2image
 %{_root_sbindir}/e2label
 %{_root_sbindir}/e2undo
-%{_root_sbindir}/fsck
 %{_root_sbindir}/fsck.ext2
 %{_root_sbindir}/fsck.ext3
 %{_root_sbindir}/fsck.ext4
@@ -231,7 +230,6 @@ exit 0
 %{_mandir}/man8/e2image.8*
 %{_mandir}/man8/e2label.8*
 %{_mandir}/man8/e2undo.8*
-%{_mandir}/man8/fsck.8*
 %{_mandir}/man8/logsave.8*
 %{_mandir}/man8/mke2fs.8*
 %{_mandir}/man8/mkfs.ext2.8*
@@ -293,6 +291,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Sun Jul 26 2009 Karel Zak <kzak@redhat.com> 1.41.8-5
+- disable fsck (replaced by util-linux-ng)
+
 * Sat Jul 25 2009 Karel Zak <kzak@redhat.com> 1.41.8-4
 - disable libuuid and uuidd (replaced by util-linux-ng)
 

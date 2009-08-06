@@ -4,13 +4,17 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.8
-Release: 5%{?dist}
+Release: 6%{?dist}
+
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
+
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch3: e2fsprogs-1.41.8-filefrag-fix.patch
+Patch4: e2fsprogs-1.41.8-freefrag-defrag.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -136,6 +140,10 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
+# fix filefrag
+%patch3 -p1 -b .filefrag
+# frag tools
+%patch4 -p1 -b .frag
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -145,7 +153,7 @@ make %{?_smp_mflags} V=1
 %install
 rm -rf %{buildroot}
 export PATH=/sbin:$PATH
-make install install-libs DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
+make install install-libs install-e4defrag DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 
 # ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
@@ -208,7 +216,11 @@ exit 0
 %{_root_sbindir}/resize2fs
 %{_root_sbindir}/tune2fs
 %{_sbindir}/filefrag
+%{_sbindir}/e2freefrag
 %{_sbindir}/mklost+found
+
+%{_bindir}/e4defrag
+%{_mandir}/man8/e4defrag.8*
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -223,6 +235,7 @@ exit 0
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
 %{_mandir}/man8/filefrag.8*
+%{_mandir}/man8/e2freefrag.8*
 %{_mandir}/man8/fsck.ext2.8*
 %{_mandir}/man8/fsck.ext3.8*
 %{_mandir}/man8/fsck.ext4.8*
@@ -291,6 +304,10 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Fri Aug 05 2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-6
+- Fix filefrag in fallback case
+- Add e2freefrag & e4defrag (experimental)
+
 * Sun Jul 26 2009 Karel Zak <kzak@redhat.com> 1.41.8-5
 - disable fsck (replaced by util-linux-ng)
 

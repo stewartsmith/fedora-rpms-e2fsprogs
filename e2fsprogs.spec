@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.8
-Release: 6%{?dist}
+Version: 1.41.9
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -13,8 +13,7 @@ Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch3: e2fsprogs-1.41.8-filefrag-fix.patch
-Patch4: e2fsprogs-1.41.8-freefrag-defrag.patch
+Patch3: e2fsprogs-1.41.9-defrag.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -140,10 +139,8 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
-# fix filefrag
-%patch3 -p1 -b .filefrag
-# frag tools
-%patch4 -p1 -b .frag
+# defrag command for testing, from non-release branch
+%patch3 -p1 -b .defrag
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -304,6 +301,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Sun Aug 23 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-1
+- New upstream release
+
 * Fri Aug 05 2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-6
 - Fix filefrag in fallback case
 - Add e2freefrag & e4defrag (experimental)

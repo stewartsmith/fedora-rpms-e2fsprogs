@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.9
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -14,6 +14,7 @@ Source1: ext2_types-wrapper.h
 
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch3: e2fsprogs-1.41.9-defrag.patch
+Patch4: e2fsprogs-resize-minimum-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -141,6 +142,7 @@ It was originally inspired by the Multics SubSystem library.
 %patch2 -p1 -b .featurecheck
 # defrag command for testing, from non-release branch
 %patch3 -p1 -b .defrag
+%patch4 -p1 -b .resize
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -301,6 +303,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Sep 10 2009 Josef Bacik <josef@toxicpanda.com> 1.41.9-2
+- Fix resize -m bug with flexbg (#519131)
+
 * Sun Aug 23 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-1
 - New upstream release
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.9
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -13,7 +13,6 @@ Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch3: e2fsprogs-1.41.9-defrag.patch
 Patch4: e2fsprogs-resize-minimum-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
@@ -140,8 +139,6 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
-# defrag command for testing, from non-release branch
-%patch3 -p1 -b .defrag
 %patch4 -p1 -b .resize
 
 %build
@@ -152,7 +149,7 @@ make %{?_smp_mflags} V=1
 %install
 rm -rf %{buildroot}
 export PATH=/sbin:$PATH
-make install install-libs install-e4defrag DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
+make install install-libs DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
 	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
 
 # ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
@@ -217,9 +214,6 @@ exit 0
 %{_sbindir}/filefrag
 %{_sbindir}/e2freefrag
 %{_sbindir}/mklost+found
-
-%{_bindir}/e4defrag
-%{_mandir}/man8/e4defrag.8*
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -303,6 +297,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Sep 14 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-3
+- Drop defrag bits for now, not ready yet.
+
 * Thu Sep 10 2009 Josef Bacik <josef@toxicpanda.com> 1.41.9-2
 - Fix resize -m bug with flexbg (#519131)
 

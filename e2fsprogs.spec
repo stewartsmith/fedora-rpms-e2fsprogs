@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.9
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -172,11 +172,14 @@ rm -rf %{buildroot}
 %post libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
+# Test for file; if installed with --excludedocs it may not be there
 %post devel
-/sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
+if [ -f %{_infodir}/libext2fs.info.gz ]; then
+   /sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
+fi
 
 %preun devel
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/libext2fs.info.gz ]; then
    /sbin/install-info --delete %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
 fi
 exit 0
@@ -297,6 +300,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Oct 06 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-4
+- Fix install with --excludedocs (#515997)
+
 * Thu Sep 14 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-3
 - Drop defrag bits for now, not ready yet.
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.9
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -14,6 +14,7 @@ Source1: ext2_types-wrapper.h
 
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch4: e2fsprogs-resize-minimum-fix.patch
+Patch5: e2fsprogs-1.41.9-24hr-fsck-grace.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -140,6 +141,7 @@ It was originally inspired by the Multics SubSystem library.
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
 %patch4 -p1 -b .resize
+%patch5 -p1 -b .24h
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -300,8 +302,11 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
-* Thu Oct 06 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-4
-- Fix install with --excludedocs (#515997)
+* Mon Oct 19 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-5
+- Allow superblock timestamp differences up to 24h (#522969)
+
+* Tue Oct 06 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-4
+- Fix install with --excludedocs (#515987)
 
 * Thu Sep 14 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-3
 - Drop defrag bits for now, not ready yet.

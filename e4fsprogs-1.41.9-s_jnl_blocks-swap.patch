@@ -1,0 +1,48 @@
+libext2fs: don't swap extent-based journal backup on read
+
+The f_illitable_flexbg test was failing on ppc, because
+e2fsck_move_ext3_journal is doing a direct memcmp of i_block with 
+s_jnl_blocks, and failing.
+
+This is because we don't swap extent data on read from disk; rather
+we do it when we access the extents.  However, ext2fs_swap_super
+was swapping s_jnl_blocks unconditionally, so these didn't match.
+
+Looks like we need to treat s_jnl_blocks the same as i_block, and
+swap it on access, not on read.  Except for the last i_size bit...
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+---
+
+diff --git a/lib/ext2fs/swapfs.c b/lib/ext2fs/swapfs.c
+index 42bc01e..38f5f9b 100644
+--- a/lib/ext2fs/swapfs.c
++++ b/lib/ext2fs/swapfs.c
+@@ -73,9 +73,19 @@ void ext2fs_swap_super(struct ext2_super_block * sb)
+ 	sb->s_kbytes_written = ext2fs_swab64(sb->s_kbytes_written);
+ 	for (i=0; i < 4; i++)
+ 		sb->s_hash_seed[i] = ext2fs_swab32(sb->s_hash_seed[i]);
++
++	/* if journal backup is for a valid extent-based journal... */
++	if (!ext2fs_extent_header_verify(sb->s_jnl_blocks,
++					 sizeof(sb->s_jnl_blocks))) {
++		/* ... swap only the journal i_size */
++		sb->s_jnl_blocks[16] = ext2fs_swab32(sb->s_jnl_blocks[16]);
++		/* and the extent data is not swapped on read */
++		return;
++	}
++
++	/* direct/indirect journal: swap it all */
+ 	for (i=0; i < 17; i++)
+ 		sb->s_jnl_blocks[i] = ext2fs_swab32(sb->s_jnl_blocks[i]);
+-
+ }
+ 
+ void ext2fs_swap_group_desc(struct ext2_group_desc *gdp)
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-ext4" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+

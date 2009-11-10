@@ -1,0 +1,1161 @@
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Sun, 4 Oct 2009 18:45:08 +0000 (-0400)
+Subject: Don't use in-tree header files if using system uuid or blkid libraries
+X-Git-Url: http://git.kernel.org/?p=fs%2Fext2%2Fe2fsprogs.git;a=commitdiff_plain;h=e1f085079525c0ed4c5ab1f2abedaf9407a7b8da
+
+Don't use in-tree header files if using system uuid or blkid libraries
+
+This commit forces the use of the system-provided blkid or uuid header
+files if we are using the system-provided blkid or uuid libraries.
+This avoids using the in-tree header files with the system libraries.
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+---
+
+From: Eric Sandeen <sandeen@redhat.com>
+Date: Fri, 2 Oct 2009 16:32:42 +0000 (-0500)
+Subject: mke2fs: get device topology values from blkid
+X-Git-Url: http://git.kernel.org/?p=fs%2Fext2%2Fe2fsprogs.git;a=commitdiff_plain;h=9ed8e5fec226aa53634ed95cbeac736d90a518e5
+
+mke2fs: get device topology values from blkid
+
+Handle automatic selection of stride/stripe:
+
+mke2fs 1.41.9 (22-Aug-2009)
+Filesystem label=
+OS type: Linux
+Block size=4096 (log=2)
+Fragment size=4096 (log=2)
+Stride=16 blocks, Stripe width=32 blocks
+...
+
+And warn on block device misalignment:
+
+mke2fs 1.41.9 (22-Aug-2009)
+/dev/sdc1 alignment is offset by 32256 bytes.
+This may result in very poor performance, (re)-partitioning suggested.
+Proceed anyway? (y,n)
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+---
+
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Sun, 4 Oct 2009 20:21:13 +0000 (-0400)
+Subject: tests: Account for new mke2fs topology information
+X-Git-Url: http://git.kernel.org/?p=fs%2Fext2%2Fe2fsprogs.git;a=commitdiff_plain;h=a321afa8b7baca0ff90e06c1351b2054e61e11ee
+
+tests: Account for new mke2fs topology information
+
+The previous commit adds a new line printed by mke2fs with the
+filesystem/device topology information.  Update the regression test's
+expected output to account for this.
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+---
+
+From: Eric Sandeen <sandeen@redhat.com>
+Date: Wed, 21 Oct 2009 07:43:02 +0000 (-0400)
+Subject: configure.in: Fix typo: remove '2' from blkid_probe_get_topology2
+X-Git-Url: http://git.kernel.org/?p=fs%2Fext2%2Fe2fsprogs.git;a=commitdiff_plain;h=beb736b4c4f949e347c078e014250cd6a61ff33e
+
+configure.in: Fix typo: remove '2' from blkid_probe_get_topology2
+
+I think vim <esc>wq turned into <esc>2wq or something; in any case
+blkid_probe_get_topology2 is not the right thing to search for.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+---
+
+
+Index: e2fsprogs-1.41.9/debugfs/Makefile.in
+===================================================================
+--- e2fsprogs-1.41.9.orig/debugfs/Makefile.in
++++ e2fsprogs-1.41.9/debugfs/Makefile.in
+@@ -96,65 +96,74 @@ debug_cmds.o: debug_cmds.c $(top_srcdir)
+  $(top_builddir)/lib/ss/ss_err.h $(top_srcdir)/lib/et/com_err.h
+ debugfs.o: $(srcdir)/debugfs.c $(top_srcdir)/lib/et/com_err.h \
+  $(top_srcdir)/lib/ss/ss.h $(top_builddir)/lib/ss/ss_err.h \
+- $(top_srcdir)/lib/et/com_err.h $(srcdir)/debugfs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
+- $(top_srcdir)/lib/ext2fs/bitops.h $(top_srcdir)/lib/uuid/uuid.h \
+- $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h \
+- $(top_srcdir)/version.h
++ $(srcdir)/debugfs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/version.h $(srcdir)/jfs_user.h \
++ $(top_srcdir)/lib/ext2fs/kernel-jbd.h $(top_srcdir)/lib/ext2fs/jfs_compat.h \
++ $(top_srcdir)/lib/ext2fs/kernel-list.h
+ util.o: $(srcdir)/util.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+ ls.o: $(srcdir)/ls.c $(srcdir)/debugfs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/et/com_err.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
+- $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+ ncheck.o: $(srcdir)/ncheck.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+ icheck.o: $(srcdir)/icheck.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+ lsdel.o: $(srcdir)/lsdel.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+ dump.o: $(srcdir)/dump.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+ set_fields.o: $(srcdir)/set_fields.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/uuid/uuid.h $(top_srcdir)/lib/e2p/e2p.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h
+ logdump.o: $(srcdir)/logdump.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+  $(srcdir)/jfs_user.h $(top_srcdir)/lib/ext2fs/kernel-jbd.h \
+- $(top_srcdir)/lib/ext2fs/jfs_compat.h $(top_srcdir)/lib/ext2fs/kernel-list.h \
+- $(top_srcdir)/lib/uuid/uuid.h
++ $(top_srcdir)/lib/ext2fs/jfs_compat.h $(top_srcdir)/lib/ext2fs/kernel-list.h
+ htree.o: $(srcdir)/htree.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h
+ unused.o: $(srcdir)/unused.c $(srcdir)/debugfs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+Index: e2fsprogs-1.41.9/depfix.sed
+===================================================================
+--- e2fsprogs-1.41.9.orig/depfix.sed
++++ e2fsprogs-1.41.9/depfix.sed
+@@ -25,6 +25,8 @@ s/  */ /g
+ s;/usr/include/[^ ]* *;;g
+ s;/usr/lib/[^ ]* *;;g
+ s;/mit/cygnus[^ ]* *;;g
++s;../[^ ]*lib/blkid/blkid[^ ]* *;;g
++s;../[^ ]*lib/uuid/uuid.h[^ ]* *;;g
+ 
+ #
+ # Now insert a trailing newline...
+Index: e2fsprogs-1.41.9/e2fsck/Makefile.in
+===================================================================
+--- e2fsprogs-1.41.9.orig/e2fsck/Makefile.in
++++ e2fsprogs-1.41.9/e2fsck/Makefile.in
+@@ -284,195 +284,170 @@ distclean: clean
+ #
+ e2fsck.o: $(srcdir)/e2fsck.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ crc32.o: $(srcdir)/crc32.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/crc32defs.h crc32table.h
+ gen_crc32table.o: $(srcdir)/gen_crc32table.c $(srcdir)/crc32defs.h
+ dict.o: $(srcdir)/dict.c $(srcdir)/dict.h
+-super.o: $(srcdir)/super.c $(top_srcdir)/lib/uuid/uuid.h $(srcdir)/e2fsck.h \
++super.o: $(srcdir)/super.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ pass1.o: $(srcdir)/pass1.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ pass1b.o: $(srcdir)/pass1b.c $(top_srcdir)/lib/et/com_err.h \
+  $(srcdir)/e2fsck.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h $(srcdir)/dict.h
+ pass2.o: $(srcdir)/pass2.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h $(srcdir)/dict.h
+ pass3.o: $(srcdir)/pass3.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ pass4.o: $(srcdir)/pass4.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ pass5.o: $(srcdir)/pass5.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ journal.o: $(srcdir)/journal.c $(srcdir)/jfs_user.h $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(top_srcdir)/lib/ext2fs/kernel-jbd.h \
+  $(top_srcdir)/lib/ext2fs/jfs_compat.h $(top_srcdir)/lib/ext2fs/kernel-list.h \
+- $(srcdir)/problem.h $(top_srcdir)/lib/uuid/uuid.h
++ $(srcdir)/problem.h
+ recovery.o: $(srcdir)/recovery.c $(srcdir)/jfs_user.h $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(top_srcdir)/lib/ext2fs/kernel-jbd.h \
+  $(top_srcdir)/lib/ext2fs/jfs_compat.h $(top_srcdir)/lib/ext2fs/kernel-list.h
+ revoke.o: $(srcdir)/revoke.c $(srcdir)/jfs_user.h $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(top_srcdir)/lib/ext2fs/kernel-jbd.h \
+  $(top_srcdir)/lib/ext2fs/jfs_compat.h $(top_srcdir)/lib/ext2fs/kernel-list.h
+ badblocks.o: $(srcdir)/badblocks.c $(top_srcdir)/lib/et/com_err.h \
+  $(srcdir)/e2fsck.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h
+ util.o: $(srcdir)/util.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+- $(srcdir)/profile.h prof_err.h
+-unix.o: $(srcdir)/unix.c $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_builddir)/lib/ext2fs/ext2_types.h $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+  $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
++ $(srcdir)/profile.h prof_err.h
++unix.o: $(srcdir)/unix.c $(top_srcdir)/lib/e2p/e2p.h \
++ $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
++ $(top_srcdir)/lib/et/com_err.h $(srcdir)/e2fsck.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h $(top_srcdir)/version.h
+ dirinfo.o: $(srcdir)/dirinfo.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+- $(srcdir)/profile.h prof_err.h $(top_srcdir)/lib/uuid/uuid.h \
+- $(top_srcdir)/lib/ext2fs/tdb.h
++ $(srcdir)/profile.h prof_err.h $(top_srcdir)/lib/ext2fs/tdb.h
+ dx_dirinfo.o: $(srcdir)/dx_dirinfo.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h
+ ehandler.o: $(srcdir)/ehandler.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h
+ problem.o: $(srcdir)/problem.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h $(srcdir)/problemP.h
+ message.o: $(srcdir)/message.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ ea_refcount.o: $(srcdir)/ea_refcount.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h
+ rehash.o: $(srcdir)/rehash.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h $(srcdir)/problem.h
+ region.o: $(srcdir)/region.c $(srcdir)/e2fsck.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+  $(srcdir)/profile.h prof_err.h
+ profile.o: $(srcdir)/profile.c $(top_srcdir)/lib/et/com_err.h \
+  $(srcdir)/profile.h prof_err.h
+Index: e2fsprogs-1.41.9/lib/blkid/Makefile.in
+===================================================================
+--- e2fsprogs-1.41.9.orig/lib/blkid/Makefile.in
++++ e2fsprogs-1.41.9/lib/blkid/Makefile.in
+@@ -26,8 +26,7 @@ SRCS= $(srcdir)/cache.c $(srcdir)/dev.c 
+  $(srcdir)/read.c $(srcdir)/resolve.c $(srcdir)/save.c $(srcdir)/tag.c \
+  $(srcdir)/version.c
+ 
+-HFILES=		blkid.h
+-HFILES_IN=	blkid_types.h
++HFILES_IN=	blkid.h blkid_types.h
+ 
+ LIBRARY= libblkid
+ LIBDIR= blkid
+@@ -63,11 +62,15 @@ DEPLIBS_BLKID=	$(DEPSTATIC_LIBBLKID) $(D
+ 
+ all:: $(SMANPAGES) blkid.pc
+ 
+-$(top_builddir)/lib/blkid/blkid_types.h: $(srcdir)/blkid_types.h.in $(top_builddir)/config.status
++blkid_types.h: $(srcdir)/blkid_types.h.in $(top_builddir)/config.status
+ 	$(E) "	CONFIG.STATUS $@"
+ 	$(Q) cd $(top_builddir); \
+ 		CONFIG_FILES=$(my_dir)/blkid_types.h ./config.status
+ 
++blkid.h: $(srcdir)/blkid.h.in
++	$(E) "	CP $@"
++	$(Q) cp $(srcdir)/blkid.h.in blkid.h
++
+ libblkid.3: $(DEP_SUBSTITUTE) $(srcdir)/libblkid.3.in
+ 	$(E) "	SUBST $@"
+ 	$(Q) $(SUBSTITUTE_UPTIME) $(srcdir)/libblkid.3.in libblkid.3
+@@ -151,10 +154,6 @@ install:: all installdirs 
+ 	$(Q) $(INSTALL_DATA) libblkid.a $(DESTDIR)$(libdir)/libblkid.a
+ 	-$(Q) $(RANLIB) $(DESTDIR)$(libdir)/libblkid.a
+ 	$(Q) $(CHMOD) $(LIBMODE) $(DESTDIR)$(libdir)/libblkid.a
+-	$(Q) set -e; for i in $(HFILES); do \
+-	  echo "	INSTALL_DATA $(includedir)/blkid/$$i"; \
+-	  $(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(includedir)/blkid/$$i; \
+-	done
+ 	$(Q) set -e; for i in $(HFILES_IN); do \
+ 		echo "	INSTALL_DATA $(includedir)/blkid/$$i"; \
+ 		$(INSTALL_DATA) $$i $(DESTDIR)$(includedir)/blkid/$$i; \
+@@ -179,7 +178,7 @@ clean::
+ 		tst_devno tst_getsize tst_probe tst_read tst_resolve tst_save \
+ 		tst_tag tst_types tests/*.out tests/*.ok \
+ 		tests/*.img results test_probe core profiled/* \
+-		checker/* blkid_types.h ../libblkid.a ../libblkid_p.a \
++		checker/* blkid.h blkid_types.h ../libblkid.a ../libblkid_p.a \
+ 		$(SMANPAGES) blkid
+ 	-rmdir tests
+ 
+@@ -188,36 +187,22 @@ distclean:: clean
+ 	$(RM) -f .depend Makefile blkid.pc \
+ 		$(srcdir)/TAGS $(srcdir)/Makefile.in.old
+ 
+-$(OBJS): subdirs
++$(OBJS): subdirs $(HFILES_IN)
+ 
+ # +++ Dependency line eater +++
+ # 
+ # Makefile dependencies follow.  This must be the last section in
+ # the Makefile.in file
+ #
+-cache.o: $(srcdir)/cache.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-dev.o: $(srcdir)/dev.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-devname.o: $(srcdir)/devname.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-devno.o: $(srcdir)/devno.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-getsize.o: $(srcdir)/getsize.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-llseek.o: $(srcdir)/llseek.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-probe.o: $(srcdir)/probe.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h \
+- $(top_srcdir)/lib/uuid/uuid.h $(srcdir)/probe.h
+-read.o: $(srcdir)/read.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h \
+- $(top_srcdir)/lib/uuid/uuid.h
+-resolve.o: $(srcdir)/resolve.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-save.o: $(srcdir)/save.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-tag.o: $(srcdir)/tag.c $(srcdir)/blkidP.h $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(srcdir)/list.h
+-version.o: $(srcdir)/version.c $(srcdir)/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(top_srcdir)/version.h
++cache.o: $(srcdir)/cache.c $(srcdir)/list.h
++dev.o: $(srcdir)/dev.c $(srcdir)/list.h
++devname.o: $(srcdir)/devname.c $(srcdir)/list.h
++devno.o: $(srcdir)/devno.c $(srcdir)/list.h
++getsize.o: $(srcdir)/getsize.c $(srcdir)/list.h
++llseek.o: $(srcdir)/llseek.c $(srcdir)/list.h
++probe.o: $(srcdir)/probe.c $(srcdir)/list.h $(srcdir)/probe.h
++read.o: $(srcdir)/read.c $(srcdir)/list.h
++resolve.o: $(srcdir)/resolve.c $(srcdir)/list.h
++save.o: $(srcdir)/save.c $(srcdir)/list.h
++tag.o: $(srcdir)/tag.c $(srcdir)/list.h
++version.o: $(srcdir)/version.c $(top_srcdir)/version.h
+Index: e2fsprogs-1.41.9/lib/blkid/version.c
+===================================================================
+--- e2fsprogs-1.41.9.orig/lib/blkid/version.c
++++ e2fsprogs-1.41.9/lib/blkid/version.c
+@@ -16,7 +16,7 @@
+ #include <stdio.h>
+ #include <ctype.h>
+ 
+-#include "blkid.h"
++#include <blkid/blkid.h>
+ #include "../../version.h"
+ 
+ static const char *lib_version = E2FSPROGS_VERSION;
+Index: e2fsprogs-1.41.9/lib/uuid/Makefile.in
+===================================================================
+--- e2fsprogs-1.41.9.orig/lib/uuid/Makefile.in
++++ e2fsprogs-1.41.9/lib/uuid/Makefile.in
+@@ -69,6 +69,10 @@ BSDLIB_INSTALL_DIR = $(root_libdir)
+ 
+ all:: tst_uuid uuid_time $(SMANPAGES) uuid.pc
+ 
++uuid.h: $(srcdir)/uuid.h.in
++	$(E) "	CP $@"
++	$(Q) cp $(srcdir)/uuid.h.in uuid.h
++
+ $(top_builddir)/lib/uuid/uuid_types.h: $(srcdir)/uuid_types.h.in $(top_builddir)/config.status
+ 	cd $(top_builddir); CONFIG_FILES=$(my_dir)/uuid_types.h ./config.status
+ 
+@@ -137,7 +141,7 @@ install:: all installdirs 
+ 	-$(Q) $(RANLIB) $(DESTDIR)$(libdir)/libuuid.a
+ 	$(Q) $(CHMOD) $(LIBMODE) $(DESTDIR)$(libdir)/libuuid.a
+ 	$(E) "	INSTALL_DATA $(includedir)/uuid/uuid.h"
+-	$(Q) $(INSTALL_DATA) $(srcdir)/uuid.h $(DESTDIR)$(includedir)/uuid/uuid.h
++	$(Q) $(INSTALL_DATA) uuid.h $(DESTDIR)$(includedir)/uuid/uuid.h
+ 	$(Q) for i in $(SMANPAGES); do \
+ 		$(RM) -f $(DESTDIR)$(man3dir)/$$i.gz; \
+ 		echo "	INSTALL_DATA $(man3dir)/$$i"; \
+@@ -161,7 +165,7 @@ uninstall::
+ 	$(RM) -f $(DESTDIR)$(man3dir)/uuid_generate_random.3 $(DESTDIR)$(man3dir)/uuid_generate_time.3
+ 
+ clean::
+-	$(RM) -f \#* *.s *.o *.a *~ *.bak core profiled/* checker/*
++	$(RM) -f \#* *.s *.o *.a *~ *.bak core profiled/* checker/* uuid.h
+ 	$(RM) -f ../libuuid.a ../libuuid_p.a tst_uuid uuid_time $(SMANPAGES)
+ 
+ check:: tst_uuid
+@@ -179,21 +183,20 @@ distclean:: clean
+ ../../lib/libuuid.so: image
+ ../../lib/libuuid.dylib: image
+ 
+-$(OBJS): subdirs
++$(OBJS): subdirs uuid.h
+ 
+ # +++ Dependency line eater +++
+ # 
+ # Makefile dependencies follow.  This must be the last section in
+ # the Makefile.in file
+ #
+-clear.o: $(srcdir)/clear.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-compare.o: $(srcdir)/compare.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-copy.o: $(srcdir)/copy.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-gen_uuid.o: $(srcdir)/gen_uuid.c $(srcdir)/uuidP.h $(srcdir)/uuid.h \
+- $(srcdir)/uuidd.h
+-isnull.o: $(srcdir)/isnull.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-pack.o: $(srcdir)/pack.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-parse.o: $(srcdir)/parse.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-unpack.o: $(srcdir)/unpack.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-unparse.o: $(srcdir)/unparse.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
+-uuid_time.o: $(srcdir)/uuid_time.c $(srcdir)/uuidP.h $(srcdir)/uuid.h
++clear.o: $(srcdir)/clear.c $(srcdir)/uuidP.h
++compare.o: $(srcdir)/compare.c $(srcdir)/uuidP.h
++copy.o: $(srcdir)/copy.c $(srcdir)/uuidP.h
++gen_uuid.o: $(srcdir)/gen_uuid.c $(srcdir)/uuidP.h $(srcdir)/uuidd.h
++isnull.o: $(srcdir)/isnull.c $(srcdir)/uuidP.h
++pack.o: $(srcdir)/pack.c $(srcdir)/uuidP.h
++parse.o: $(srcdir)/parse.c $(srcdir)/uuidP.h
++unpack.o: $(srcdir)/unpack.c $(srcdir)/uuidP.h
++unparse.o: $(srcdir)/unparse.c $(srcdir)/uuidP.h
++uuid_time.o: $(srcdir)/uuid_time.c $(srcdir)/uuidP.h
+Index: e2fsprogs-1.41.9/lib/uuid/tst_uuid.c
+===================================================================
+--- e2fsprogs-1.41.9.orig/lib/uuid/tst_uuid.c
++++ e2fsprogs-1.41.9/lib/uuid/tst_uuid.c
+@@ -41,7 +41,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
+-#include "uuid.h"
++#include <uuid/uuid.h>
+ 
+ static int test_uuid(const char * uuid, int isValid)
+ {
+Index: e2fsprogs-1.41.9/lib/uuid/uuidP.h
+===================================================================
+--- e2fsprogs-1.41.9.orig/lib/uuid/uuidP.h
++++ e2fsprogs-1.41.9/lib/uuid/uuidP.h
+@@ -39,7 +39,7 @@
+ #endif
+ #include <sys/types.h>
+ 
+-#include "uuid.h"
++#include <uuid/uuid.h>
+ 
+ /*
+  * Offset between 15-Oct-1582 and 1-Jan-70
+Index: e2fsprogs-1.41.9/misc/Makefile.in
+===================================================================
+--- e2fsprogs-1.41.9.orig/misc/Makefile.in
++++ e2fsprogs-1.41.9/misc/Makefile.in
+@@ -565,73 +565,79 @@ distclean: clean
+ #
+ tune2fs.o: $(srcdir)/tune2fs.c $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+- $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h \
+- $(top_srcdir)/lib/uuid/uuid.h $(top_srcdir)/lib/e2p/e2p.h \
+- $(srcdir)/jfs_user.h $(top_srcdir)/lib/ext2fs/kernel-jbd.h \
+- $(top_srcdir)/lib/ext2fs/jfs_compat.h $(top_srcdir)/lib/ext2fs/kernel-list.h \
+- $(srcdir)/util.h $(top_srcdir)/lib/blkid/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h $(top_srcdir)/version.h \
+- $(srcdir)/nls-enable.h
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h $(srcdir)/jfs_user.h \
++ $(top_srcdir)/lib/ext2fs/kernel-jbd.h $(top_srcdir)/lib/ext2fs/jfs_compat.h \
++ $(top_srcdir)/lib/ext2fs/kernel-list.h $(srcdir)/util.h \
++ $(top_srcdir)/version.h $(srcdir)/nls-enable.h
+ mklost+found.o: $(srcdir)/mklost+found.c $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/version.h \
+  $(srcdir)/nls-enable.h
+ mke2fs.o: $(srcdir)/mke2fs.c $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/uuid/uuid.h $(top_srcdir)/lib/e2p/e2p.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
+- $(top_srcdir)/lib/ext2fs/bitops.h $(srcdir)/util.h \
+- $(srcdir)/../e2fsck/profile.h prof_err.h $(top_srcdir)/version.h \
+- $(srcdir)/nls-enable.h
++ $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(srcdir)/util.h $(srcdir)/../e2fsck/profile.h prof_err.h \
++ $(top_srcdir)/version.h $(srcdir)/nls-enable.h
+ chattr.o: $(srcdir)/chattr.c $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/version.h $(srcdir)/nls-enable.h
++ $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/version.h $(srcdir)/nls-enable.h
+ lsattr.o: $(srcdir)/lsattr.c $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/et/com_err.h \
+- $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+- $(top_srcdir)/version.h $(srcdir)/nls-enable.h
++ $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/version.h $(srcdir)/nls-enable.h
+ dumpe2fs.o: $(srcdir)/dumpe2fs.c $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+- $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+  $(top_srcdir)/lib/e2p/e2p.h $(srcdir)/jfs_user.h \
+  $(top_srcdir)/lib/ext2fs/kernel-jbd.h $(top_srcdir)/lib/ext2fs/jfs_compat.h \
+- $(top_srcdir)/lib/ext2fs/kernel-list.h $(top_srcdir)/lib/uuid/uuid.h \
+- $(top_srcdir)/version.h $(srcdir)/nls-enable.h
++ $(top_srcdir)/lib/ext2fs/kernel-list.h $(top_srcdir)/version.h \
++ $(srcdir)/nls-enable.h
+ badblocks.o: $(srcdir)/badblocks.c $(top_srcdir)/lib/et/com_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+- $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+  $(srcdir)/nls-enable.h
+ fsck.o: $(srcdir)/fsck.c $(top_srcdir)/version.h $(srcdir)/nls-enable.h \
+- $(srcdir)/fsck.h $(top_srcdir)/lib/blkid/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h
++ $(srcdir)/fsck.h
+ util.o: $(srcdir)/util.c $(top_srcdir)/lib/et/com_err.h \
+  $(top_srcdir)/lib/e2p/e2p.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(srcdir)/nls-enable.h $(srcdir)/util.h
++uuidgen.o: $(srcdir)/uuidgen.c $(srcdir)/nls-enable.h
++blkid.o: $(srcdir)/blkid.c $(top_srcdir)/lib/ext2fs/ext2fs.h \
++ $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
+  $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
+  $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
+- $(top_srcdir)/lib/ext2fs/bitops.h $(srcdir)/nls-enable.h \
+- $(top_srcdir)/lib/blkid/blkid.h $(top_builddir)/lib/blkid/blkid_types.h \
+- $(srcdir)/util.h
+-uuidgen.o: $(srcdir)/uuidgen.c $(top_srcdir)/lib/uuid/uuid.h \
+- $(srcdir)/nls-enable.h
+-blkid.o: $(srcdir)/blkid.c $(top_srcdir)/lib/blkid/blkid.h \
+- $(top_builddir)/lib/blkid/blkid_types.h
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h
+ logsave.o: $(srcdir)/logsave.c
+-e2freefrag.o: $(srcdir)/e2freefrag.c e2freefrag.h \
+- $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/ext2fs/bitops.h
+-filefrag.o: $(srcdir)/filefrag.c
++filefrag.o: $(srcdir)/filefrag.c $(top_builddir)/lib/ext2fs/ext2_types.h \
++ $(top_srcdir)/lib/ext2fs/fiemap.h
+ base_device.o: $(srcdir)/base_device.c $(srcdir)/fsck.h
+-ismounted.o: $(srcdir)/ismounted.c $(top_srcdir)/lib/et/com_err.h
++ismounted.o: $(srcdir)/ismounted.c $(srcdir)/fsck.h \
++ $(top_srcdir)/lib/et/com_err.h
+ profile.o: $(srcdir)/../e2fsck/profile.c $(top_srcdir)/lib/et/com_err.h \
+  $(srcdir)/../e2fsck/profile.h prof_err.h
+-e2undo.o: $(srcdir)/e2undo.c $(top_srcdir)/lib/ext2fs/tdb.h
++e2undo.o: $(srcdir)/e2undo.c $(top_srcdir)/lib/ext2fs/tdb.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
++ $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
++ $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(srcdir)/nls-enable.h
++e2freefrag.o: $(srcdir)/e2freefrag.c $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_builddir)/lib/ext2fs/ext2_types.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(srcdir)/e2freefrag.h
+Index: e2fsprogs-1.41.9/resize/Makefile.in
+===================================================================
+--- e2fsprogs-1.41.9.orig/resize/Makefile.in
++++ e2fsprogs-1.41.9/resize/Makefile.in
+@@ -146,27 +146,36 @@ source_tar_file: $(top_srcdir)/.exclude-
+ #
+ extent.o: $(srcdir)/extent.c $(srcdir)/resize2fs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h
+ resize2fs.o: $(srcdir)/resize2fs.c $(srcdir)/resize2fs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h
+ main.o: $(srcdir)/main.c $(top_srcdir)/lib/e2p/e2p.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+  $(srcdir)/resize2fs.h $(top_srcdir)/lib/ext2fs/ext2fs.h \
+- $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/ext2fs/ext3_extents.h $(top_srcdir)/lib/et/com_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_io.h $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
+  $(top_srcdir)/version.h
+ online.o: $(srcdir)/online.c $(srcdir)/resize2fs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h
+ sim_progress.o: $(srcdir)/sim_progress.c $(srcdir)/resize2fs.h \
+  $(top_srcdir)/lib/ext2fs/ext2_fs.h $(top_builddir)/lib/ext2fs/ext2_types.h \
+- $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext2_fs.h \
++ $(top_srcdir)/lib/ext2fs/ext2fs.h $(top_srcdir)/lib/ext2fs/ext3_extents.h \
+  $(top_srcdir)/lib/et/com_err.h $(top_srcdir)/lib/ext2fs/ext2_io.h \
+- $(top_builddir)/lib/ext2fs/ext2_err.h $(top_srcdir)/lib/ext2fs/bitops.h
++ $(top_builddir)/lib/ext2fs/ext2_err.h \
++ $(top_srcdir)/lib/ext2fs/ext2_ext_attr.h $(top_srcdir)/lib/ext2fs/bitops.h \
++ $(top_srcdir)/lib/e2p/e2p.h
+Index: e2fsprogs-1.41.9/configure
+===================================================================
+--- e2fsprogs-1.41.9.orig/configure
++++ e2fsprogs-1.41.9/configure
+@@ -15757,6 +15757,96 @@ _ACEOF
+ 
+ fi
+ 
++if test -n "$BLKID_CMT"; then
++  { $as_echo "$as_me:$LINENO: checking for library containing blkid_probe_all" >&5
++$as_echo_n "checking for library containing blkid_probe_all... " >&6; }
++if test "${ac_cv_search_blkid_probe_all+set}" = set; then
++  $as_echo_n "(cached) " >&6
++else
++  ac_func_search_save_LIBS=$LIBS
++cat >conftest.$ac_ext <<_ACEOF
++/* confdefs.h.  */
++_ACEOF
++cat confdefs.h >>conftest.$ac_ext
++cat >>conftest.$ac_ext <<_ACEOF
++/* end confdefs.h.  */
++
++/* Override any GCC internal prototype to avoid an error.
++   Use char because int might match the return type of a GCC
++   builtin and then its argument prototype would still apply.  */
++#ifdef __cplusplus
++extern "C"
++#endif
++char blkid_probe_all ();
++int
++main ()
++{
++return blkid_probe_all ();
++  ;
++  return 0;
++}
++_ACEOF
++for ac_lib in '' blkid; do
++  if test -z "$ac_lib"; then
++    ac_res="none required"
++  else
++    ac_res=-l$ac_lib
++    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
++  fi
++  rm -f conftest.$ac_objext conftest$ac_exeext
++if { (ac_try="$ac_link"
++case "(($ac_try" in
++  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
++  *) ac_try_echo=$ac_try;;
++esac
++eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
++$as_echo "$ac_try_echo") >&5
++  (eval "$ac_link") 2>conftest.er1
++  ac_status=$?
++  grep -v '^ *+' conftest.er1 >conftest.err
++  rm -f conftest.er1
++  cat conftest.err >&5
++  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
++  (exit $ac_status); } && {
++	 test -z "$ac_c_werror_flag" ||
++	 test ! -s conftest.err
++       } && test -s conftest$ac_exeext && {
++	 test "$cross_compiling" = yes ||
++	 $as_test_x conftest$ac_exeext
++       }; then
++  ac_cv_search_blkid_probe_all=$ac_res
++else
++  $as_echo "$as_me: failed program was:" >&5
++sed 's/^/| /' conftest.$ac_ext >&5
++
++
++fi
++
++rm -rf conftest.dSYM
++rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
++      conftest$ac_exeext
++  if test "${ac_cv_search_blkid_probe_all+set}" = set; then
++  break
++fi
++done
++if test "${ac_cv_search_blkid_probe_all+set}" = set; then
++  :
++else
++  ac_cv_search_blkid_probe_all=no
++fi
++rm conftest.$ac_ext
++LIBS=$ac_func_search_save_LIBS
++fi
++{ $as_echo "$as_me:$LINENO: result: $ac_cv_search_blkid_probe_all" >&5
++$as_echo "$ac_cv_search_blkid_probe_all" >&6; }
++ac_res=$ac_cv_search_blkid_probe_all
++if test "$ac_res" != no; then
++  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
++
++fi
++
++fi
++
+ 
+ 
+ 
+@@ -15790,7 +15880,7 @@ fi
+ 
+ 
+ 
+-for ac_func in chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit
++for ac_func in chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit blkid_probe_get_topology
+ do
+ as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
+Index: e2fsprogs-1.41.9/configure.in
+===================================================================
+--- e2fsprogs-1.41.9.orig/configure.in
++++ e2fsprogs-1.41.9/configure.in
+@@ -828,7 +828,14 @@ AC_CHECK_MEMBER(struct sockaddr.sa_len,
+ 	[#include <sys/types.h>
+ 	 #include <sys/socket.h>])
+ dnl
+-AC_CHECK_FUNCS(chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit)
++dnl This will add -lblkid to the AC_CHECK_FUNCS search if we are using
++dnl the system-provided blkid library
++dnl
++if test -n "$BLKID_CMT"; then
++  AC_SEARCH_LIBS([blkid_probe_all], [blkid])
++fi
++dnl
++AC_CHECK_FUNCS(chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit blkid_probe_get_topology)
+ dnl
+ dnl Check to see if -lsocket is required (solaris) to make something
+ dnl that uses socket() to compile; this is needed for the UUID library
+Index: e2fsprogs-1.41.9/misc/mke2fs.c
+===================================================================
+--- e2fsprogs-1.41.9.orig/misc/mke2fs.c
++++ e2fsprogs-1.41.9/misc/mke2fs.c
+@@ -49,6 +49,7 @@ extern int optind;
+ #include <sys/types.h>
+ #include <libgen.h>
+ #include <limits.h>
++#include <blkid/blkid.h>
+ 
+ #include "ext2fs/ext2_fs.h"
+ #include "et/com_err.h"
+@@ -614,6 +615,8 @@ static void show_stats(ext2_filsys fs)
+ 		s->s_log_block_size);
+ 	printf(_("Fragment size=%u (log=%u)\n"), fs->fragsize,
+ 		s->s_log_frag_size);
++	printf(_("Stride=%u blocks, Stripe width=%u blocks\n"),
++	       s->s_raid_stride, s->s_raid_stripe_width);
+ 	printf(_("%u inodes, %u blocks\n"), s->s_inodes_count,
+ 	       s->s_blocks_count);
+ 	printf(_("%u blocks (%2.2f%%) reserved for the super user\n"),
+@@ -1073,6 +1076,43 @@ static int get_bool_from_profile(char **
+ extern const char *mke2fs_default_profile;
+ static const char *default_files[] = { "<default>", 0 };
+ 
++#ifdef HAVE_BLKID_PROBE_GET_TOPOLOGY
++/*
++ * Sets the geometry of a device (stripe/stride), and returns the
++ * device's alignment offset, if any, or a negative error.
++ */
++static int ext2fs_get_device_geometry(const char *file,
++				      struct ext2_super_block *fs_param)
++{
++	int rc = -1;
++	int blocksize;
++	blkid_probe pr;
++	blkid_topology tp;
++	unsigned long min_io;
++	unsigned long opt_io;
++
++	pr = blkid_new_probe_from_filename(file);
++	if (!pr)
++		goto out;
++
++	tp = blkid_probe_get_topology(pr);
++	if (!tp)
++		goto out;
++
++	min_io = blkid_topology_get_minimum_io_size(tp);
++	opt_io = blkid_topology_get_optimal_io_size(tp);
++	blocksize = EXT2_BLOCK_SIZE(fs_param);
++
++	fs_param->s_raid_stride = min_io / blocksize;
++	fs_param->s_raid_stripe_width = opt_io / blocksize;
++
++	rc = blkid_topology_get_alignment_offset(tp);
++out:
++	blkid_free_probe(pr);
++	return rc;
++}
++#endif
++
+ static void PRS(int argc, char *argv[])
+ {
+ 	int		b, c;
+@@ -1633,6 +1673,21 @@ got_size:
+ 	fs_param.s_log_frag_size = fs_param.s_log_block_size =
+ 		int_log2(blocksize >> EXT2_MIN_BLOCK_LOG_SIZE);
+ 
++#ifdef HAVE_BLKID_PROBE_GET_TOPOLOGY
++	retval = ext2fs_get_device_geometry(device_name, &fs_param);
++	if (retval < 0) {
++		fprintf(stderr,
++			_("warning: Unable to get device geometry for %s"),
++			device_name);
++	} else if (retval) {
++		printf(_("%s alignment is offset by %lu bytes.\n"),
++		       device_name, retval);
++		printf(_("This may result in very poor performance, "
++			  "(re)-partitioning suggested.\n"));
++		proceed_question();
++	}
++#endif
++
+ 	blocksize = EXT2_BLOCK_SIZE(&fs_param);
+ 
+ 	lazy_itable_init = get_bool_from_profile(fs_types,
+Index: e2fsprogs-1.41.9/tests/f_resize_inode/expect
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/f_resize_inode/expect
++++ e2fsprogs-1.41.9/tests/f_resize_inode/expect
+@@ -3,6 +3,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=1024 (log=0)
+ Fragment size=1024 (log=0)
++Stride=0 blocks, Stripe width=0 blocks
+ 4096 inodes, 16384 blocks
+ 819 blocks (5.00%) reserved for the super user
+ First data block=1
+Index: e2fsprogs-1.41.9/tests/m_dasd_bs/expect.1
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/m_dasd_bs/expect.1
++++ e2fsprogs-1.41.9/tests/m_dasd_bs/expect.1
+@@ -2,6 +2,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=2048 (log=1)
+ Fragment size=2048 (log=1)
++Stride=0 blocks, Stripe width=0 blocks
+ 16384 inodes, 32768 blocks
+ 1638 blocks (5.00%) reserved for the super user
+ First data block=0
+Index: e2fsprogs-1.41.9/tests/m_large_file/expect.1
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/m_large_file/expect.1
++++ e2fsprogs-1.41.9/tests/m_large_file/expect.1
+@@ -2,6 +2,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=4096 (log=2)
+ Fragment size=4096 (log=2)
++Stride=0 blocks, Stripe width=0 blocks
+ 64 inodes, 16384 blocks
+ 819 blocks (5.00%) reserved for the super user
+ First data block=0
+Index: e2fsprogs-1.41.9/tests/m_meta_bg/expect.1
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/m_meta_bg/expect.1
++++ e2fsprogs-1.41.9/tests/m_meta_bg/expect.1
+@@ -2,6 +2,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=1024 (log=0)
+ Fragment size=1024 (log=0)
++Stride=0 blocks, Stripe width=0 blocks
+ 32768 inodes, 131072 blocks
+ 6553 blocks (5.00%) reserved for the super user
+ First data block=1
+Index: e2fsprogs-1.41.9/tests/m_no_opt/expect.1
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/m_no_opt/expect.1
++++ e2fsprogs-1.41.9/tests/m_no_opt/expect.1
+@@ -2,6 +2,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=1024 (log=0)
+ Fragment size=1024 (log=0)
++Stride=0 blocks, Stripe width=0 blocks
+ 16384 inodes, 65536 blocks
+ 3276 blocks (5.00%) reserved for the super user
+ First data block=1
+Index: e2fsprogs-1.41.9/tests/m_raid_opt/expect.1
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/m_raid_opt/expect.1
++++ e2fsprogs-1.41.9/tests/m_raid_opt/expect.1
+@@ -2,6 +2,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=1024 (log=0)
+ Fragment size=1024 (log=0)
++Stride=13 blocks, Stripe width=0 blocks
+ 32768 inodes, 131072 blocks
+ 6553 blocks (5.00%) reserved for the super user
+ First data block=1
+Index: e2fsprogs-1.41.9/tests/m_std/expect.1
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/m_std/expect.1
++++ e2fsprogs-1.41.9/tests/m_std/expect.1
+@@ -2,6 +2,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=1024 (log=0)
+ Fragment size=1024 (log=0)
++Stride=0 blocks, Stripe width=0 blocks
+ 16384 inodes, 65536 blocks
+ 3276 blocks (5.00%) reserved for the super user
+ First data block=1
+Index: e2fsprogs-1.41.9/tests/m_uninit/expect.1
+===================================================================
+--- e2fsprogs-1.41.9.orig/tests/m_uninit/expect.1
++++ e2fsprogs-1.41.9/tests/m_uninit/expect.1
+@@ -2,6 +2,7 @@ Filesystem label=
+ OS type: Linux
+ Block size=1024 (log=0)
+ Fragment size=1024 (log=0)
++Stride=0 blocks, Stripe width=0 blocks
+ 32768 inodes, 131072 blocks
+ 6553 blocks (5.00%) reserved for the super user
+ First data block=1

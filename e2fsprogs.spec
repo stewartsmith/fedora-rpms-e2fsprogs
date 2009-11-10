@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.9
-Release: 5%{?dist}
+Release: 7%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -15,6 +15,8 @@ Source1: ext2_types-wrapper.h
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch4: e2fsprogs-resize-minimum-fix.patch
 Patch5: e2fsprogs-1.41.9-24hr-fsck-grace.patch
+Patch6: e2fsprogs-1.41.9-topology.patch
+Patch7: e2fsprogs-1.41.9-trim.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -142,6 +144,8 @@ It was originally inspired by the Multics SubSystem library.
 %patch2 -p1 -b .featurecheck
 %patch4 -p1 -b .resize
 %patch5 -p1 -b .24h
+%patch6 -p1 -b .topo
+%patch7 -p1 -b .trim
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -302,6 +306,13 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Nov 10 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-7
+- re-enable "make check" during build
+
+* Wed Oct 28 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-6
+- Add support for block discard (TRIM) at mkfs time
+- Add support for new blkid topology awareness
+
 * Mon Oct 19 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-5
 - Allow superblock timestamp differences up to 24h (#522969)
 

@@ -1,0 +1,38 @@
+Index: e2fsprogs-1.41.9/resize/resize2fs.c
+===================================================================
+--- e2fsprogs-1.41.9.orig/resize/resize2fs.c
++++ e2fsprogs-1.41.9/resize/resize2fs.c
+@@ -1818,9 +1818,6 @@ static errcode_t ext2fs_calculate_summar
+ 			fs->group_desc[group].bg_free_blocks_count =
+ 				group_free;
+ 			ext2fs_group_desc_csum_set(fs, group);
+-			group++;
+-			count = 0;
+-			group_free = 0;
+ 			uninit = (fs->group_desc[group].bg_flags &
+ 				  EXT2_BG_BLOCK_UNINIT);
+ 			ext2fs_super_and_bgd_loc(fs, group, &super_blk,
+@@ -1832,6 +1829,9 @@ static errcode_t ext2fs_calculate_summar
+ 			else
+ 				old_desc_blocks = fs->desc_blocks +
+ 					fs->super->s_reserved_gdt_blocks;
++			group++;
++			count = 0;
++			group_free = 0;
+ 		}
+ 	}
+ 	fs->super->s_free_blocks_count = total_free;
+@@ -1858,11 +1858,11 @@ static errcode_t ext2fs_calculate_summar
+ 			fs->group_desc[group].bg_free_inodes_count =
+ 				group_free;
+ 			ext2fs_group_desc_csum_set(fs, group);
++			uninit = (fs->group_desc[group].bg_flags &
++				  EXT2_BG_INODE_UNINIT);
+ 			group++;
+ 			count = 0;
+ 			group_free = 0;
+-			uninit = (fs->group_desc[group].bg_flags &
+-				  EXT2_BG_INODE_UNINIT);
+ 		}
+ 	}
+ 	fs->super->s_free_inodes_count = total_free;

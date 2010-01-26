@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.9
-Release: 8%{?dist}
+Release: 9%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -18,6 +18,9 @@ Patch5: e2fsprogs-1.41.9-24hr-fsck-grace.patch
 Patch6: e2fsprogs-1.41.9-topology.patch
 Patch7: e2fsprogs-1.41.9-trim.patch
 Patch8: e4fsprogs-1.41.9-s_jnl_blocks-swap.patch
+Patch9: e2fsprogs-1.41.9-topology-quiet.patch
+Patch10: e2fsprogs-1.41.9-resize-array.patch
+Patch11: e2fsprogs-1.41.9-dlopen-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -148,11 +151,14 @@ It was originally inspired by the Multics SubSystem library.
 %patch6 -p1 -b .topo
 %patch7 -p1 -b .trim
 %patch8 -p1 -b .journalblocks
+%patch9 -p1 -b .topo2
+%patch10 -p1 -b .resize2
+%patch11 -p1 -b .dlopen
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
 	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid
-make %{?_smp_mflags} V=1
+make %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
@@ -175,7 +181,7 @@ chmod +w %{buildroot}%{_libdir}/*.a
 %find_lang %{name}
 
 %check
-# make check
+make check
 
 %clean
 rm -rf %{buildroot}
@@ -311,6 +317,11 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Sat Jan 23 2010 Eric Sandeen <sandeen@redhat.com> 1.41.9-9
+- Fix up stray output & re-enable make check
+- Fix dlopen issues for newer libreadline
+- Fix access beyond end of array in resize2fs
+
 * Tue Nov 10 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-8
 - Fix up topology patch to build w/ new util-linux-ng
 - Fix endian swapping of backup journal blocks in sb

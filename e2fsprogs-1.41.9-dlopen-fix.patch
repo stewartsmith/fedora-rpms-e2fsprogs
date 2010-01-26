@@ -1,0 +1,52 @@
+commit 06ef971be505678ee462ae1844204ed24f14aedc
+Author: Theodore Ts'o <tytso@mit.edu>
+Date:   Thu Nov 12 17:54:45 2009 -0500
+
+    libss: initialize function pointer for readline_shutdown()
+
+    Clear the function pointer for readline_shutdown() so that if libss is
+    linking against a readline library which doesn't supply a
+    readline_shutdown() function, ss_delete_invocation() won't seg fault.
+
+    Thanks to Solar Designer <solar@openwall.com> for reporting this
+    problem to me.
+
+    Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+
+libss: add newer libreadline to dlopen path
+
+Rawhide now has libreadline.so.6 ... add it to the ever-expanding
+list of libs to look for.
+
+Unfortunately without commit 06ef971be505678ee462ae1844204ed24f14aedc
+this fails in a rather cryptic way.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+---
+
+Index: e2fsprogs-1.41.9/lib/ss/invocation.c
+===================================================================
+--- e2fsprogs-1.41.9.orig/lib/ss/invocation.c
++++ e2fsprogs-1.41.9/lib/ss/invocation.c
+@@ -71,6 +71,7 @@ int ss_create_invocation(subsystem_name,
+ 	*(new_table->rqt_tables+1) = (ss_request_table *) NULL;
+ 
+ 	new_table->readline_handle = 0;
++	new_table->readline_shutdown = 0;
+ 	new_table->readline = 0;
+ 	new_table->add_history = 0;
+ 	new_table->redisplay = 0;
+Index: e2fsprogs-1.41.9/lib/ss/get_readline.c
+===================================================================
+--- e2fsprogs-1.41.9.orig/lib/ss/get_readline.c
++++ e2fsprogs-1.41.9/lib/ss/get_readline.c
+@@ -36,7 +36,7 @@ static void ss_release_readline(ss_data 
+ }
+ 
+ /* Libraries we will try to use for readline/editline functionality */
+-#define DEFAULT_LIBPATH "libreadline.so.5:libreadline.so.4:libreadline.so:libedit.so.2:libedit.so:libeditline.so.0:libeditline.so"
++#define DEFAULT_LIBPATH "libreadline.so.6:libreadline.so.5:libreadline.so.4:libreadline.so:libedit.so.2:libedit.so:libeditline.so.0:libeditline.so"
+ 
+ void ss_get_readline(int sci_idx)
+ {
+

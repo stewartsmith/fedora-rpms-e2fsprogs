@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.9
-Release: 9%{?dist}
+Release: 10%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -317,6 +317,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Sun Feb 07 2010 Eric Sandeen <sandeen@redhat.com> 1.41.9-10
+- Upstream version of resize2fs array fix, original was wrong
+
 * Sat Jan 23 2010 Eric Sandeen <sandeen@redhat.com> 1.41.9-9
 - Fix up stray output & re-enable make check
 - Fix dlopen issues for newer libreadline

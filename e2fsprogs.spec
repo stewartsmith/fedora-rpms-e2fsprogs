@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.9
-Release: 10%{?dist}
+Version: 1.41.10
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -13,14 +13,6 @@ Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch4: e2fsprogs-resize-minimum-fix.patch
-Patch5: e2fsprogs-1.41.9-24hr-fsck-grace.patch
-Patch6: e2fsprogs-1.41.9-topology.patch
-Patch7: e2fsprogs-1.41.9-trim.patch
-Patch8: e4fsprogs-1.41.9-s_jnl_blocks-swap.patch
-Patch9: e2fsprogs-1.41.9-topology-quiet.patch
-Patch10: e2fsprogs-1.41.9-resize-array.patch
-Patch11: e2fsprogs-1.41.9-dlopen-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -146,14 +138,6 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch2 -p1 -b .featurecheck
-%patch4 -p1 -b .resize
-%patch5 -p1 -b .24h
-%patch6 -p1 -b .topo
-%patch7 -p1 -b .trim
-%patch8 -p1 -b .journalblocks
-%patch9 -p1 -b .topo2
-%patch10 -p1 -b .resize2
-%patch11 -p1 -b .dlopen
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -317,6 +301,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed Feb 10 2010 Eric Sandeen <sandeen@redhat.com> 1.41.10-1
+- New upstream version
+
 * Sun Feb 07 2010 Eric Sandeen <sandeen@redhat.com> 1.41.9-10
 - Upstream version of resize2fs array fix, original was wrong
 

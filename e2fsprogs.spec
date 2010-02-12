@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.10
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -57,10 +57,9 @@ These libraries are used to directly acccess ext2/3/4 filesystems
 from userspace.
 
 %package devel
-Summary: Ext2/3/4 filesystem-specific static libraries and headers
+Summary: Ext2/3/4 filesystem-specific libraries and headers
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
-Provides: %{name}-static = %{version}-%{release}
 Requires: e2fsprogs-libs = %{version}-%{release}
 Requires: gawk
 Requires: libcom_err-devel
@@ -91,7 +90,6 @@ libcom_err is an attempt to present a common error-handling mechanism.
 Summary: Common error description library
 Group: Development/Libraries
 License: MIT
-Provides: libcom_err-static = %{version}-%{release}
 Requires: libcom_err = %{version}-%{release}
 Requires: pkgconfig
 
@@ -113,7 +111,7 @@ This is libss, a command line interface parsing library, part of e2fsprogs.
 
 This package includes a tool that parses a command table to generate
 a simple command-line interface parser, the include files needed to
-compile and use it, and the static libs.
+compile and use it.
 
 It was originally inspired by the Multics SubSystem library.
 
@@ -121,7 +119,6 @@ It was originally inspired by the Multics SubSystem library.
 Summary: Command line interface parsing library
 Group: Development/Libraries
 License: MIT
-Provides: libss-static = %{version}-%{release}
 Requires: libss = %{version}-%{release}
 Requires: pkgconfig
 
@@ -173,8 +170,8 @@ rm -rf %{buildroot}
 %post libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
-# Test for file; if installed with --excludedocs it may not be there
 %post devel
+# Test for file; if installed with --excludedocs it may not be there
 if [ -f %{_infodir}/libext2fs.info.gz ]; then
    /sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
 fi
@@ -297,6 +294,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Fri Feb 12 2010 Eric Sandeen <sandeen@redhat.com> 1.41.10-3
+- And drop virtual provides for static libs
+
 * Fri Feb 12 2010 Eric Sandeen <sandeen@redhat.com> 1.41.10-2
 - Drop static libs (#545144)
 

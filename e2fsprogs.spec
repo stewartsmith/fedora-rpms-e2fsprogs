@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.10
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -159,8 +159,8 @@ mv -f %{buildroot}%{_includedir}/ext2fs/ext2_types.h \
 install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
 %endif
 
-# Hack for now, otherwise strip fails.
-chmod +w %{buildroot}%{_libdir}/*.a
+# Must not violate packaging guidelines!
+rm -f %{buildroot}%{_libdir}/*.a
 
 %find_lang %{name}
 
@@ -259,9 +259,7 @@ exit 0
 %files devel
 %defattr(-,root,root)
 %{_infodir}/libext2fs.info*
-%{_libdir}/libe2p.a
 %{_libdir}/libe2p.so
-%{_libdir}/libext2fs.a
 %{_libdir}/libext2fs.so
 %{_libdir}/pkgconfig/e2p.pc
 %{_libdir}/pkgconfig/ext2fs.pc
@@ -277,7 +275,6 @@ exit 0
 %files -n libcom_err-devel
 %defattr(-,root,root)
 %{_bindir}/compile_et
-%{_libdir}/libcom_err.a
 %{_libdir}/libcom_err.so
 %{_datadir}/et
 %{_includedir}/et
@@ -293,7 +290,6 @@ exit 0
 %files -n libss-devel
 %defattr(-,root,root)
 %{_bindir}/mk_cmds
-%{_libdir}/libss.a
 %{_libdir}/libss.so
 %{_datadir}/ss
 %{_includedir}/ss
@@ -301,6 +297,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Fri Feb 12 2010 Eric Sandeen <sandeen@redhat.com> 1.41.10-2
+- Drop static libs (#545144)
+
 * Wed Feb 10 2010 Eric Sandeen <sandeen@redhat.com> 1.41.10-1
 - New upstream version
 

@@ -1,0 +1,23 @@
+[PATCH] mke2fs: skip alignment questioning if -F specified
+
+RH bug 569021 - mke2fs insists on user interaction even if stdin is not a tty and -F is passed
+
+This is just a warning, -F should easily override it.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+---
+
+diff --git a/misc/mke2fs.c b/misc/mke2fs.c
+index 4b13367..2a23bf7 100644
+--- a/misc/mke2fs.c
++++ b/misc/mke2fs.c
+@@ -1643,7 +1643,8 @@ got_size:
+ 		       device_name, retval);
+ 		printf(_("This may result in very poor performance, "
+ 			  "(re)-partitioning suggested.\n"));
+-		proceed_question();
++		if (!force)
++			proceed_question();
+ 	}
+ #endif
+ 

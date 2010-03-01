@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.10
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -14,6 +14,7 @@ Source1: ext2_types-wrapper.h
 
 Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch3: e2fsprogs-1.41.10-fsck-D-fix.patch
+Patch4: e2fsprogs-1.41.10-no-alignment-question.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -140,6 +141,8 @@ It was originally inspired by the Multics SubSystem library.
 # E2fsprogs 1.41.10 introduced a regression (in commit b71e018) where
 # e2fsck -fD can corrupt non-indexed directories
 %patch3 -p1 -b .fsckD
+# Don't ask about alignment issues if -F is specified to fsck
+%patch4 -p1 -b .fsckF
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -299,6 +302,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Mar 01 2010 Eric Sandeen <sandeen@redhat.com> 1.41.10-5
+- Don't ask for confirmation of misaligned mkfs with -F (#569021)
+
 * Tue Feb 23 2010 Eric Sandeen <sandeen@redhat.com> 1.41.10-4
 - Fix for e2fsck -fD corruption
 

@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.12
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -12,7 +12,8 @@ Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 
-Patch2: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch2: e2fpsrogs-1.41.12-EOFBLOCKS-test.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -134,7 +135,10 @@ It was originally inspired by the Multics SubSystem library.
 # ignore some flag differences on primary/backup sb feature checks
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
-%patch2 -p1 -b .featurecheck
+%patch1 -p1 -b .featurecheck
+
+# Test for EOFBLOCKS was backwards
+%patch2 -p1 -b .EOFBLOCKS
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -294,6 +298,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed May 19 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-2
+- Fix fsck thinko in 1.41.12 release
+
 * Mon May 17 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-1
 - New upstream version
 

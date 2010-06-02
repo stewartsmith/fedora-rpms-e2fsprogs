@@ -172,6 +172,9 @@ mv -f %{buildroot}%{_includedir}/ext2fs/ext2_types.h \
 install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
 %endif
 
+# Hack for now, otherwise strip fails.
+chmod +w %{buildroot}%{_libdir}/*.a
+
 %find_lang %{name}
 
 %check

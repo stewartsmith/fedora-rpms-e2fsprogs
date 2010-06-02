@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.12
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -56,6 +56,18 @@ e2fsprogs package.
 
 These libraries are used to directly acccess ext2/3/4 filesystems
 from userspace.
+
+%package static
+Summary: Ext2/3/4 filesystem-specific static libraries
+Group: Development/Libraries
+License: GPLv2 and LGPLv2
+
+%description static
+E2fsprogs-static contains all static libraries built from e2fsprogs,
+including libext2fs, libcom_err, libe2p, and libss.
+
+These libraries are used to directly acccess ext2/3/4 filesystems
+from userspace, and perform other useful functions.
 
 %package devel
 Summary: Ext2/3/4 filesystem-specific libraries and headers
@@ -160,9 +172,6 @@ mv -f %{buildroot}%{_includedir}/ext2fs/ext2_types.h \
 install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
 %endif
 
-# Must not violate packaging guidelines!
-rm -f %{buildroot}%{_libdir}/*.a
-
 %find_lang %{name}
 
 %check
@@ -257,6 +266,10 @@ exit 0
 %{_root_libdir}/libe2p.so.*
 %{_root_libdir}/libext2fs.so.*
 
+%files static
+%defattr(-,root,root)
+%{_libdir}/*.a
+
 %files devel
 %defattr(-,root,root)
 %{_infodir}/libext2fs.info*
@@ -298,6 +311,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed Jun 02 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-3
+- Reinstate static libs in dedicated package (#596377)
+
 * Wed May 19 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-2
 - Fix fsck thinko in 1.41.12 release
 

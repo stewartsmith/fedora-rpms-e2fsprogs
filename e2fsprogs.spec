@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.12
-Release: 3%{?dist}
+Release: 5%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -14,6 +14,7 @@ Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fpsrogs-1.41.12-EOFBLOCKS-test.patch
+Patch3: e2fsprogs-1.41.12-relax-resize2fs-P.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -151,6 +152,8 @@ It was originally inspired by the Multics SubSystem library.
 
 # Test for EOFBLOCKS was backwards
 %patch2 -p1 -b .EOFBLOCKS
+# relax resize2fs -P requirements a bit
+%patch3 -p1 -b .resize2fs
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -271,6 +274,7 @@ exit 0
 
 %files static
 %defattr(-,root,root)
+%doc COPYING
 %{_libdir}/*.a
 
 %files devel
@@ -314,6 +318,12 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Jul 13 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-5
+- Relax fsck requirements for resize2fs -P
+
+* Mon Jul 12 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-4
+- Add COPYING file to the static subpackage
+
 * Wed Jun 02 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-3
 - Reinstate static libs in dedicated package (#596377)
 

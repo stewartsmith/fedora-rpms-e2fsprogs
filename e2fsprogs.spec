@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.12
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -15,6 +15,7 @@ Source1: ext2_types-wrapper.h
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fpsrogs-1.41.12-EOFBLOCKS-test.patch
 Patch3: e2fsprogs-1.41.12-relax-resize2fs-P.patch
+Patch4: e2fsprogs-1.41.12-e4defrag.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -154,6 +155,8 @@ It was originally inspired by the Multics SubSystem library.
 %patch2 -p1 -b .EOFBLOCKS
 # relax resize2fs -P requirements a bit
 %patch3 -p1 -b .resize2fs
+# e4defrag for testing
+%patch4 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -233,6 +236,7 @@ exit 0
 %{_root_sbindir}/tune2fs
 %{_sbindir}/filefrag
 %{_sbindir}/e2freefrag
+%{_sbindir}/e4defrag
 %{_sbindir}/mklost+found
 
 %{_bindir}/chattr
@@ -249,6 +253,7 @@ exit 0
 %{_mandir}/man8/e2fsck.8*
 %{_mandir}/man8/filefrag.8*
 %{_mandir}/man8/e2freefrag.8*
+%{_mandir}/man8/e4defrag.8*
 %{_mandir}/man8/fsck.ext2.8*
 %{_mandir}/man8/fsck.ext3.8*
 %{_mandir}/man8/fsck.ext4.8*
@@ -318,6 +323,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed Oct 06 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-6
+- Install e4defrag for testing
+
 * Mon Jul 13 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-5
 - Relax fsck requirements for resize2fs -P
 

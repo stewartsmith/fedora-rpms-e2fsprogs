@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.12
-Release: 6%{?dist}
+Release: 7%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -16,6 +16,7 @@ Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fpsrogs-1.41.12-EOFBLOCKS-test.patch
 Patch3: e2fsprogs-1.41.12-relax-resize2fs-P.patch
 Patch4: e2fsprogs-1.41.12-e4defrag.patch
+Patch5: e2fsprogs-1.41.12-UTF8-chars.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -157,6 +158,8 @@ It was originally inspired by the Multics SubSystem library.
 %patch3 -p1 -b .resize2fs
 # e4defrag for testing
 %patch4 -p1
+# Fix up UTF8 formatting
+%patch5 -p1 -b .utf8
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -323,6 +326,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Dec 07 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-7
+- Fix up UTF-8 formatting in e2fsck output (#655227)
+
 * Wed Oct 06 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-6
 - Install e4defrag for testing
 

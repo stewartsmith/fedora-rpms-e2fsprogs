@@ -10,10 +10,10 @@ Date:   Sun Aug 1 22:30:33 2010 -0400
     
     Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 
-diff --git a/configure b/configure
-index d563a8d..aaeb177 100755
---- a/configure
-+++ b/configure
+Index: e2fsprogs-1.41.12/configure
+===================================================================
+--- e2fsprogs-1.41.12.orig/configure
++++ e2fsprogs-1.41.12/configure
 @@ -1,10 +1,12 @@
  #! /bin/sh
  # Guess values for system-dependent variables and create Makefiles.
@@ -30,7 +30,7 @@ index d563a8d..aaeb177 100755
  #
  # This configure script is free software; the Free Software Foundation
  # gives unlimited permission to copy, distribute and modify it.
-@@ -524,7 +526,8 @@ as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[^_$as_cr_alnum]%_%g'"
+@@ -524,7 +526,8 @@ as_tr_cpp="eval sed 'y%*$as_cr_letters%P
  as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr_alnum]%_%g'"
  
  
@@ -57,7 +57,7 @@ index d563a8d..aaeb177 100755
                you have headers in a nonstandard directory <include dir>
    CPP         C preprocessor
    PKG_CONFIG  path to pkg-config utility
-@@ -1550,7 +1554,7 @@ test -n "$ac_init_help" && exit $ac_status
+@@ -1550,7 +1554,7 @@ test -n "$ac_init_help" && exit $ac_stat
  if $ac_init_version; then
    cat <<\_ACEOF
  configure
@@ -111,7 +111,7 @@ index d563a8d..aaeb177 100755
  
  } # ac_fn_c_compute_int
  
-@@ -2243,7 +2247,7 @@ This file contains any messages produced by compilers while
+@@ -2243,7 +2247,7 @@ This file contains any messages produced
  running configure, to aid debugging if configure makes a mistake.
  
  It was created by $as_me, which was
@@ -129,7 +129,7 @@ index d563a8d..aaeb177 100755
      { $as_echo "$as_me:${as_lineno-$LINENO}: loading site script $ac_site_file" >&5
  $as_echo "$as_me: loading site script $ac_site_file" >&6;}
      sed 's/^/| /' "$ac_site_file" >&5
-@@ -2505,9 +2509,9 @@ $as_echo "$as_me: loading site script $ac_site_file" >&6;}
+@@ -2505,9 +2509,9 @@ $as_echo "$as_me: loading site script $a
  done
  
  if test -r "$cache_file"; then
@@ -142,7 +142,7 @@ index d563a8d..aaeb177 100755
      { $as_echo "$as_me:${as_lineno-$LINENO}: loading cache $cache_file" >&5
  $as_echo "$as_me: loading cache $cache_file" >&6;}
      case $cache_file in
-@@ -2521,6 +2525,9 @@ $as_echo "$as_me: creating cache $cache_file" >&6;}
+@@ -2521,6 +2525,9 @@ $as_echo "$as_me: creating cache $cache_
    >$cache_file
  fi
  
@@ -190,7 +190,7 @@ index d563a8d..aaeb177 100755
  ac_link_default=`$as_echo "$ac_link" | sed 's/ -o *conftest[^ ]*//'`
  
  # The possible output files:
-@@ -3154,10 +3159,10 @@ test "$ac_cv_exeext" = no && ac_cv_exeext=
+@@ -3154,10 +3159,10 @@ test "$ac_cv_exeext" = no && ac_cv_exeex
  else
    ac_file=''
  fi
@@ -204,7 +204,7 @@ index d563a8d..aaeb177 100755
  sed 's/^/| /' conftest.$ac_ext >&5
  
  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-@@ -3165,51 +3170,18 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+@@ -3165,51 +3170,18 @@ $as_echo "$as_me: error: in \`$ac_pwd':"
  { as_fn_set_status 77
  as_fn_error "C compiler cannot create executables
  See \`config.log' for more details." "$LINENO" 5; }; }
@@ -264,7 +264,7 @@ index d563a8d..aaeb177 100755
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for suffix of executables" >&5
  $as_echo_n "checking for suffix of executables... " >&6; }
  if { { ac_try="$ac_link"
-@@ -3242,13 +3214,72 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+@@ -3242,13 +3214,72 @@ $as_echo "$as_me: error: in \`$ac_pwd':"
  as_fn_error "cannot compute suffix of executables: cannot compile and link
  See \`config.log' for more details." "$LINENO" 5; }
  fi
@@ -469,7 +469,7 @@ index d563a8d..aaeb177 100755
    close (fd);
    return 0;
  }
-@@ -6971,7 +7023,7 @@ if test $ac_cv_func_mmap_fixed_mapped = yes; then
+@@ -6971,7 +7023,7 @@ if test $ac_cv_func_mmap_fixed_mapped = 
  $as_echo "#define HAVE_MMAP 1" >>confdefs.h
  
  fi
@@ -482,12 +482,12 @@ index d563a8d..aaeb177 100755
  fi
  
  fi
--for ac_func in chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit blkid_probe_get_topology
-+for ac_func in chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit blkid_probe_get_topology mbstowcs
+-for ac_func in chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit sync_file_range posix_fadvise fallocate blkid_probe_get_topology
++for ac_func in chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit sync_file_range posix_fadvise fallocate blkid_probe_get_topology mbstowcs
  do :
    as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
  ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-@@ -11593,7 +11645,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+@@ -11593,7 +11645,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_wri
  # values after options handling.
  ac_log="
  This file was extended by $as_me, which was
@@ -545,23 +545,23 @@ index d563a8d..aaeb177 100755
  t more2
  s/["\\]/\\&/g; s/^/"/; s/$/"/
  p
-diff --git a/configure.in b/configure.in
-index 3441bee..5c6b801 100644
---- a/configure.in
-+++ b/configure.in
+Index: e2fsprogs-1.41.12/configure.in
+===================================================================
+--- e2fsprogs-1.41.12.orig/configure.in
++++ e2fsprogs-1.41.12/configure.in
 @@ -853,7 +853,7 @@ if test -n "$BLKID_CMT"; then
    AC_SEARCH_LIBS([blkid_probe_all], [blkid])
  fi
  dnl
--AC_CHECK_FUNCS(chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit blkid_probe_get_topology)
-+AC_CHECK_FUNCS(chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit blkid_probe_get_topology mbstowcs)
+-AC_CHECK_FUNCS(chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit sync_file_range posix_fadvise fallocate blkid_probe_get_topology)
++AC_CHECK_FUNCS(chflags getrusage llseek lseek64 open64 fstat64 ftruncate64 getmntinfo strtoull strcasecmp srandom jrand48 fchown mallinfo fdatasync strnlen strptime strdup sysconf pathconf posix_memalign memalign valloc __secure_getenv prctl mmap utime setresuid setresgid usleep nanosleep getdtablesize getrlimit sync_file_range posix_fadvise fallocate blkid_probe_get_topology mbstowcs)
  dnl
  dnl Check to see if -lsocket is required (solaris) to make something
  dnl that uses socket() to compile; this is needed for the UUID library
-diff --git a/misc/badblocks.c b/misc/badblocks.c
-index bcf89f7..5d5ca89 100644
---- a/misc/badblocks.c
-+++ b/misc/badblocks.c
+Index: e2fsprogs-1.41.12/misc/badblocks.c
+===================================================================
+--- e2fsprogs-1.41.12.orig/misc/badblocks.c
++++ e2fsprogs-1.41.12/misc/badblocks.c
 @@ -203,6 +203,9 @@ static void print_status(void)
  		       calc_percent((unsigned long) currently_testing,
  				    (unsigned long) num_blocks), 

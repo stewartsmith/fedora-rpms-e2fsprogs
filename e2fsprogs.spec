@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.12
-Release: 7%{?dist}
+Version: 1.41.13
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -13,10 +13,7 @@ Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch2: e2fpsrogs-1.41.12-EOFBLOCKS-test.patch
-Patch3: e2fsprogs-1.41.12-relax-resize2fs-P.patch
-Patch4: e2fsprogs-1.41.12-e4defrag.patch
-Patch5: e2fsprogs-1.41.12-UTF8-chars.patch
+Patch2: e2fsprogs-1.41.12-e4defrag.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -151,15 +148,8 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
-
-# Test for EOFBLOCKS was backwards
-%patch2 -p1 -b .EOFBLOCKS
-# relax resize2fs -P requirements a bit
-%patch3 -p1 -b .resize2fs
-# e4defrag for testing
-%patch4 -p1
-# Fix up UTF8 formatting
-%patch5 -p1 -b .utf8
+# Enable e4defrag for testing
+%patch2 -p1 -b .e4defrag
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -326,6 +316,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Dec 20 2010 Eric Sandeen <sandeen@redhat.com> 1.41.13-1
+- New upstream release
+
 * Tue Dec 07 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-7
 - Fix up UTF-8 formatting in e2fsck output (#655227)
 

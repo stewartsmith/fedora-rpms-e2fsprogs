@@ -3,8 +3,8 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.13
-Release: 2%{?dist}
+Version: 1.41.14
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -14,7 +14,6 @@ Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fsprogs-1.41.12-e4defrag.patch
-Patch3: e2fsprogs-1.41.13-big-endian.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -151,8 +150,6 @@ It was originally inspired by the Multics SubSystem library.
 %patch1 -p1 -b .featurecheck
 # Enable e4defrag for testing
 %patch2 -p1 -b .e4defrag
-# Update for big-endians (part of commit ccc7cf0328)
-%patch3 -p1 -b .big-endian
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -319,6 +316,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Dec 23 2010 Eric Sandeen <sandeen@redhat.com> 1.41.14-1
+- New upstream release
+
 * Wed Dec 22 2010 Dan Horák <dan[at]danny.cz> 1.41.13-2
 - Add upstream fix for big-endian machines
 

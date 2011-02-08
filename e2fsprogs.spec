@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.41.14
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -316,6 +316,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.41.14-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
 * Thu Dec 23 2010 Eric Sandeen <sandeen@redhat.com> 1.41.14-1
 - New upstream release
 

@@ -3,17 +3,17 @@
 
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.41.14
-Release: 2%{?dist}
+Version: 1.42
+Release: 0.1.WIP.0702%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+# Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+Source0: ftp://ftp.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/e2fsprogs-1.42-WIP-0702.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch2: e2fsprogs-1.41.12-e4defrag.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -148,8 +148,6 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
-# Enable e4defrag for testing
-%patch2 -p1 -b .e4defrag
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -297,6 +295,7 @@ exit 0
 %{_libdir}/libcom_err.so
 %{_datadir}/et
 %{_includedir}/et
+%{_includedir}/com_err.h
 %{_mandir}/man1/compile_et.1*
 %{_mandir}/man3/com_err.3*
 %{_libdir}/pkgconfig/com_err.pc
@@ -316,6 +315,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Aug 09 2011 Eric Sandeen <sandeen@redhat.com>  1.42-0.1.WIP.0702
+- Test release for >16T support 
+
 * Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.41.14-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 

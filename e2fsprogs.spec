@@ -4,17 +4,17 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42
-Release: 0.2.WIP.0702%{?dist}
+Release: 0.3.WIP.0925%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 # Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
-Source0: ftp://ftp.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/e2fsprogs-1.42-WIP-0702.tar.gz
+# Source0: ftp://ftp.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/e2fsprogs-1.42-WIP-0702.tar.gz
+Source0: http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.42-WIP-0925.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch2: e2fsprogs-1.42-copy_generic_bitmap-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -150,8 +150,6 @@ It was originally inspired by the Multics SubSystem library.
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
 
-%patch2 -p1
-
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
 	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid
@@ -283,9 +281,11 @@ exit 0
 %{_libdir}/libext2fs.so
 %{_libdir}/pkgconfig/e2p.pc
 %{_libdir}/pkgconfig/ext2fs.pc
+%{_libdir}/pkgconfig/quota.pc
 
 %{_includedir}/e2p
 %{_includedir}/ext2fs
+%{_includedir}/quota
 
 %files -n libcom_err
 %defattr(-,root,root)
@@ -318,10 +318,13 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
-* Tue Aug 09 2011 Eric Sandeen <sandeen@redhat.com>  1.42-0.2.WIP.0702
+* Mon Sep 26 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.3.WIP.0925
 - Fix use of uninitialized memory via ext2fs_copy_generic_bmap()
 
-* Tue Aug 09 2011 Eric Sandeen <sandeen@redhat.com>  1.42-0.1.WIP.0702
+* Tue Aug 09 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.2.WIP.0702
+- Fix use of uninitialized memory via ext2fs_copy_generic_bmap()
+
+* Tue Aug 09 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.1.WIP.0702
 - Test release for >16T support 
 
 * Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.41.14-2

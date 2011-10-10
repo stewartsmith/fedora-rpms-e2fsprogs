@@ -4,14 +4,14 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42
-Release: 0.3.WIP.0925%{?dist}
+Release: 0.4.WIP.2011.1009%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 # Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 # Source0: ftp://ftp.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/e2fsprogs-1.42-WIP-0702.tar.gz
-Source0: http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.42-WIP-0925.tar.gz
+Source0: http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.42-WIP-1009.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
@@ -30,6 +30,7 @@ BuildRequires: pkgconfig, texinfo, libselinux-devel
 BuildRequires: libsepol-devel
 BuildRequires: libblkid-devel
 BuildRequires: libuuid-devel
+BuildRequires: gettext
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -318,8 +319,11 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Oct 10 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.4.WIP.2011.1009
+- New upstream snapshot release
+
 * Mon Sep 26 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.3.WIP.0925
-- Fix use of uninitialized memory via ext2fs_copy_generic_bmap()
+- New upstream snapshot release
 
 * Tue Aug 09 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.2.WIP.0702
 - Fix use of uninitialized memory via ext2fs_copy_generic_bmap()

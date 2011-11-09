@@ -1,0 +1,46 @@
+Date:	Tue, 08 Nov 2011 16:26:35 -0600
+From: Eric Sandeen <sandeen@redhat.com>
+To: ext4 development <linux-ext4@vger.kernel.org>
+Subject: [PATCH] libext2: advance group in ext2fs_open2 during swapping
+
+Without this change, we go back to getting group descriptor
+"0" each time we go around the "for i" loop.  It must properly
+advance through the filesystem.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+---
+
+(I couldn't decipher the removed comment; maybe it was typed when
+you thought you would do:
+
+                        gdp = ext2fs_group_desc(fs, dest, j);
+
+which would also work ... ?  It'd be clever, but I think my change
+is more explicitly obvious.  Either way works.
+
+We still have failing tests but at least nothing hangs now:
+Tests failed: f_mmp f_mmp_garbage m_mmp t_mmp_1on t_mmp_2off 
+
+
+diff --git a/lib/ext2fs/openfs.c b/lib/ext2fs/openfs.c
+index 0cefe3f..40a52c5 100644
+--- a/lib/ext2fs/openfs.c
++++ b/lib/ext2fs/openfs.c
+@@ -356,8 +356,8 @@ errcode_t ext2fs_open2(const char *name, const char *io_options,
+ 			goto cleanup;
+ #ifdef WORDS_BIGENDIAN
+ 		for (j=0; j < groups_per_block; j++) {
+-			/* The below happens to work... be careful. */
+-			gdp = ext2fs_group_desc(fs, fs->group_desc, j);
++			gdp = ext2fs_group_desc(fs, fs->group_desc,
++						i * groups_per_block + j);
+ 			ext2fs_swap_group_desc2(fs, gdp);
+ 		}
+ #endif
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-ext4" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+

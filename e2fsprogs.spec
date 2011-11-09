@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42
-Release: 0.5.WIP.1016%{?dist}
+Release: 0.6.WIP.1016%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -15,6 +15,7 @@ Source0: http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.42-WIP-1016.ta
 Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch2: e2fsprogs-1.42-bigendian-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -150,6 +151,8 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
+
+%patch2 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -319,6 +322,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Nov 08 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.6.WIP.1016
+- Fix e2fsck / make check on big endian arch
+
 * Mon Oct 17 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.5.WIP.1016
 - New upstream snapshot release
 

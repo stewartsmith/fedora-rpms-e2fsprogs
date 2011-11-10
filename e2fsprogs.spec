@@ -4,7 +4,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42
-Release: 0.6.WIP.1016%{?dist}
+Release: 0.7.WIP.1016%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -322,6 +322,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Nov 10 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.7.WIP.1016
+- Several mmp-related fixes
+
 * Tue Nov 08 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.6.WIP.1016
 - Fix e2fsck / make check on big endian arch
 

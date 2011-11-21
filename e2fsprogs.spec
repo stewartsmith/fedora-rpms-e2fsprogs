@@ -4,14 +4,16 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42
-Release: 0.8.WIP.1120%{?dist}
+# XXX Fix Source0 too!
+Release: 0.9.WIP.1120%{?dist}
+# XXX Fix Source0 too!
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 # Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 # Source0: ftp://ftp.kernel.org/pub/linux/kernel/people/tytso/e2fsprogs/e2fsprogs-1.42-WIP-0702.tar.gz
-Source0: http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.42-WIP-1016.tar.gz
+Source0: http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.42-WIP-1120.tar.gz
 Source1: ext2_types-wrapper.h
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
@@ -319,6 +321,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Nov 21 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.9.WIP.1120
+- Build the right tarball for 1.42-WIP-1120
+
 * Mon Nov 21 2011 Eric Sandeen <sandeen@redhat.com> 1.42-0.8.WIP.1120
 - New upstream snapshot release
 

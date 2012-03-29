@@ -1,10 +1,7 @@
-%define	_root_sbindir	/sbin
-%define	_root_libdir	/%{_lib}
-
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -151,14 +148,15 @@ It was originally inspired by the Multics SubSystem library.
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
-	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid
+	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid \
+	   --with-root-prefix=/usr
 make %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
 export PATH=/sbin:$PATH
 make install install-libs DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
-	root_sbindir=%{_root_sbindir} root_libdir=%{_root_libdir}
+	root_sbindir=%{_sbindir} root_libdir=%{_libdir}
 
 # ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
 %define multilib_arches %{ix86} x86_64 ppc ppc64 s390 s390x sparcv9 sparc64
@@ -206,25 +204,25 @@ exit 0
 %doc COPYING README RELEASE-NOTES
 
 %config(noreplace) /etc/mke2fs.conf
-%{_root_sbindir}/badblocks
-%{_root_sbindir}/debugfs
-%{_root_sbindir}/dumpe2fs
-%{_root_sbindir}/e2fsck
-%{_root_sbindir}/e2image
-%{_root_sbindir}/e2label
-%{_root_sbindir}/e2undo
-%{_root_sbindir}/fsck.ext2
-%{_root_sbindir}/fsck.ext3
-%{_root_sbindir}/fsck.ext4
-%{_root_sbindir}/fsck.ext4dev
-%{_root_sbindir}/logsave
-%{_root_sbindir}/mke2fs
-%{_root_sbindir}/mkfs.ext2
-%{_root_sbindir}/mkfs.ext3
-%{_root_sbindir}/mkfs.ext4
-%{_root_sbindir}/mkfs.ext4dev
-%{_root_sbindir}/resize2fs
-%{_root_sbindir}/tune2fs
+%{_sbindir}/badblocks
+%{_sbindir}/debugfs
+%{_sbindir}/dumpe2fs
+%{_sbindir}/e2fsck
+%{_sbindir}/e2image
+%{_sbindir}/e2label
+%{_sbindir}/e2undo
+%{_sbindir}/fsck.ext2
+%{_sbindir}/fsck.ext3
+%{_sbindir}/fsck.ext4
+%{_sbindir}/fsck.ext4dev
+%{_sbindir}/logsave
+%{_sbindir}/mke2fs
+%{_sbindir}/mkfs.ext2
+%{_sbindir}/mkfs.ext3
+%{_sbindir}/mkfs.ext4
+%{_sbindir}/mkfs.ext4dev
+%{_sbindir}/resize2fs
+%{_sbindir}/tune2fs
 %{_sbindir}/filefrag
 %{_sbindir}/e2freefrag
 %{_sbindir}/e4defrag
@@ -265,8 +263,8 @@ exit 0
 %files libs
 %defattr(-,root,root)
 %doc COPYING
-%{_root_libdir}/libe2p.so.*
-%{_root_libdir}/libext2fs.so.*
+%{_libdir}/libe2p.so.*
+%{_libdir}/libext2fs.so.*
 
 %files static
 %defattr(-,root,root)
@@ -289,7 +287,7 @@ exit 0
 %files -n libcom_err
 %defattr(-,root,root)
 %doc COPYING
-%{_root_libdir}/libcom_err.so.*
+%{_libdir}/libcom_err.so.*
 
 %files -n libcom_err-devel
 %defattr(-,root,root)
@@ -305,7 +303,7 @@ exit 0
 %files -n libss
 %defattr(-,root,root)
 %doc COPYING
-%{_root_libdir}/libss.so.*
+%{_libdir}/libss.so.*
 
 %files -n libss-devel
 %defattr(-,root,root)
@@ -317,6 +315,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed Mar 28 2012 Eric Sandeen <sandeen@redhat.com> 1.42.2-2
+- Move files out of /sbin and /lib into /usr/...
+
 * Tue Mar 27 2012 Eric Sandeen <sandeen@redhat.com> 1.42.2-1
 - New upstream release
 

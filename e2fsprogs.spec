@@ -1,13 +1,14 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1: ext2_types-wrapper.h
+Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fsprogs-1.42.2-32-bit-ffz-fix.patch
@@ -174,6 +175,9 @@ install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
 # Hack for now, otherwise strip fails.
 chmod +w %{buildroot}%{_libdir}/*.a
 
+# Let boot continue even if *gasp* clock is wrong
+install -p -m 644 %{SOURCE2} %{buildroot}/etc/e2fsck.conf
+
 %find_lang %{name}
 
 %check
@@ -208,6 +212,7 @@ exit 0
 %doc COPYING README RELEASE-NOTES
 
 %config(noreplace) /etc/mke2fs.conf
+%config(noreplace) /etc/e2fsck.conf
 %{_sbindir}/badblocks
 %{_sbindir}/debugfs
 %{_sbindir}/dumpe2fs
@@ -319,6 +324,10 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Fri Apr 20 2012 Eric Sandeen <sandeen@@redhat.com> 1.42.2-5
+- Add broken system clock config to e2fsck.conf to let boot
+  continue even if system clock very wrong.
+
 * Mon Apr 09 2012 Eric Sandeen <sandeen@@redhat.com> 1.42.2-4
 - Handle 32-bit bitmaps in new find_first_zero functions
 

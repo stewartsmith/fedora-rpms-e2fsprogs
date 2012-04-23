@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -324,6 +324,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Sun Apr 22 2012 Eric Sandeen <sandeen@@redhat.com> 1.42.2-6
+- Add missing [options] tag to e2fsck.conf
+
 * Fri Apr 20 2012 Eric Sandeen <sandeen@@redhat.com> 1.42.2-5
 - Add broken system clock config to e2fsck.conf to let boot
   continue even if system clock very wrong.

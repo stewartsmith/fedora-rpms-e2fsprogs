@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.42.2
-Release: 6%{?dist}
+Version: 1.42.3
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -11,7 +11,6 @@ Source1: ext2_types-wrapper.h
 Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch2: e2fsprogs-1.42.2-32-bit-ffz-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -147,9 +146,6 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
-
-# Handle 32-bit bitmaps in new find_first_zero functions (upstream patch)
-%patch2 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -324,6 +320,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon May 14 2013 Eric Sandeen <sandeen@redhat.com> 1.42.3-1
+- New upstream release
+
 * Sun Apr 22 2012 Eric Sandeen <sandeen@@redhat.com> 1.42.2-6
 - Add missing [options] tag to e2fsck.conf
 

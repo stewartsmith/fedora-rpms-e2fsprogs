@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.5
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -15,6 +15,8 @@ Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs = %{version}-%{release}
+Requires: libcom_err = %{version}-%{release}
+Requires: libss = %{version}-%{release}
 
 # e4fsprogs was a parallel ext4-capable package in RHEL5.x
 %if 0%{?rhel} > 0
@@ -320,6 +322,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Aug 16 2012 Eric Sandeen <sandeen@redhat.com> 1.42.5-2
+- Add explicit library deps to e2fsprogs (#848805)
+
 * Mon Jul 30 2012 Eric Sandeen <sandeen@redhat.com> 1.42.5-1
 - New upstream release
 

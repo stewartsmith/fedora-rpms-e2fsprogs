@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.42.5
-Release: 2%{?dist}
+Version: 1.42.6
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -322,6 +322,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Oct 02 2012 Eric Sandeen <sandeen@redhat.com> 1.42.6-1
+- New upstream release
+
 * Thu Aug 16 2012 Eric Sandeen <sandeen@redhat.com> 1.42.5-2
 - Add explicit library deps to e2fsprogs (#848805)
 

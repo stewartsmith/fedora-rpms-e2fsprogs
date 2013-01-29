@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.7
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -49,6 +49,7 @@ performance of an ext2, ext3, or ext4 filesystem.
 Summary: Ext2/3/4 filesystem-specific shared libraries
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
+Requires: libcom_err = %{version}-%{release}
 
 %description libs
 E2fsprogs-libs contains libe2p and libext2fs, the libraries of the
@@ -74,8 +75,8 @@ Summary: Ext2/3/4 filesystem-specific libraries and headers
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
 Requires: e2fsprogs-libs = %{version}-%{release}
+Requires: libcom_err-devel = %{version}-%{release}
 Requires: gawk
-Requires: libcom_err-devel
 Requires: pkgconfig
 Requires(post): info
 Requires(preun): info
@@ -118,6 +119,7 @@ libcom_err is an attempt to present a common error-handling mechanism.
 Summary: Command line interface parsing library
 Group: Development/Libraries
 License: MIT
+Requires: libcom_err = %{version}-%{release}
 
 %description -n libss
 This is libss, a command line interface parsing library, part of e2fsprogs.
@@ -322,6 +324,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Jan 29 2013 Eric Sandeen <sandeen@redhat.com> 1.42.7-2
+- Tighten up inter-package dependencies
+
 * Tue Jan 22 2013 Eric Sandeen <sandeen@redhat.com> 1.42.7-1
 - New upstream release
 

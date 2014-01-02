@@ -1,17 +1,16 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.42.8
-Release: 3%{?dist}
+Version: 1.42.9
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
+Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.xz
 Source1: ext2_types-wrapper.h
 Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch2: e2fsprogs-1.42.8-f_extent_oobounds.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -151,8 +150,6 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
-# Fix a regression test
-%patch2 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -188,10 +185,11 @@ install -p -m 644 %{SOURCE2} %{buildroot}/etc/e2fsck.conf
 # i.e. it is not a regression in this release, but there
 # is no fix yet, and we need to get this package building.
 # See Bug 987133 - resize2fs tests failing on ppc, s390
-rm -rf tests/r_1024_small_bg*
-rm -rf tests/r_64bit_big_expand*
-rm -rf tests/r_bigalloc_big_expand*
-rm -rf tests/r_ext4_big_expand*
+# ERS 2 Jan 2014 - re-enable for now and see how this goes
+#rm -rf tests/r_1024_small_bg*
+#rm -rf tests/r_64bit_big_expand*
+#rm -rf tests/r_bigalloc_big_expand*
+#rm -rf tests/r_ext4_big_expand*
 make check
 
 %clean
@@ -253,6 +251,9 @@ exit 0
 %{_mandir}/man1/chattr.1*
 %{_mandir}/man1/lsattr.1*
 
+%{_mandir}/man5/ext2.5*
+%{_mandir}/man5/ext3.5*
+%{_mandir}/man5/ext4.5*
 %{_mandir}/man5/e2fsck.conf.5*
 %{_mandir}/man5/mke2fs.conf.5*
 
@@ -335,6 +336,10 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Jan 01 2014 Eric Sandeen <sandeen@redhat.com> 1.42.9-1
+- New upstream release
+- Re-enable disabled tests for now
+
 * Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.42.8-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 

@@ -1,12 +1,12 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.9
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.xz
+Source0: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version}/%{name}-%{version}.tar.xz
 Source1: ext2_types-wrapper.h
 Source2: e2fsck.conf
 
@@ -336,6 +336,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Jan 20 2014 Eric Sandeen <sandeen@redhat.com> 1.42.9-2
+- Fix up Source0 URL
+
 * Thu Jan 01 2014 Eric Sandeen <sandeen@redhat.com> 1.42.9-1
 - New upstream release
 - Re-enable disabled tests for now

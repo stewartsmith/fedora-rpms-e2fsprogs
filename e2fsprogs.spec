@@ -55,7 +55,7 @@ Requires: libcom_err%{?_isa} = %{version}-%{release}
 E2fsprogs-libs contains libe2p and libext2fs, the libraries of the
 e2fsprogs package.
 
-These libraries are used to directly acccess ext2/3/4 filesystems
+These libraries are used to directly access ext2/3/4 filesystems
 from userspace.
 
 %package static

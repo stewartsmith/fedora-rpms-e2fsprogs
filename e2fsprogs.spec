@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.42.9
-Release: 2%{?dist}
+Version: 1.42.10
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -154,7 +154,7 @@ It was originally inspired by the Multics SubSystem library.
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
 	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid \
-	   --with-root-prefix=/usr
+	   --enable-quota --with-root-prefix=/usr
 make %{?_smp_mflags}
 
 %install
@@ -181,15 +181,6 @@ install -p -m 644 %{SOURCE2} %{buildroot}/etc/e2fsck.conf
 %find_lang %{name}
 
 %check
-# XXX ERS Hack for now; this bug has existed for a while,
-# i.e. it is not a regression in this release, but there
-# is no fix yet, and we need to get this package building.
-# See Bug 987133 - resize2fs tests failing on ppc, s390
-# ERS 2 Jan 2014 - re-enable for now and see how this goes
-#rm -rf tests/r_1024_small_bg*
-#rm -rf tests/r_64bit_big_expand*
-#rm -rf tests/r_bigalloc_big_expand*
-#rm -rf tests/r_ext4_big_expand*
 make check
 
 %clean
@@ -299,11 +290,9 @@ exit 0
 %{_libdir}/libext2fs.so
 %{_libdir}/pkgconfig/e2p.pc
 %{_libdir}/pkgconfig/ext2fs.pc
-%{_libdir}/pkgconfig/quota.pc
 
 %{_includedir}/e2p
 %{_includedir}/ext2fs
-%{_includedir}/quota
 
 %files -n libcom_err
 %defattr(-,root,root)
@@ -336,6 +325,10 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon May 19 2014 Eric Sandeen <sandeen@redhat.com> 1.42.10-1
+- New upstream release
+- Enable userspace quota
+
 * Mon Jan 20 2014 Eric Sandeen <sandeen@redhat.com> 1.42.9-2
 - Fix up Source0 URL
 

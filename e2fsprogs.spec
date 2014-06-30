@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.10
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -12,6 +12,7 @@ Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fsprogs-1.42.10-largefile.patch
+Patch3: e2fsprogs-1.42.10-quota-deps.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -152,6 +153,7 @@ It was originally inspired by the Multics SubSystem library.
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
 %patch2 -p1
+%patch3 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -327,6 +329,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Jun 30 2014 Dan Horák <dan[at]danny.cz> - 1.42.10-4
+- Add missing dependency info for quota.c - fixes build on s390(x)
+
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.42.10-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 

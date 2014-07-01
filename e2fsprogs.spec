@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.10
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -329,6 +329,10 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Jul 01 2014 Dan Horák <dan@danny.cz> - 1.42.10-5
+- Rebuilt for buggy rpm 4.12 alpha -
+  https://lists.fedoraproject.org/pipermail/devel/2014-June/200633.html
+
 * Mon Jun 30 2014 Dan Horák <dan[at]danny.cz> - 1.42.10-4
 - Add missing dependency info for quota.c - fixes build on s390(x)
 

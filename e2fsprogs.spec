@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.11
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -209,7 +209,9 @@ exit 0
 
 %files -f %{name}.lang
 %defattr(-,root,root)
-%doc COPYING README RELEASE-NOTES
+%doc README RELEASE-NOTES
+%{!?_licensedir:%global license %%doc}
+%license COPYING
 
 %config(noreplace) /etc/mke2fs.conf
 %config(noreplace) /etc/e2fsck.conf
@@ -274,13 +276,15 @@ exit 0
 
 %files libs
 %defattr(-,root,root)
-%doc COPYING
+%{!?_licensedir:%global license %%doc}
+%license COPYING
 %{_libdir}/libe2p.so.*
 %{_libdir}/libext2fs.so.*
 
 %files static
 %defattr(-,root,root)
-%doc COPYING
+%{!?_licensedir:%global license %%doc}
+%license COPYING
 %{_libdir}/*.a
 
 %files devel
@@ -296,7 +300,8 @@ exit 0
 
 %files -n libcom_err
 %defattr(-,root,root)
-%doc COPYING
+%{!?_licensedir:%global license %%doc}
+%license COPYING
 %{_libdir}/libcom_err.so.*
 
 %files -n libcom_err-devel
@@ -312,7 +317,8 @@ exit 0
 
 %files -n libss
 %defattr(-,root,root)
-%doc COPYING
+%{!?_licensedir:%global license %%doc}
+%license COPYING
 %{_libdir}/libss.so.*
 
 %files -n libss-devel
@@ -325,6 +331,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Sat Jul 12 2014 Tom Callaway <spot@fedoraproject.org> 1.42.11-2
+- fix license handling
+
 * Fri Jul 11 2014 Eric Sandeen <sandeen@redhat.com> 1.42.11-1
 - New upstream release
 

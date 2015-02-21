@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.12
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -333,6 +333,10 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Sat Feb 21 2015 Till Maas <opensource@till.name> - 1.42.12-3
+- Rebuilt for Fedora 23 Change
+  https://fedoraproject.org/wiki/Changes/Harden_all_packages_with_position-independent_code
+
 * Tue Feb 17 2015 Eric Sandeen <sandeen@redhat.com> 1.42.12-2
 - Fix use after free
 - Re-enable time-based fsck if set in superblock (e2fsck.conf)

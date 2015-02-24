@@ -1,0 +1,25 @@
+commit fecb231f6fc83cf4b4ddf7ec34ace3723803a499
+Author: Darrick J. Wong <darrick.wong@oracle.com>
+Date:   Fri Nov 7 21:26:14 2014 -0500
+
+    dumpe2fs: don't crash when the user provides no block device argument
+    
+    If the user doesn't provide any arguments, the guard fails to run and
+    the whole thing segfaults on ext2fs_open2().  Don't do that.
+    
+    Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+    Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+
+diff --git a/misc/dumpe2fs.c b/misc/dumpe2fs.c
+index 1eae5a3..4185d6e 100644
+--- a/misc/dumpe2fs.c
++++ b/misc/dumpe2fs.c
+@@ -575,7 +575,7 @@ int main (int argc, char ** argv)
+ 			usage();
+ 		}
+ 	}
+-	if (argc - 1 > optind) {
++	if (optind != argc - 1) {
+ 		usage();
+ 		exit(1);
+ 	}

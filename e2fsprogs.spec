@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.12
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -12,6 +12,9 @@ Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fsprogs-1.42.12-use-after-free-fix.patch
+Patch3: e2fsprogs-1.42.12-closefs-cve.patch
+Patch4: e2fsprogs-1.42.12-dumpe2fs-segfault.patch
+Patch5: e2fsprogs-1.42.12-resize2fs-fsck.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -152,6 +155,9 @@ It was originally inspired by the Multics SubSystem library.
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
 %patch2 -p1
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -333,13 +339,18 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Feb 24 2015 Eric Sandeen <sandeen@redhat.com> 1.42.12-4
+- Fix potential buffer overflow in closefs (#1193947, CVE-2015-1572)
+- Fix dumpe2fs segfault with no arguments (#1194063)
+- Don't require fsck prior to resize2fs -P (#1170803)
+
 * Sat Feb 21 2015 Till Maas <opensource@till.name> - 1.42.12-3
 - Rebuilt for Fedora 23 Change
   https://fedoraproject.org/wiki/Changes/Harden_all_packages_with_position-independent_code
 
 * Tue Feb 17 2015 Eric Sandeen <sandeen@redhat.com> 1.42.12-2
-- Fix use after free
-- Re-enable time-based fsck if set in superblock (e2fsck.conf)
+- Fix use after free (#1192861)
+- Fix time-based fsck if set in superblock (e2fsck.conf, #963283)
 
 * Fri Aug 29 2014 Eric Sandeen <sandeen@redhat.com> 1.42.12-1
 - New upstream release

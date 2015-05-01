@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.12
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -15,6 +15,7 @@ Patch2: e2fsprogs-1.42.12-use-after-free-fix.patch
 Patch3: e2fsprogs-1.42.12-closefs-cve.patch
 Patch4: e2fsprogs-1.42.12-dumpe2fs-segfault.patch
 Patch5: e2fsprogs-1.42.12-resize2fs-fsck.patch
+Patch6: e2fsprogs-1.42.12-time-fudge.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -158,6 +159,7 @@ It was originally inspired by the Multics SubSystem library.
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
+%patch6 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -339,6 +341,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Apr 30 2015 Eric Sandeen <sandeen@redhat.com> 1.42.12-5
+- Don't trigger full check within time fudge window (#1202024)
+
 * Tue Feb 24 2015 Eric Sandeen <sandeen@redhat.com> 1.42.12-4
 - Fix potential buffer overflow in closefs (#1193947, CVE-2015-1572)
 - Fix dumpe2fs segfault with no arguments (#1194063)
@@ -384,7 +389,7 @@ exit 0
 * Mon Jan 20 2014 Eric Sandeen <sandeen@redhat.com> 1.42.9-2
 - Fix up Source0 URL
 
-* Thu Jan 01 2014 Eric Sandeen <sandeen@redhat.com> 1.42.9-1
+* Thu Jan 02 2014 Eric Sandeen <sandeen@redhat.com> 1.42.9-1
 - New upstream release
 - Re-enable disabled tests for now
 
@@ -501,7 +506,7 @@ exit 0
 * Wed Oct 06 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-6
 - Install e4defrag for testing
 
-* Mon Jul 13 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-5
+* Tue Jul 13 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-5
 - Relax fsck requirements for resize2fs -P
 
 * Mon Jul 12 2010 Eric Sandeen <sandeen@redhat.com> 1.41.12-4
@@ -559,7 +564,7 @@ exit 0
 * Tue Oct 06 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-4
 - Fix install with --excludedocs (#515987)
 
-* Thu Sep 14 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-3
+* Mon Sep 14 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-3
 - Drop defrag bits for now, not ready yet.
 
 * Thu Sep 10 2009 Josef Bacik <josef@toxicpanda.com> 1.41.9-2
@@ -568,7 +573,7 @@ exit 0
 * Sun Aug 23 2009 Eric Sandeen <sandeen@redhat.com> 1.41.9-1
 - New upstream release
 
-* Fri Aug 05 2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-6
+* Thu Aug 06 2009 Eric Sandeen <sandeen@redhat.com> 1.41.8-6
 - Fix filefrag in fallback case
 - Add e2freefrag & e4defrag (experimental)
 
@@ -650,10 +655,10 @@ exit 0
 - Remove conservative "don't change journal location" patch for F11
 - Add btrfs recognition to blkid
 
-* Mon Oct 03 2008 Eric Sandeen <sandeen@redhat.com> 1.41.3-2
+* Fri Nov 07 2008 Eric Sandeen <sandeen@redhat.com> 1.41.3-2
 - Bump to revision 2, f10 was behind f9, oops.
 
-* Mon Oct 03 2008 Eric Sandeen <sandeen@redhat.com> 1.41.3-1
+* Mon Oct 13 2008 Eric Sandeen <sandeen@redhat.com> 1.41.3-1
 - New upstream version (very minor fixes, ext4-related)
 
 * Thu Oct 02 2008 Eric Sandeen <sandeen@redhat.com> 1.41.2-2
@@ -745,11 +750,11 @@ exit 0
 - Ignore some primary/backup superblock flag differences (#428893)
 - Teach libblkid about ext4dev.
 
-* Mon Jan 10 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-4
+* Tue Jan 15 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-4
 - Build e2fsck as a dynamically linked binary.
 - Re-fix uidd manpage default paths.
 
-* Tue Jan 09 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-3
+* Mon Jan 14 2008 Eric Sandeen <sandeen@redhat.com> 1.40.4-3
 - New uuidd subpackage, and properly set up uuidd at install.
 
 * Tue Jan 01 2008 Eric Sandeen <esandeen@redhat.com> 1.40.4-2
@@ -784,7 +789,7 @@ exit 0
 - Make (more) file timestamps match those in tarball for multilib tidiness 
 - Fix e2fsprogs-libs summary (shared libs not static)
 
-* Tue Oct 15 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-9
+* Mon Oct 15 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-9
 - Detect big-endian squashfs filesystems in libblkid (#305151)
 
 * Tue Oct 02 2007 Eric Sandeen <esandeen@redhat.com> 1.40.2-8

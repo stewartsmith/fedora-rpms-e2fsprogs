@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.42.12
-Release: 5%{?dist}
+Version: 1.42.13
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -11,11 +11,6 @@ Source1: ext2_types-wrapper.h
 Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch2: e2fsprogs-1.42.12-use-after-free-fix.patch
-Patch3: e2fsprogs-1.42.12-closefs-cve.patch
-Patch4: e2fsprogs-1.42.12-dumpe2fs-segfault.patch
-Patch5: e2fsprogs-1.42.12-resize2fs-fsck.patch
-Patch6: e2fsprogs-1.42.12-time-fudge.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -155,11 +150,6 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
 
 %build
 %configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
@@ -341,6 +331,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon May 18 2015 Eric Sandeen <sandeen@redhat.com> 1.42.13-1
+- New upstream release
+
 * Thu Apr 30 2015 Eric Sandeen <sandeen@redhat.com> 1.42.12-5
 - Don't trigger full check within time fudge window (#1202024)
 

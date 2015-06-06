@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.42.13
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -152,10 +152,11 @@ It was originally inspired by the Multics SubSystem library.
 %patch1 -p1 -b .featurecheck
 
 %build
-%configure --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
+%configure CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
+	   --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
 	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid \
 	   --enable-quota --with-root-prefix=/usr
-make %{?_smp_mflags}
+make V=1 %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
@@ -331,6 +332,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Jun 08 2015 Eric Sandeen <sandeen@redhat.com> 1.42.13-2
+- Add -fno-strict-aliasing (#1211582)
+
 * Mon May 18 2015 Eric Sandeen <sandeen@redhat.com> 1.42.13-1
 - New upstream release
 

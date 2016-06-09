@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.42.13
-Release: 4%{?dist}
+Version: 1.43.1
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -25,6 +25,7 @@ Provides: e4fsprogs = %{version}-%{release}
 %endif
 
 BuildRequires: pkgconfig, texinfo, libselinux-devel
+BuildRequires: fuse-devel
 BuildRequires: libsepol-devel
 BuildRequires: libblkid-devel
 BuildRequires: libuuid-devel
@@ -212,7 +213,6 @@ exit 0
 %defattr(-,root,root)
 %doc README RELEASE-NOTES
 %{!?_licensedir:%global license %%doc}
-%license COPYING
 
 %config(noreplace) /etc/mke2fs.conf
 %config(noreplace) /etc/e2fsck.conf
@@ -223,10 +223,12 @@ exit 0
 %{_sbindir}/e2image
 %{_sbindir}/e2label
 %{_sbindir}/e2undo
+%{_sbindir}/e4crypt
 %{_sbindir}/fsck.ext2
 %{_sbindir}/fsck.ext3
 %{_sbindir}/fsck.ext4
 %{_sbindir}/fsck.ext4dev
+%{_sbindir}/fuse2fs
 %{_sbindir}/logsave
 %{_sbindir}/mke2fs
 %{_sbindir}/mkfs.ext2
@@ -243,6 +245,7 @@ exit 0
 %{_bindir}/chattr
 %{_bindir}/lsattr
 %{_mandir}/man1/chattr.1*
+%{_mandir}/man1/fuse2fs.1*
 %{_mandir}/man1/lsattr.1*
 
 %{_mandir}/man5/ext2.5*
@@ -255,6 +258,7 @@ exit 0
 %{_mandir}/man8/debugfs.8*
 %{_mandir}/man8/dumpe2fs.8*
 %{_mandir}/man8/e2fsck.8*
+%{_mandir}/man8/e4crypt.8*
 %{_mandir}/man8/filefrag.8*
 %{_mandir}/man8/e2freefrag.8*
 %{_mandir}/man8/e4defrag.8*
@@ -278,14 +282,12 @@ exit 0
 %files libs
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
-%license COPYING
 %{_libdir}/libe2p.so.*
 %{_libdir}/libext2fs.so.*
 
 %files static
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
-%license COPYING
 %{_libdir}/*.a
 
 %files devel
@@ -302,7 +304,6 @@ exit 0
 %files -n libcom_err
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
-%license COPYING
 %{_libdir}/libcom_err.so.*
 
 %files -n libcom_err-devel
@@ -319,7 +320,6 @@ exit 0
 %files -n libss
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
-%license COPYING
 %{_libdir}/libss.so.*
 
 %files -n libss-devel
@@ -332,6 +332,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed Jun 08 2016 Eric Sandeen <sandeen@redhat.com> 1.43.1-1
+- New upstream release
+
 * Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1.42.13-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 

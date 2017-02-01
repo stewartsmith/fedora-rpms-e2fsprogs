@@ -1,6 +1,6 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.43.3
+Version: 1.43.4
 Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
@@ -227,14 +227,12 @@ exit 0
 %{_sbindir}/fsck.ext2
 %{_sbindir}/fsck.ext3
 %{_sbindir}/fsck.ext4
-%{_sbindir}/fsck.ext4dev
 %{_sbindir}/fuse2fs
 %{_sbindir}/logsave
 %{_sbindir}/mke2fs
 %{_sbindir}/mkfs.ext2
 %{_sbindir}/mkfs.ext3
 %{_sbindir}/mkfs.ext4
-%{_sbindir}/mkfs.ext4dev
 %{_sbindir}/resize2fs
 %{_sbindir}/tune2fs
 %{_sbindir}/filefrag
@@ -265,7 +263,6 @@ exit 0
 %{_mandir}/man8/fsck.ext2.8*
 %{_mandir}/man8/fsck.ext3.8*
 %{_mandir}/man8/fsck.ext4.8*
-%{_mandir}/man8/fsck.ext4dev.8*
 %{_mandir}/man8/e2image.8*
 %{_mandir}/man8/e2label.8*
 %{_mandir}/man8/e2undo.8*
@@ -274,7 +271,6 @@ exit 0
 %{_mandir}/man8/mkfs.ext2.8*
 %{_mandir}/man8/mkfs.ext3.8*
 %{_mandir}/man8/mkfs.ext4.8*
-%{_mandir}/man8/mkfs.ext4dev.8*
 %{_mandir}/man8/mklost+found.8*
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
@@ -332,6 +328,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Jan 31 2017 Eric Sandeen <sandeen@redhat.com> 1.43.4-1
+- New upstream release
+
 * Mon Sep 05 2016 Eric Sandeen <sandeen@redhat.com> 1.43.3-1
 - New upstream release
 

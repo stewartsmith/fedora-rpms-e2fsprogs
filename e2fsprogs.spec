@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
 Version: 1.43.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -278,12 +278,14 @@ exit 0
 %files libs
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
+%license NOTICE
 %{_libdir}/libe2p.so.*
 %{_libdir}/libext2fs.so.*
 
 %files static
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
+%license NOTICE
 %{_libdir}/*.a
 
 %files devel
@@ -300,6 +302,7 @@ exit 0
 %files -n libcom_err
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
+%license NOTICE
 %{_libdir}/libcom_err.so.*
 
 %files -n libcom_err-devel
@@ -316,6 +319,7 @@ exit 0
 %files -n libss
 %defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
+%license NOTICE
 %{_libdir}/libss.so.*
 
 %files -n libss-devel
@@ -328,6 +332,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed Feb 01 2017 Stephen Gallagher <sgallagh@redhat.com> - 1.43.4-2
+- Add missing %%license macro
+
 * Tue Jan 31 2017 Eric Sandeen <sandeen@redhat.com> 1.43.4-1
 - New upstream release
 

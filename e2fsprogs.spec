@@ -11,6 +11,7 @@ Source1: ext2_types-wrapper.h
 Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
+Patch2: e2fsprogs-1.43.5-build-fix.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -151,6 +152,7 @@ It was originally inspired by the Multics SubSystem library.
 # mildly unsafe but 'til I get something better, avoid full fsck
 # after an selinux install...
 %patch1 -p1 -b .featurecheck
+%patch2 -p1
 
 %build
 %configure CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \

@@ -1,6 +1,6 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.43.6
+Version: 1.43.7
 Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
@@ -332,6 +332,9 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Wed Oct 18 2017 Eric Sandeen <sandeen@redhat.com> 1.43.7-1
+- New upstream release
+
 * Wed Aug 30 2017 Eric Sandeen <sandeen@redhat.com> 1.43.6-1
 - New upstream release
 

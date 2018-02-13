@@ -14,7 +14,6 @@ Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
 Patch2: e2fsprogs-1.43.8-libext2fs-fix-build-failure-in-swapfs.c-on-big-endia.patch
 
 Url: http://e2fsprogs.sourceforge.net/
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
 Requires: libcom_err%{?_isa} = %{version}-%{release}
 Requires: libss = %{version}-%{release}

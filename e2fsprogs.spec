@@ -188,9 +188,6 @@ install -p -m 644 %{SOURCE2} %{buildroot}/etc/e2fsck.conf
 %check
 make check
 
-%clean
-rm -rf %{buildroot}
-
 %post libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 

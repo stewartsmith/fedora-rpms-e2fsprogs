@@ -1,6 +1,6 @@
 Summary: Utilities for managing ext2, ext3, and ext4 filesystems
 Name: e2fsprogs
-Version: 1.43.9
+Version: 1.44.0
 Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
@@ -23,7 +23,7 @@ Obsoletes: e4fsprogs < %{version}-%{release}
 Provides: e4fsprogs = %{version}-%{release}
 %endif
 
-BuildRequires: pkgconfig, texinfo, libselinux-devel
+BuildRequires: pkgconfig, texinfo, libselinux-devel, gcc
 BuildRequires: fuse-devel
 BuildRequires: libsepol-devel
 BuildRequires: libblkid-devel
@@ -329,6 +329,10 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Mon Mar 08 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-1
+- New upstream release
+- Add gcc to the BuildRequires to comply with packaging guidelines
+
 * Mon Mar 05 2018 Lukas Czerner <lczerner@redhat.com> 1.43.9-1
 - New upstream release
 

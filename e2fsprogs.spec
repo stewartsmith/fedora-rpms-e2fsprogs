@@ -11,6 +11,7 @@ Source1: ext2_types-wrapper.h
 Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.44.1-tests_use_mke2fs_and_debugfs_from_the_build_tree.patch
+Patch2: 0001-e2fsprogs-fix-metadata-image-handling-on-big-endian-.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
@@ -148,6 +149,8 @@ It was originally inspired by the Multics SubSystem library.
 %setup -q
 # tests: use mke2fs and debugfs from the build tree
 %patch1 -p1
+# e2fsprogs: fix metadata image handling on big endian systems
+%patch2 -p1
 
 
 %build
@@ -331,6 +334,7 @@ exit 0
 - New upstream release
 - tests: use mke2fs and debugfs from the build tree
 - remove custom patch to ignose sb feature differences
+- e2fsprogs: fix metadata image handling on big endian systems
 
 * Mon Mar 12 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-2
 - e2fsck: fix endianness problem when reading htree nodes

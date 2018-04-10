@@ -1,4 +1,4 @@
-Summary: Utilities for managing ext2, ext3, and ext4 filesystems
+Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
 Version: 1.44.1
 Release: 1%{?dist}
@@ -34,20 +34,20 @@ BuildRequires: gettext
 %description
 The e2fsprogs package contains a number of utilities for creating,
 checking, modifying, and correcting any inconsistencies in second,
-third and fourth extended (ext2/ext3/ext4) filesystems. E2fsprogs
-contains e2fsck (used to repair filesystem inconsistencies after an
+third and fourth extended (ext2/ext3/ext4) file systems. E2fsprogs
+contains e2fsck (used to repair file system inconsistencies after an
 unclean shutdown), mke2fs (used to initialize a partition to contain
-an empty ext2 filesystem), debugfs (used to examine the internal
-structure of a filesystem, to manually repair a corrupted
-filesystem, or to create test cases for e2fsck), tune2fs (used to
-modify filesystem parameters), and most of the other core ext2fs
-filesystem utilities.
+an empty ext2 file system), debugfs (used to examine the internal
+structure of a file system, to manually repair a corrupted
+file system, or to create test cases for e2fsck), tune2fs (used to
+modify file system parameters), and most of the other core ext2fs
+file system utilities.
 
 You should install the e2fsprogs package if you need to manage the
-performance of an ext2, ext3, or ext4 filesystem.
+performance of an ext2, ext3, or ext4 file system.
 
 %package libs
-Summary: Ext2/3/4 filesystem-specific shared libraries
+Summary: Ext2/3/4 file system specific shared libraries
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
 Requires: libcom_err%{?_isa} = %{version}-%{release}
@@ -56,11 +56,11 @@ Requires: libcom_err%{?_isa} = %{version}-%{release}
 E2fsprogs-libs contains libe2p and libext2fs, the libraries of the
 e2fsprogs package.
 
-These libraries are used to directly access ext2/3/4 filesystems
-from userspace.
+These libraries are used to directly access ext2/3/4 file systems
+from user space.
 
 %package static
-Summary: Ext2/3/4 filesystem-specific static libraries
+Summary: Ext2/3/4 file system specific static libraries
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
 
@@ -68,11 +68,11 @@ License: GPLv2 and LGPLv2
 E2fsprogs-static contains all static libraries built from e2fsprogs,
 including libext2fs, libcom_err, libe2p, and libss.
 
-These libraries are used to directly acccess ext2/3/4 filesystems
-from userspace, and perform other useful functions.
+These libraries are used to directly access ext2/3/4 file systems
+from user space, and perform other useful functions.
 
 %package devel
-Summary: Ext2/3/4 filesystem-specific libraries and headers
+Summary: Ext2/3/4 file system specific libraries and headers
 Group: Development/Libraries
 License: GPLv2 and LGPLv2
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
@@ -85,10 +85,10 @@ Requires(preun): info
 %description devel
 E2fsprogs-devel contains the libraries and header files needed to
 develop second, third and fourth extended (ext2/ext3/ext4)
-filesystem-specific programs.
+file system specific programs.
 
 You should install e2fsprogs-devel if you want to develop ext2/3/4
-filesystem-specific programs. If you install e2fsprogs-devel, you'll
+file system specific programs. If you install e2fsprogs-devel, you'll
 also want to install e2fsprogs.
 
 %package -n libcom_err
@@ -110,7 +110,7 @@ Requires: pkgconfig
 
 %description -n libcom_err-devel
 This is the common error description development library and headers,
-part of e2fsprogs.  It contains the compile_et commmand, used
+part of e2fsprogs.  It contains the compile_et command, used
 to convert a table listing error-code names and associated messages
 messages into a C source file suitable for use with the library.
 
@@ -330,17 +330,18 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
-* Mon Apr 04 2018 Lukas Czerner <lczerner@redhat.com> 1.44.1-1
+* Wed Apr 04 2018 Lukas Czerner <lczerner@redhat.com> 1.44.1-1
 - New upstream release
 - tests: use mke2fs and debugfs from the build tree
 - remove custom patch to ignose sb feature differences
 - e2fsprogs: fix metadata image handling on big endian systems
+- fix spelling errors in spec file
 
 * Mon Mar 12 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-2
 - e2fsck: fix endianness problem when reading htree nodes
 - use make fullcheck in %check section to run all the tests
 
-* Mon Mar 08 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-1
+* Thu Mar 08 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-1
 - New upstream release
 - Add gcc to the BuildRequires to comply with packaging guidelines
 

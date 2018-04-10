@@ -8,7 +8,6 @@ License: GPLv2
 Group: System Environment/Base
 Source0: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version}/%{name}-%{version}.tar.xz
 Source1: ext2_types-wrapper.h
-Source2: e2fsck.conf
 
 Patch1: e2fsprogs-1.44.1-tests_use_mke2fs_and_debugfs_from_the_build_tree.patch
 Patch2: 0001-e2fsprogs-fix-metadata-image-handling-on-big-endian-.patch
@@ -178,9 +177,6 @@ install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
 # Hack for now, otherwise strip fails.
 chmod +w %{buildroot}%{_libdir}/*.a
 
-# Let boot continue even if *gasp* clock is wrong
-install -p -m 644 %{SOURCE2} %{buildroot}/etc/e2fsck.conf
-
 %find_lang %{name}
 
 %check
@@ -213,7 +209,6 @@ exit 0
 %{!?_licensedir:%global license %%doc}
 
 %config(noreplace) /etc/mke2fs.conf
-%config(noreplace) /etc/e2fsck.conf
 %{_sbindir}/badblocks
 %{_sbindir}/debugfs
 %{_sbindir}/dumpe2fs
@@ -336,6 +331,7 @@ exit 0
 - remove custom patch to ignose sb feature differences
 - e2fsprogs: fix metadata image handling on big endian systems
 - fix spelling errors in spec file
+- remove custom e2fsck.conf
 
 * Mon Mar 12 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-2
 - e2fsck: fix endianness problem when reading htree nodes

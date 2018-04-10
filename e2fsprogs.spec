@@ -10,8 +10,7 @@ Source0: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version
 Source1: ext2_types-wrapper.h
 Source2: e2fsck.conf
 
-Patch1: e2fsprogs-1.40.4-sb_feature_check_ignore.patch
-Patch2: e2fsprogs-1.44.1-tests_use_mke2fs_and_debugfs_from_the_build_tree.patch
+Patch1: e2fsprogs-1.44.1-tests_use_mke2fs_and_debugfs_from_the_build_tree.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
@@ -147,12 +146,8 @@ It was originally inspired by the Multics SubSystem library.
 
 %prep
 %setup -q
-# ignore some flag differences on primary/backup sb feature checks
-# mildly unsafe but 'til I get something better, avoid full fsck
-# after an selinux install...
-%patch1 -p1 -b .featurecheck
 # tests: use mke2fs and debugfs from the build tree
-%patch2 -p1
+%patch1 -p1
 
 
 %build
@@ -335,6 +330,7 @@ exit 0
 * Mon Apr 04 2018 Lukas Czerner <lczerner@redhat.com> 1.44.1-1
 - New upstream release
 - tests: use mke2fs and debugfs from the build tree
+- remove custom patch to ignose sb feature differences
 
 * Mon Mar 12 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-2
 - e2fsck: fix endianness problem when reading htree nodes

@@ -1,16 +1,13 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
-Version: 1.44.1
-Release: 1%{?dist}
+Version: 1.44.2
+Release: 0%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Group: System Environment/Base
 Source0: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version}/%{name}-%{version}.tar.xz
 Source1: ext2_types-wrapper.h
-
-Patch1: e2fsprogs-1.44.1-tests_use_mke2fs_and_debugfs_from_the_build_tree.patch
-Patch2: 0001-e2fsprogs-fix-metadata-image-handling-on-big-endian-.patch
 
 Url: http://e2fsprogs.sourceforge.net/
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
@@ -146,11 +143,6 @@ It was originally inspired by the Multics SubSystem library.
 
 %prep
 %setup -q
-# tests: use mke2fs and debugfs from the build tree
-%patch1 -p1
-# e2fsprogs: fix metadata image handling on big endian systems
-%patch2 -p1
-
 
 %build
 %configure CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \

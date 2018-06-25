@@ -7,7 +7,6 @@ Release: 0%{?dist}
 License: GPLv2
 Group: System Environment/Base
 Source0: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version}/%{name}-%{version}.tar.xz
-Source1: ext2_types-wrapper.h
 
 Url: http://e2fsprogs.sourceforge.net/
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
@@ -26,6 +25,7 @@ BuildRequires: libsepol-devel
 BuildRequires: libblkid-devel
 BuildRequires: libuuid-devel
 BuildRequires: gettext
+BuildRequires: multilib-rpm-config
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -157,14 +157,8 @@ export PATH=/sbin:$PATH
 make install install-libs DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
 	root_sbindir=%{_sbindir} root_libdir=%{_libdir}
 
-# ugly hack to allow parallel install of 32-bit and 64-bit -devel packages:
-%define multilib_arches %{ix86} x86_64 ppc ppc64 s390 s390x sparcv9 sparc64
-
-%ifarch %{multilib_arches}
-mv -f %{buildroot}%{_includedir}/ext2fs/ext2_types.h \
-      %{buildroot}%{_includedir}/ext2fs/ext2_types-%{_arch}.h
-install -p -m 644 %{SOURCE1} %{buildroot}%{_includedir}/ext2fs/ext2_types.h
-%endif
+# Replace arch-dependent header file with arch-independent stub (when needed).
+%multilib_fix_c_header --file %{_includedir}/ext2fs/ext2_types.h
 
 # Hack for now, otherwise strip fails.
 chmod +w %{buildroot}%{_libdir}/*.a

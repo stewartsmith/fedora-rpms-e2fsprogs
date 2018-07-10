@@ -196,7 +196,6 @@ exit 0
 %postun -n libss -p /sbin/ldconfig
 
 %files -f %{name}.lang
-%defattr(-,root,root)
 %doc README RELEASE-NOTES
 %{!?_licensedir:%global license %%doc}
 
@@ -261,20 +260,17 @@ exit 0
 %{_mandir}/man8/tune2fs.8*
 
 %files libs
-%defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
 %license NOTICE
 %{_libdir}/libe2p.so.*
 %{_libdir}/libext2fs.so.*
 
 %files static
-%defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
 %license NOTICE
 %{_libdir}/*.a
 
 %files devel
-%defattr(-,root,root)
 %{_infodir}/libext2fs.info*
 %{_libdir}/libe2p.so
 %{_libdir}/libext2fs.so
@@ -285,13 +281,11 @@ exit 0
 %{_includedir}/ext2fs
 
 %files -n libcom_err
-%defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
 %license NOTICE
 %{_libdir}/libcom_err.so.*
 
 %files -n libcom_err-devel
-%defattr(-,root,root)
 %{_bindir}/compile_et
 %{_libdir}/libcom_err.so
 %{_datadir}/et
@@ -302,13 +296,11 @@ exit 0
 %{_libdir}/pkgconfig/com_err.pc
 
 %files -n libss
-%defattr(-,root,root)
 %{!?_licensedir:%global license %%doc}
 %license NOTICE
 %{_libdir}/libss.so.*
 
 %files -n libss-devel
-%defattr(-,root,root)
 %{_bindir}/mk_cmds
 %{_libdir}/libss.so
 %{_datadir}/ss

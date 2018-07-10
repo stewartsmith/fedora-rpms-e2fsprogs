@@ -1,6 +1,6 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
-Version: 1.44.2
+Version: 1.44.3
 Release: 0%{?dist}
 
 # License tags based on COPYING file distinctions for various components
@@ -200,6 +200,7 @@ exit 0
 %{_sbindir}/e2fsck
 %{_sbindir}/e2image
 %{_sbindir}/e2label
+%{_sbindir}/e2mmpstatus
 %{_sbindir}/e2undo
 %{_sbindir}/e4crypt
 %{_sbindir}/fsck.ext2
@@ -243,6 +244,7 @@ exit 0
 %{_mandir}/man8/fsck.ext4.8*
 %{_mandir}/man8/e2image.8*
 %{_mandir}/man8/e2label.8*
+%{_mandir}/man8/e2mmpstatus.8*
 %{_mandir}/man8/e2undo.8*
 %{_mandir}/man8/logsave.8*
 %{_mandir}/man8/mke2fs.8*
@@ -303,6 +305,11 @@ exit 0
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Jul 10 2018 Lukas Czerner <lczerner@redhat.com> 1.44.3-0
+- New upstream release
+- Remove multiarch wrappers
+- Remove needless use of %defattr
+
 * Wed Apr 04 2018 Lukas Czerner <lczerner@redhat.com> 1.44.1-1
 - New upstream release
 - tests: use mke2fs and debugfs from the build tree

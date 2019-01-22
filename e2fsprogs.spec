@@ -168,8 +168,7 @@ chmod +w %{buildroot}%{_libdir}/*.a
 %check
 make fullcheck
 
-%post libs -p /sbin/ldconfig
-%postun libs -p /sbin/ldconfig
+%ldconfig_scriptlets libs
 
 %post devel
 # Test for file; if installed with --excludedocs it may not be there
@@ -183,11 +182,9 @@ if [ $1 = 0 -a -f %{_infodir}/libext2fs.info.gz ]; then
 fi
 exit 0
 
-%post -n libcom_err -p /sbin/ldconfig
-%postun -n libcom_err -p /sbin/ldconfig
+%ldconfig_scriptlets -n libcom_err
 
-%post -n libss -p /sbin/ldconfig
-%postun -n libss -p /sbin/ldconfig
+%ldconfig_scriptlets -n libss
 
 %files -f %{name}.lang
 %doc README RELEASE-NOTES

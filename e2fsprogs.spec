@@ -170,18 +170,6 @@ make fullcheck
 
 %ldconfig_scriptlets libs
 
-%post devel
-# Test for file; if installed with --excludedocs it may not be there
-if [ -f %{_infodir}/libext2fs.info.gz ]; then
-   /sbin/install-info %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
-fi
-
-%preun devel
-if [ $1 = 0 -a -f %{_infodir}/libext2fs.info.gz ]; then
-   /sbin/install-info --delete %{_infodir}/libext2fs.info.gz %{_infodir}/dir || :
-fi
-exit 0
-
 %ldconfig_scriptlets -n libcom_err
 
 %ldconfig_scriptlets -n libss

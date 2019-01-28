@@ -5,7 +5,6 @@ Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
-Group: System Environment/Base
 Source0: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version}/%{name}-%{version}.tar.xz
 
 Url: http://e2fsprogs.sourceforge.net/
@@ -44,7 +43,6 @@ performance of an ext2, ext3, or ext4 file system.
 
 %package libs
 Summary: Ext2/3/4 file system specific shared libraries
-Group: Development/Libraries
 License: GPLv2 and LGPLv2
 Requires: libcom_err%{?_isa} = %{version}-%{release}
 
@@ -57,7 +55,6 @@ from user space.
 
 %package static
 Summary: Ext2/3/4 file system specific static libraries
-Group: Development/Libraries
 License: GPLv2 and LGPLv2
 
 %description static
@@ -69,7 +66,6 @@ from user space, and perform other useful functions.
 
 %package devel
 Summary: Ext2/3/4 file system specific libraries and headers
-Group: Development/Libraries
 License: GPLv2 and LGPLv2
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
 Requires: libcom_err-devel%{?_isa} = %{version}-%{release}
@@ -89,7 +85,6 @@ also want to install e2fsprogs.
 
 %package -n libcom_err
 Summary: Common error description library
-Group: Development/Libraries
 License: MIT
 
 %description -n libcom_err
@@ -99,7 +94,6 @@ libcom_err is an attempt to present a common error-handling mechanism.
 
 %package -n libcom_err-devel
 Summary: Common error description library
-Group: Development/Libraries
 License: MIT
 Requires: libcom_err%{?_isa} = %{version}-%{release}
 Requires: pkgconfig
@@ -114,7 +108,6 @@ libcom_err is an attempt to present a common error-handling mechanism.
 
 %package -n libss
 Summary: Command line interface parsing library
-Group: Development/Libraries
 License: MIT
 Requires: libcom_err%{?_isa} = %{version}-%{release}
 
@@ -129,7 +122,6 @@ It was originally inspired by the Multics SubSystem library.
 
 %package -n libss-devel
 Summary: Command line interface parsing library
-Group: Development/Libraries
 License: MIT
 Requires: libss%{?_isa} = %{version}-%{release}
 Requires: pkgconfig

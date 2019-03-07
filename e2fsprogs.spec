@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
 Version: 1.44.6
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -71,8 +71,6 @@ Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
 Requires: libcom_err-devel%{?_isa} = %{version}-%{release}
 Requires: gawk
 Requires: pkgconfig
-Requires(post): info
-Requires(preun): info
 
 %description devel
 E2fsprogs-devel contains the libraries and header files needed to
@@ -282,6 +280,9 @@ make fullcheck
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Thu Mar  7 2019 Tim Landscheidt <tim@tim-landscheidt.de> - 1.44.6-2
+- Remove obsolete requirements for %%post/%%preun scriptlets
+
 * Wed Mar 6 2019 Lukas Czerner <lczerner@redhat.com> 1.44.6-1
 - New upstream release
 

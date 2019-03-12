@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
-Version: 1.44.6
-Release: 2%{?dist}
+Version: 1.45.0
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -169,6 +169,7 @@ make fullcheck
 %{!?_licensedir:%global license %%doc}
 
 %config(noreplace) /etc/mke2fs.conf
+%config(noreplace) /etc/e2scrub.conf
 %{_sbindir}/badblocks
 %{_sbindir}/debugfs
 %{_sbindir}/dumpe2fs
@@ -193,6 +194,8 @@ make fullcheck
 %{_sbindir}/e2freefrag
 %{_sbindir}/e4defrag
 %{_sbindir}/mklost+found
+%{_sbindir}/e2scrub
+%{_sbindir}/e2scrub_all
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -229,6 +232,10 @@ make fullcheck
 %{_mandir}/man8/mklost+found.8*
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
+%{_mandir}/man8/e2scrub.8*
+%{_mandir}/man8/e2scrub_all.8*
+
+%{_libdir}/e2fsprogs/e2scrub_all_cron
 
 %files libs
 %{!?_licensedir:%global license %%doc}
@@ -280,6 +287,9 @@ make fullcheck
 %{_libdir}/pkgconfig/ss.pc
 
 %changelog
+* Tue Mar 12 2019 Lukas Czerner <lczerner@redhat.com> - 1.45.0-1
+- New upstream release
+
 * Thu Mar  7 2019 Tim Landscheidt <tim@tim-landscheidt.de> - 1.44.6-2
 - Remove obsolete requirements for %%post/%%preun scriptlets
 

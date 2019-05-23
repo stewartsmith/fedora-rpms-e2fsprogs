@@ -1,6 +1,6 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
-Version: 1.45.0
+Version: 1.45.2
 Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
@@ -25,6 +25,7 @@ BuildRequires: libblkid-devel
 BuildRequires: libuuid-devel
 BuildRequires: gettext
 BuildRequires: multilib-rpm-config
+BuildRequires: systemd
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -131,14 +132,35 @@ parses a command table to generate a simple command-line interface parser.
 
 It was originally inspired by the Multics SubSystem library.
 
+%package -n e2scrub
+Summary: Online Ext4 metadata consistency checking tool and service
+License: GPLv2 and LGPLv2
+Recommends: sendmail
+Requires: systemd
+Requires: util-linux
+Requires: lvm2
+Requires: e2fsprogs%{?_isa} = %{version}-%{release}
+
+%description -n e2scrub
+This package includes e2scrub script that can check ext[234] file system
+metadata consistency while the file system is online. It also containes a
+systemd service that can be enabled to do consistency check periodically.
+
+The file system consistency check can be performed online and does not
+require the file system to be unmounted. It uses lvm snapshots to do this
+which means that it can only be done on file systems that are on a lvm
+managed device with some free space available in respective volume group.
+
 %prep
 %setup -q
+
+%global _udevdir %{_prefix}/lib/udev/rules.d
 
 %build
 %configure CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
 	   --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
 	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid \
-	   --enable-quota --with-root-prefix=/usr
+	   --enable-quota --with-root-prefix=/usr --with-crond-dir=no
 make V=1 %{?_smp_mflags}
 
 %install
@@ -165,11 +187,11 @@ make fullcheck
 %ldconfig_scriptlets -n libss
 
 %files -f %{name}.lang
-%doc README RELEASE-NOTES
+%doc README
 %{!?_licensedir:%global license %%doc}
 
-%config(noreplace) /etc/mke2fs.conf
-%config(noreplace) /etc/e2scrub.conf
+%config(noreplace) %{_sysconfdir}/mke2fs.conf
+
 %{_sbindir}/badblocks
 %{_sbindir}/debugfs
 %{_sbindir}/dumpe2fs
@@ -194,8 +216,6 @@ make fullcheck
 %{_sbindir}/e2freefrag
 %{_sbindir}/e4defrag
 %{_sbindir}/mklost+found
-%{_sbindir}/e2scrub
-%{_sbindir}/e2scrub_all
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
@@ -232,10 +252,9 @@ make fullcheck
 %{_mandir}/man8/mklost+found.8*
 %{_mandir}/man8/resize2fs.8*
 %{_mandir}/man8/tune2fs.8*
-%{_mandir}/man8/e2scrub.8*
-%{_mandir}/man8/e2scrub_all.8*
 
-%{_libdir}/e2fsprogs/e2scrub_all_cron
+# We do not install e2scrub cron job so just exclude it
+%exclude %{_libdir}/e2fsprogs/e2scrub_all_cron
 
 %files libs
 %{!?_licensedir:%global license %%doc}
@@ -286,7 +305,24 @@ make fullcheck
 %{_mandir}/man1/mk_cmds.1*
 %{_libdir}/pkgconfig/ss.pc
 
+%files -n e2scrub
+%config(noreplace) %{_sysconfdir}/e2scrub.conf
+%{_sbindir}/e2scrub
+%{_sbindir}/e2scrub_all
+%{_mandir}/man8/e2scrub.8*
+%{_mandir}/man8/e2scrub_all.8*
+%{_libdir}/e2fsprogs/e2scrub_fail
+%{_unitdir}/e2scrub@.service
+%{_unitdir}/e2scrub_all.service
+%{_unitdir}/e2scrub_all.timer
+%{_unitdir}/e2scrub_fail@.service
+%{_unitdir}/e2scrub_reap.service
+%{_udevdir}/96-e2scrub.rules
+
 %changelog
+* Wed May 29 2019 Lukas Czerner <lczerner@redhat.com> - 1.45.2-1
+- New upstream release
+
 * Tue Mar 12 2019 Lukas Czerner <lczerner@redhat.com> - 1.45.0-1
 - New upstream release
 
@@ -311,7 +347,7 @@ make fullcheck
 * Tue Jul 10 2018 Lukas Czerner <lczerner@redhat.com> 1.44.3-0
 - New upstream release
 - Remove multiarch wrappers
-- Remove needless use of %defattr
+- Remove needless use of %%defattr marco
 
 * Wed Apr 04 2018 Lukas Czerner <lczerner@redhat.com> 1.44.1-1
 - New upstream release
@@ -323,7 +359,7 @@ make fullcheck
 
 * Mon Mar 12 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-2
 - e2fsck: fix endianness problem when reading htree nodes
-- use make fullcheck in %check section to run all the tests
+- use make fullcheck in %%check section to run all the tests
 
 * Thu Mar 08 2018 Lukas Czerner <lczerner@redhat.com> 1.44.0-1
 - New upstream release

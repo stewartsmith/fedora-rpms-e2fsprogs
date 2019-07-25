@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
-Version: 1.45.2
-Release: 2%{?dist}
+Version: 1.45.3
+Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -204,7 +204,6 @@ make fullcheck
 %{_sbindir}/fsck.ext2
 %{_sbindir}/fsck.ext3
 %{_sbindir}/fsck.ext4
-%{_sbindir}/fuse2fs
 %{_sbindir}/logsave
 %{_sbindir}/mke2fs
 %{_sbindir}/mkfs.ext2
@@ -219,6 +218,7 @@ make fullcheck
 
 %{_bindir}/chattr
 %{_bindir}/lsattr
+%{_bindir}/fuse2fs
 %{_mandir}/man1/chattr.1*
 %{_mandir}/man1/fuse2fs.1*
 %{_mandir}/man1/lsattr.1*
@@ -320,6 +320,9 @@ make fullcheck
 %{_udevdir}/96-e2scrub.rules
 
 %changelog
+* Thu Jul 25 2019 Lukas Czerner <lczerner@redhat.com> - 1.45.3-1
+- New upstream release
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.45.2-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

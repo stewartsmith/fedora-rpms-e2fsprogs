@@ -1,6 +1,6 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
-Version: 1.45.4
+Version: 1.45.5
 Release: 1%{?dist}
 
 # License tags based on COPYING file distinctions for various components
@@ -320,6 +320,9 @@ make fullcheck
 %{_udevdir}/96-e2scrub.rules
 
 %changelog
+* Wed Jan 8 2020 Lukas Czerner <lczerner@redhat.com> - 1.45.5-1
+- New upstream release
+
 * Thu Oct 3 2019 Lukas Czerner <lczerner@redhat.com> - 1.45.4-1
 - New upstream release
 

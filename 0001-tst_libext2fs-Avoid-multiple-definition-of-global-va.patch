@@ -1,0 +1,65 @@
+From 92c24f230ac7c02b5111849d94db14a24626bee4 Mon Sep 17 00:00:00 2001
+From: Lukas Czerner <lczerner@redhat.com>
+Date: Thu, 30 Jan 2020 13:24:19 +0100
+Subject: [PATCH] tst_libext2fs: Avoid multiple definition of global variables
+
+gcc version 10 changed the default from -fcommon to -fno-common and as a
+result e2fsprogs unit tests fail because tst_libext2fs.c end up with a
+build error.
+
+This is because it defines two global variables debug_prog_name and
+extra_cmds that are already defined in debugfs/debugfs.c. With -fcommon
+linker was able to resolve those into the same object, however with
+-fno-common it's no longer able to do it and we end up with
+multiple definition errors.
+
+Fix the problem by creating an extern declaration of said variables in
+debugfs.h and just setting them in tst_libext2fs.c without additional
+declaration.
+
+Signed-off-by: Lukas Czerner <lczerner@redhat.com>
+---
+ debugfs/debugfs.h          | 2 ++
+ lib/ext2fs/tst_libext2fs.c | 5 +++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/debugfs/debugfs.h b/debugfs/debugfs.h
+index 477d9bbb..956517bc 100644
+--- a/debugfs/debugfs.h
++++ b/debugfs/debugfs.h
+@@ -123,6 +123,8 @@ extern void do_set_block_group_descriptor(int argc, char **, int sci_idx, void *
+ extern void do_dump_unused(int argc, char **argv, int sci_idx, void *infop);
+ 
+ /* debugfs.c */
++extern ss_request_table *extra_cmds;
++extern const char *debug_prog_name;
+ extern void internal_dump_inode(FILE *, const char *, ext2_ino_t,
+ 				struct ext2_inode *, int);
+ 
+diff --git a/lib/ext2fs/tst_libext2fs.c b/lib/ext2fs/tst_libext2fs.c
+index 3e7497cd..43f0d153 100644
+--- a/lib/ext2fs/tst_libext2fs.c
++++ b/lib/ext2fs/tst_libext2fs.c
+@@ -28,9 +28,7 @@
+  * Hook in new commands into debugfs
+  * Override debugfs's prompt
+  */
+-const char *debug_prog_name = "tst_libext2fs";
+ extern ss_request_table libext2fs_cmds;
+-ss_request_table *extra_cmds = &libext2fs_cmds;
+ 
+ static int print_blocks_proc(ext2_filsys fs EXT2FS_ATTR((unused)),
+ 			     blk64_t *blocknr, e2_blkcnt_t blockcnt,
+@@ -51,6 +49,9 @@ void do_block_iterate(int argc, char **argv, int sci_idx EXT2FS_ATTR((unused)),
+ 	int		err = 0;
+ 	int		flags = 0;
+ 
++	debug_prog_name = "tst_libext2fs";
++	extra_cmds = &libext2fs_cmds;
++
+ 	if (common_args_process(argc, argv, 2, 3, argv[0], usage, 0))
+ 		return;
+ 
+-- 
+2.21.1
+

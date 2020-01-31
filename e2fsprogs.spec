@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
 Version: 1.45.5
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -26,6 +26,8 @@ BuildRequires: libuuid-devel
 BuildRequires: gettext
 BuildRequires: multilib-rpm-config
 BuildRequires: systemd
+
+Patch0: 0001-tst_libext2fs-Avoid-multiple-definition-of-global-va.patch
 
 %description
 The e2fsprogs package contains a number of utilities for creating,
@@ -153,6 +155,8 @@ managed device with some free space available in respective volume group.
 
 %prep
 %setup -q
+
+%patch0 -p1
 
 %global _udevdir %{_prefix}/lib/udev/rules.d
 
@@ -320,6 +324,9 @@ make fullcheck
 %{_udevdir}/96-e2scrub.rules
 
 %changelog
+* Thu Jan 30 2020 Lukas Czerner <lczerner@redhat.com> - 1.45.5-3
+- Fix build errors with gcc 10
+
 * Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.45.5-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 

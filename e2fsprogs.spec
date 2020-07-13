@@ -1,7 +1,7 @@
 Summary: Utilities for managing ext2, ext3, and ext4 file systems
 Name: e2fsprogs
 Version: 1.45.6
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
@@ -165,12 +165,12 @@ managed device with some free space available in respective volume group.
 	   --enable-elf-shlibs --enable-nls --disable-uuidd --disable-fsck \
 	   --disable-e2initrd-helper --disable-libblkid --disable-libuuid \
 	   --enable-quota --with-root-prefix=/usr --with-crond-dir=no
-make V=1 %{?_smp_mflags}
+%make_build
 
 %install
 rm -rf %{buildroot}
 export PATH=/sbin:$PATH
-make install install-libs DESTDIR=%{buildroot} INSTALL="%{__install} -p" \
+%make_install install-libs \
 	root_sbindir=%{_sbindir} root_libdir=%{_libdir}
 
 # Replace arch-dependent header file with arch-independent stub (when needed).
@@ -324,6 +324,10 @@ make fullcheck
 %{_udevdir}/96-e2scrub.rules
 
 %changelog
+* Mon Jul 13 2020 Tom Stellard <tstellar@redhat.com> - 1.45.6-3
+- Use make macros
+- https://fedoraproject.org/wiki/Changes/UseMakeBuildInstallMacro
+
 * Wed Mar 25 2020 Eric Sandeen <sandeen@redhat.com> - 1.45.6-2
 - Remove local/ elements from e2scrub PATH
 

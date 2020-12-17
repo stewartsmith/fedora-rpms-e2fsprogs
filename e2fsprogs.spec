@@ -26,6 +26,7 @@ BuildRequires: libuuid-devel
 BuildRequires: gettext
 BuildRequires: multilib-rpm-config
 BuildRequires: systemd
+BuildRequires: make
 
 Patch0:	0001-remove-local-PATH.patch
 

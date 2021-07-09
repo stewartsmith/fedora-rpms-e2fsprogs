@@ -6,6 +6,13 @@ Release: 5%{?dist}
 # License tags based on COPYING file distinctions for various components
 License: GPLv2
 Source0: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version}/%{name}-%{version}.tar.xz
+Source1: https://www.kernel.org/pub/linux/kernel/people/tytso/%{name}/v%{version}/%{name}-%{version}.tar.sign
+# GPG key fetched from https://thunk.org/tytso/tytso-key.asc
+# which was linked from https://thunk.org/tytso/
+# Also verified fingerprint matches on https://www.kernel.org/doc/wot/tytso.html
+# note that the GPG key linked off his MIT page is likely old, and is *not* the
+# same as the above key ( http://web.mit.edu/tytso/www/home.html )
+Source2: tytso-key.asc
 
 Url: http://e2fsprogs.sourceforge.net/
 Requires: e2fsprogs-libs%{?_isa} = %{version}-%{release}
@@ -27,6 +34,9 @@ BuildRequires: gettext
 BuildRequires: multilib-rpm-config
 BuildRequires: systemd
 BuildRequires: make
+
+# For gpg verifying the source tarball
+BuildRequires: gnupg2 xz
 
 Patch0:	0001-remove-local-PATH.patch
 
@@ -155,6 +165,7 @@ which means that it can only be done on file systems that are on a lvm
 managed device with some free space available in respective volume group.
 
 %prep
+xzcat '%{SOURCE0}' | %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data=-
 %setup -q
 
 %patch0 -p1
